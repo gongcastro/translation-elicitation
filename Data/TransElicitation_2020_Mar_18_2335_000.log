@@ -1,0 +1,120 @@
+13.6540 	EXP 	Created window1 = Window(allowGUI=False, allowStencil=False, args=UNKNOWN, autoLog=True, bitsMode=UNKNOWN, blendMode='avg', color=array([-1., -1., -1.]), colorSpace='rgb', fullscr=<method-wrapper '__getattribute__' of attributeSetter object at 0x137d09c18>, gamma=None, gammaErrorPolicy='raise', kwargs=UNKNOWN, lms=UNKNOWN, monitor=<psychopy.monitors.calibTools.Monitor object at 0x137b99240>, multiSample=False, name='window1', numSamples=2, pos=[0.0, 0.0], screen=0, size=array([1440,  900]), stereo=False, units='height', useFBO=True, useRetina=False, viewOri=0.0, viewPos=None, viewScale=None, waitBlanking=True, winType='pyglet')
+13.6541 	EXP 	window1: recordFrameIntervals = False
+13.8198 	EXP 	window1: recordFrameIntervals = True
+14.0040 	EXP 	window1: recordFrameIntervals = False
+16.1469 	EXP 	Created text_welcome = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='white', colorSpace='named', contrast=1.0, depth=0.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.1, italic=False, languageStyle='LTR', name='text_welcome', opacity=1.0, ori=0, pos=array([0., 0.]), rgb=array([255., 255., 255.]), text='Welcome!', units='height', win=Window(...), wrapWidth=1)
+16.1662 	EXP 	Created welcome_next = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='yellow', colorSpace='named', contrast=1.0, depth=-1.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.05, italic=False, languageStyle='LTR', name='welcome_next', opacity=1.0, ori=0, pos=array([ 0.8, -0.6]), rgb=array([255., 255.,   0.]), text="Press 'return' key >>", units='height', win=Window(...), wrapWidth=1)
+16.3890 	EXP 	Created instructions_title = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='yellow', colorSpace='named', contrast=1.0, depth=0.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.04, italic=False, languageStyle='LTR', name='instructions_title', opacity=1.0, ori=0, pos=array([0. , 0.4]), rgb=array([255., 255.,   0.]), text='Instructions', units='height', win=Window(...), wrapWidth=1)
+16.4415 	EXP 	Created instructions_text = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='white', colorSpace='named', contrast=1.0, depth=-1.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.04, italic=False, languageStyle='LTR', name='instructions_text', opacity=1.0, ori=0, pos=array([0., 0.]), rgb=array([255., 255., 255.]), text=str(...), units='height', win=Window(...), wrapWidth=1)
+16.6521 	EXP 	Created trial_fixation = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='yellow', colorSpace='named', contrast=1.0, depth=0.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.1, italic=False, languageStyle='LTR', name='trial_fixation', opacity=1.0, ori=0, pos=array([0., 0.]), rgb=array([255., 255.,   0.]), text='+', units='height', win=Window(...), wrapWidth=1)
+16.6638 	EXP 	Created trial_word = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='white', colorSpace='named', contrast=1.0, depth=-1.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.025, italic=False, languageStyle='LTR', name='trial_word', opacity=1.0, ori=0, pos=array([-0.4,  0.3]), rgb=array([255., 255., 255.]), text='default text', units='height', win=Window(...), wrapWidth=1)
+16.7182 	EXP 	Sound trial_sound set volume 1.000
+16.7310 	EXP 	Created trial_response_display = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='yellow', colorSpace='named', contrast=1.0, depth=-3.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.1, italic=False, languageStyle='LTR', name='trial_response_display', opacity=1.0, ori=0, pos=array([0., 0.]), rgb=array([255., 255.,   0.]), text='default text', units='height', win=Window(...), wrapWidth=1)
+16.7418 	EXP 	Created farewell_text = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='white', colorSpace='named', contrast=1.0, depth=0.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.1, italic=False, languageStyle='LTR', name='farewell_text', opacity=1.0, ori=0, pos=array([0., 0.]), rgb=array([255., 255., 255.]), text='Thank you!', units='height', win=Window(...), wrapWidth=1)
+16.9607 	EXP 	Created farewell_next = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz='center', alignVert='center', antialias=True, autoLog=True, bold=False, color='yellow', colorSpace='named', contrast=1.0, depth=-2.0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.05, italic=False, languageStyle='LTR', name='farewell_next', opacity=1.0, ori=0, pos=array([ 0.6, -0.5]), rgb=array([255., 255.,   0.]), text="Press 'return' key >>", units='height', win=Window(...), wrapWidth=1)
+16.9788 	EXP 	text_welcome: autoDraw = True
+16.9788 	EXP 	welcome_next: autoDraw = True
+18.1580 	DATA 	Keypress: return
+18.1645 	EXP 	text_welcome: autoDraw = False
+18.1645 	EXP 	welcome_next: autoDraw = False
+18.1645 	EXP 	instructions_title: autoDraw = True
+18.1645 	EXP 	instructions_text: autoDraw = True
+26.5486 	EXP 	Imported Stimuli/trials.xlsx as conditions, 86 conditions, 3 params
+26.5497 	EXP 	Created sequence: random, trialTypes=86, nReps=1, seed=None
+26.5502 	EXP 	New trial (rep=0, index=0): OrderedDict([('TrialID', 85), ('Word', 'xocolata'), ('FileName', 'Stimuli/Sounds/xocolata.wav')])
+26.5817 	DATA 	Keypress: return
+26.6032 	EXP 	instructions_title: autoDraw = False
+26.6032 	EXP 	instructions_text: autoDraw = False
+26.6032 	EXP 	trial_word: text = '[Testing sound: xocolata]'
+26.6032 	EXP 	trial_response_display: text = ' '
+26.6032 	EXP 	trial_fixation: autoDraw = True
+26.6032 	EXP 	trial_response_display: text = ''
+27.0882 	EXP 	trial_word: autoDraw = True
+27.0882 	EXP 	trial_response_display: autoDraw = True
+27.1039 	EXP 	trial_fixation: autoDraw = False
+28.8121 	DATA 	Keypress: c
+28.8256 	EXP 	trial_response_display: text = 'c'
+28.8604 	DATA 	Keypress: h
+28.8770 	EXP 	trial_response_display: text = 'ch'
+28.9115 	DATA 	Keypress: o
+28.9256 	EXP 	trial_response_display: text = 'cho'
+29.0457 	DATA 	Keypress: c
+29.0593 	EXP 	trial_response_display: text = 'choc'
+29.8828 	DATA 	Keypress: o
+29.9131 	EXP 	trial_response_display: text = 'choco'
+30.0819 	DATA 	Keypress: l
+30.0954 	EXP 	trial_response_display: text = 'chocol'
+30.2307 	DATA 	Keypress: a
+30.2473 	EXP 	trial_response_display: text = 'chocola'
+30.4150 	DATA 	Keypress: t
+30.4295 	EXP 	trial_response_display: text = 'chocolat'
+30.4979 	DATA 	Keypress: e
+30.5149 	EXP 	trial_response_display: text = 'chocolate'
+31.5857 	EXP 	New trial (rep=0, index=1): OrderedDict([('TrialID', 79), ('Word', 'tomàquet'), ('FileName', 'Stimuli/Sounds/tomaquet.wav')])
+31.6163 	EXP 	trial_word: autoDraw = False
+31.6163 	EXP 	trial_response_display: autoDraw = False
+31.6163 	EXP 	trial_fixation: autoDraw = False
+31.6163 	EXP 	trial_word: autoDraw = False
+31.6163 	EXP 	trial_response_display: autoDraw = False
+31.6163 	EXP 	trial_word: text = '[Testing sound: tomàquet]'
+31.6163 	EXP 	trial_response_display: text = ' '
+31.6163 	EXP 	trial_fixation: autoDraw = True
+32.1010 	EXP 	trial_word: autoDraw = True
+32.1010 	EXP 	trial_response_display: autoDraw = True
+32.1175 	EXP 	trial_fixation: autoDraw = False
+33.5243 	DATA 	Keypress: t
+33.5549 	EXP 	trial_response_display: text = 't'
+33.5758 	DATA 	Keypress: o
+33.6047 	EXP 	trial_response_display: text = 'to'
+33.6405 	DATA 	Keypress: m
+33.6549 	EXP 	trial_response_display: text = 'tom'
+33.7397 	DATA 	Keypress: a
+33.7552 	EXP 	trial_response_display: text = 'toma'
+33.9077 	DATA 	Keypress: t
+33.9228 	EXP 	trial_response_display: text = 'tomat'
+33.9914 	DATA 	Keypress: e
+34.0058 	EXP 	trial_response_display: text = 'tomate'
+34.1433 	DATA 	Keypress: return
+34.1732 	EXP 	trial_response_display: text = 'tomate'
+36.5983 	EXP 	New trial (rep=0, index=2): OrderedDict([('TrialID', 13), ('Word', 'bolquer'), ('FileName', 'Stimuli/Sounds/bolquer.wav')])
+36.6298 	EXP 	trial_word: autoDraw = False
+36.6298 	EXP 	trial_response_display: autoDraw = False
+36.6298 	EXP 	trial_fixation: autoDraw = False
+36.6298 	EXP 	trial_word: autoDraw = False
+36.6298 	EXP 	trial_response_display: autoDraw = False
+36.6298 	EXP 	trial_word: text = '[Testing sound: bolquer]'
+36.6298 	EXP 	trial_response_display: text = ' '
+36.6298 	EXP 	trial_fixation: autoDraw = True
+37.1141 	EXP 	trial_word: autoDraw = True
+37.1141 	EXP 	trial_response_display: autoDraw = True
+37.1318 	EXP 	trial_fixation: autoDraw = False
+38.6535 	DATA 	Keypress: p
+38.6681 	EXP 	trial_response_display: text = 'p'
+38.7386 	DATA 	Keypress: a
+38.7690 	EXP 	trial_response_display: text = 'pa'
+38.9058 	DATA 	Keypress: a
+38.9356 	EXP 	trial_response_display: text = 'paa'
+39.0379 	DATA 	Keypress: l
+39.0528 	EXP 	trial_response_display: text = 'paal'
+39.5416 	DATA 	Keypress: backspace
+39.5706 	EXP 	trial_response_display: text = 'paa'
+39.6748 	DATA 	Keypress: backspace
+39.7046 	EXP 	trial_response_display: text = 'pa'
+40.3581 	DATA 	Keypress: a
+40.3734 	EXP 	trial_response_display: text = 'paa'
+40.5249 	DATA 	Keypress: l
+40.5396 	EXP 	trial_response_display: text = 'paal'
+41.6121 	EXP 	New trial (rep=0, index=3): OrderedDict([('TrialID', 8), ('Word', 'biberó'), ('FileName', 'Stimuli/Sounds/bibero.wav')])
+41.6432 	EXP 	trial_word: autoDraw = False
+41.6432 	EXP 	trial_response_display: autoDraw = False
+41.6432 	EXP 	trial_fixation: autoDraw = False
+41.6432 	EXP 	trial_word: autoDraw = False
+41.6432 	EXP 	trial_response_display: autoDraw = False
+41.6432 	EXP 	trial_word: text = '[Testing sound: biberó]'
+41.6432 	EXP 	trial_response_display: text = ' '
+41.6432 	EXP 	trial_fixation: autoDraw = True
+42.1273 	EXP 	trial_word: autoDraw = True
+42.1273 	EXP 	trial_response_display: autoDraw = True
+42.1442 	EXP 	trial_fixation: autoDraw = False
+42.2138 	DATA 	Keypress: escape
+42.7625 	EXP 	window1: mouseVisible = True

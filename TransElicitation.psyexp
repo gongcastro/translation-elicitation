@@ -1,0 +1,442 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="3.2.4">
+  <Settings>
+    <Param name="Audio latency priority" updates="None" val="use prefs" valType="str"/>
+    <Param name="Audio lib" updates="None" val="ptb" valType="str"/>
+    <Param name="Completed URL" updates="None" val="" valType="str"/>
+    <Param name="Data filename" updates="None" val="u'Data/%s_%s_%s' % (expName, data.getDateStr(format=&quot;%Y-%m-%d-%H%M&quot;), expInfo['Code'])" valType="code"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
+    <Param name="Experiment info" updates="None" val="{'participant': '000', 'session': '001'}" valType="code"/>
+    <Param name="Force stereo" updates="None" val="True" valType="bool"/>
+    <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Screen" updates="None" val="1" valType="num"/>
+    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Units" updates="None" val="height" valType="str"/>
+    <Param name="Use version" updates="None" val="2020.1" valType="str"/>
+    <Param name="Window size (pixels)" updates="None" val="[1440, 900]" valType="code"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="color" updates="None" val="$[-1,-1,-1]" valType="str"/>
+    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
+    <Param name="expName" updates="None" val="TransElicitation" valType="str"/>
+    <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
+    <Param name="logging level" updates="None" val="exp" valType="code"/>
+  </Settings>
+  <Routines>
+    <Routine name="block_welcome">
+      <TextComponent name="text_welcome">
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
+        <Param name="name" updates="None" val="text_welcome" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0.0, 0.1)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Welcome!" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <TextComponent name="welcome_text">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="code"/>
+        <Param name="name" updates="None" val="welcome_text" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, -0.1)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Please, use headphones" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <TextComponent name="welcome_next">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="code"/>
+        <Param name="name" updates="None" val="welcome_next" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0.5, -0.4)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Press 'return' key &gt;&gt;" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <KeyboardComponent name="welcome_key">
+        <Param name="allowedKeys" updates="constant" val="'return'" valType="code"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="discard previous" updates="constant" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="welcome_key" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="nothing" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+      <CodeComponent name="welcome_code">
+        <Param name="Begin Experiment" updates="constant" val="expInfo['date'] = data.getDateStr(format=&quot;%Y-%m-%d-%H%M&quot;)&amp;#10;expInfo['experiment'] = 'TransElicitation'&amp;#10;&amp;#10;globalClock = core.Clock()&amp;#10;&amp;#10;print('Log')" valType="extendedCode"/>
+        <Param name="Begin JS Experiment" updates="constant" val="expInfo['date'] = data.getDateStr(format=&quot;%Y-%m-%d-%H%M&quot;);&amp;#10;expInfo['experiment'] = 'TransElicitation';&amp;#10;globalClock = core.Clock();" valType="extendedCode"/>
+        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Code Type" updates="None" val="Both" valType="str"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Each JS Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="name" updates="None" val="welcome_code" valType="code"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="block_trial">
+      <TextComponent name="trial_fixation">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.20" valType="code"/>
+        <Param name="name" updates="None" val="trial_fixation" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="1.0" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="+" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <TextComponent name="trial_word">
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="True" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.025" valType="code"/>
+        <Param name="name" updates="None" val="trial_word" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(-0.4, 0.3)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="1.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="5.5" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="set every repeat" val="'[Testing sound: ' + $Word +']'" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <SoundComponent name="trial_sound">
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="hamming" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="trial_sound" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="sound" updates="set every repeat" val="$FileName" valType="str"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="1.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+        <Param name="volume" updates="constant" val="1" valType="code"/>
+      </SoundComponent>
+      <TextComponent name="trial_response_display">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
+        <Param name="name" updates="None" val="trial_response_display" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="1.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="5.5" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="set every repeat" val="" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <CodeComponent name="trial_code">
+        <Param name="Begin Experiment" updates="constant" val="import string&amp;#10;allLetters = list(string.ascii_lowercase)&amp;#10;&amp;#10;from psychopy import core&amp;#10;globalClock = core.Clock()" valType="extendedCode"/>
+        <Param name="Begin JS Experiment" updates="constant" val="import string;&amp;#10;allLetters = list(string.ascii_lowercase);&amp;#10;&amp;#10;from psychopy import core;&amp;#10;globalClock = core.Clock();" valType="extendedCode"/>
+        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="textFill = '';&amp;#10;response = False;&amp;#10;trialClock = core.Clock();" valType="extendedCode"/>
+        <Param name="Code Type" updates="None" val="Both" valType="str"/>
+        <Param name="Each Frame" updates="constant" val="keys = event.getKeys()&amp;#10;if 'escape' in keys:&amp;#10;    core.quit()  # So you can quit&amp;#10;else:&amp;#10;    if keys and not response and trialClock.getTime() &gt; 1.0:&amp;#10;        firstKeyRT = trialClock.getTime()&amp;#10;        if keys[0] == 'space':&amp;#10;            textFill += ' '  # Adds a space instead of 'space'&amp;#10;        elif keys[0] in allLetters:&amp;#10;            textFill+=keys[0]  # Adds character to text if in alphabet.&amp;#10;        trial_response_display.setText(textFill)  # Set new text on screen&amp;#10;    elif keys and response and trialClock.getTime() &gt; 1.0:&amp;#10;        if keys[0] == 'space':&amp;#10;            textFill += ' '  # Adds a space instead of 'space'&amp;#10;        elif keys[0] in allLetters:&amp;#10;            textFill+=keys[0]  # Adds character to text if in alphabet.&amp;#10;            trial_response_display.setText(textFill)" valType="extendedCode"/>
+        <Param name="Each JS Frame" updates="constant" val="keys = event.getKeys();&amp;#10;if ('escape' in keys) {&amp;#10;    core.quit();&amp;#10;    }&amp;#10;else {&amp;#10;    if (keys==true &amp;&amp; response!=true &amp;&amp; trialClock.getTime() &gt; 1.0) {&amp;#10;        firstKeyRT = trialClock.getTime();&amp;#10;        if (keys[0] == 'space') {&amp;#10;            textFill += ' ';&amp;#10;            }&amp;#10;        elif (keys[0] in allLetters) {&amp;#10;            textFill+=keys[0];&amp;#10;            }&amp;#10;        trial_response_display.setText(textFill);&amp;#10;    elif (keys &amp;&amp; response &amp;&amp; trialClock.getTime() &gt; 1.0) {&amp;#10;        if (keys[0] == 'space') {&amp;#10;            textFill += ' ';&amp;#10;            }&amp;#10;        elif (keys[0] in allLetters) {&amp;#10;            textFill+=keys[0];&amp;#10;            trial_response_display.setText(textFill);&amp;#10;            }" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="thisExp.addData('keyPresses', textFill)&amp;#10;thisExp.addData('firstKeyRT', firstKeyRT)&amp;#10;&amp;#10;textFill = ''" valType="extendedCode"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="name" updates="None" val="trial_code" valType="code"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="block_farewell">
+      <TextComponent name="farewell_text">
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
+        <Param name="name" updates="None" val="farewell_text" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Thank you!" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <KeyboardComponent name="farewell_key">
+        <Param name="allowedKeys" updates="constant" val="'space'" valType="code"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="farewell_key" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="nothing" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+      <TextComponent name="farewell_next">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="code"/>
+        <Param name="name" updates="None" val="farewell_next" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0.5, -0.4)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Press 'return' key &gt;&gt;" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+    </Routine>
+    <Routine name="block_form">
+      <CodeComponent name="form_code">
+        <Param name="Begin Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="info = {'experiment:': 'Translation Elicitation Task',&amp;#10;        'date_test': expInfo['date'],&amp;#10;        'code': '',&amp;#10;        'date_birth': 'dd/mm/yyyy',&amp;#10;        'sex': ['Female', 'Male', 'Other'],&amp;#10;        'city': ['Oxford', 'London', 'Barcelona', 'Madrid'],&amp;#10;        'language': ['English', 'Spanish', 'Catalan'],&amp;#10;        'prof_eng': 0,&amp;#10;        'prof_spa': 0,&amp;#10;        'prof_cat': 0}&amp;#10;&amp;#10;print('Dict created')" valType="extendedCode"/>
+        <Param name="Code Type" updates="None" val="Py" valType="str"/>
+        <Param name="Each Frame" updates="constant" val="info = gui.DlgFromDict(dictionary = info,&amp;#10;                       fixed = ['date_test'],&amp;#10;                       title = expInfo['experiment'],&amp;#10;                       order = ['date_test', 'code', 'date_birth', 'sex', 'city', 'language', 'prof_eng', 'prof_spa', 'prof_cat'],&amp;#10;                       tip = {'language': 'Which is you native language?',&amp;#10;                              'prof_eng': 'How proficient are you in English? 0 = I have no idea, 1 = Native level',&amp;#10;                              'prof_spa': 'How proficient are you in Spanish? 0 = I have no idea, 1 = Native level',&amp;#10;                              'prof_cat': 'How proficient are you in Catalan? 0 = I have no idea, 1 = Native level'},&amp;#10;                       show = True&amp;#10;)&amp;#10;&amp;#10;print('Dict updated')&amp;#10;&amp;#10;" valType="extendedCode"/>
+        <Param name="Each JS Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="info = info.data[0]&amp;#10;print (info)&amp;#10;&amp;#10;print('GUI ended')&amp;#10;" valType="extendedCode"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="name" updates="None" val="form_code" valType="code"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="block_instructions">
+      <TextComponent name="instructions_title">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.08" valType="code"/>
+        <Param name="name" updates="None" val="instructions_title" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0.4)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Instructions" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <TextComponent name="instructions_text">
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="code"/>
+        <Param name="name" updates="None" val="instructions_text" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="In each trial, you will first see a cross.&amp;#10;&amp;#10;Then, you will listen a word in Catalan.&amp;#10;&amp;#10;Type its translation in English.&amp;#10;&amp;#10;Be fast, be accurate.&amp;#10;&amp;#10;You have 5 seconds to answer." valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <TextComponent name="instructions_next">
+        <Param name="color" updates="constant" val="yellow" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="code"/>
+        <Param name="name" updates="None" val="instructions_next" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0.5, -0.4)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Press 'return' to start! &gt;&gt;" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <KeyboardComponent name="instructions_key">
+        <Param name="allowedKeys" updates="constant" val="'return'" valType="code"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="instructions_key" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="False" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="nothing" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="block_welcome"/>
+    <Routine name="block_instructions"/>
+    <LoopInitiator loopType="TrialHandler" name="loop_trials">
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
+      <Param name="conditions" updates="None" val="[OrderedDict([('TrialID', 1), ('Word', 'abella'), ('FileName', 'Stimuli/Sounds/abella.wav')]), OrderedDict([('TrialID', 2), ('Word', 'aigua'), ('FileName', 'Stimuli/Sounds/aigua.wav')]), OrderedDict([('TrialID', 3), ('Word', 'aixeta'), ('FileName', 'Stimuli/Sounds/aixeta.wav')]), OrderedDict([('TrialID', 4), ('Word', 'amanida'), ('FileName', 'Stimuli/Sounds/amanida.wav')]), OrderedDict([('TrialID', 5), ('Word', 'ampolla'), ('FileName', 'Stimuli/Sounds/ampolla.wav')]), OrderedDict([('TrialID', 6), ('Word', 'arbre'), ('FileName', 'Stimuli/Sounds/arbre.wav')]), OrderedDict([('TrialID', 7), ('Word', 'berenar'), ('FileName', 'Stimuli/Sounds/berenar.wav')]), OrderedDict([('TrialID', 8), ('Word', 'bibero'), ('FileName', 'Stimuli/Sounds/bibero.wav')]), OrderedDict([('TrialID', 9), ('Word', 'bici'), ('FileName', 'Stimuli/Sounds/bici.wav')]), OrderedDict([('TrialID', 10), ('Word', 'boca'), ('FileName', 'Stimuli/Sounds/boca.wav')]), OrderedDict([('TrialID', 11), ('Word', 'bol'), ('FileName', 'Stimuli/Sounds/bol.wav')]), OrderedDict([('TrialID', 12), ('Word', 'bolet'), ('FileName', 'Stimuli/Sounds/bolet.wav')]), OrderedDict([('TrialID', 13), ('Word', 'bolquer'), ('FileName', 'Stimuli/Sounds/bolquer.wav')]), OrderedDict([('TrialID', 14), ('Word', 'boto'), ('FileName', 'Stimuli/Sounds/boto.wav')]), OrderedDict([('TrialID', 15), ('Word', 'bou'), ('FileName', 'Stimuli/Sounds/bou.wav')]), OrderedDict([('TrialID', 16), ('Word', 'caixa'), ('FileName', 'Stimuli/Sounds/caixa.wav')]), OrderedDict([('TrialID', 17), ('Word', 'cama'), ('FileName', 'Stimuli/Sounds/cama.wav')]), OrderedDict([('TrialID', 18), ('Word', 'camisa'), ('FileName', 'Stimuli/Sounds/camisa.wav')]), OrderedDict([('TrialID', 19), ('Word', 'casa'), ('FileName', 'Stimuli/Sounds/casa.wav')]), OrderedDict([('TrialID', 20), ('Word', 'cavall'), ('FileName', 'Stimuli/Sounds/cavall.wav')]), OrderedDict([('TrialID', 21), ('Word', 'cirera'), ('FileName', 'Stimuli/Sounds/cirera.wav')]), OrderedDict([('TrialID', 22), ('Word', 'colom'), ('FileName', 'Stimuli/Sounds/colom.wav')]), OrderedDict([('TrialID', 23), ('Word', 'corona'), ('FileName', 'Stimuli/Sounds/corona.wav')]), OrderedDict([('TrialID', 24), ('Word', 'cotxe'), ('FileName', 'Stimuli/Sounds/cotxe.wav')]), OrderedDict([('TrialID', 25), ('Word', 'cuc'), ('FileName', 'Stimuli/Sounds/cuc.wav')]), OrderedDict([('TrialID', 26), ('Word', 'dit'), ('FileName', 'Stimuli/Sounds/dit.wav')]), OrderedDict([('TrialID', 27), ('Word', 'entrepa'), ('FileName', 'Stimuli/Sounds/entrepa.wav')]), OrderedDict([('TrialID', 28), ('Word', 'esponja'), ('FileName', 'Stimuli/Sounds/esponja.wav')]), OrderedDict([('TrialID', 29), ('Word', 'estrella'), ('FileName', 'Stimuli/Sounds/estrella.wav')]), OrderedDict([('TrialID', 30), ('Word', 'estruc'), ('FileName', 'Stimuli/Sounds/estruc.wav')]), OrderedDict([('TrialID', 31), ('Word', 'flor'), ('FileName', 'Stimuli/Sounds/flor.wav')]), OrderedDict([('TrialID', 32), ('Word', 'formiga'), ('FileName', 'Stimuli/Sounds/formiga.wav')]), OrderedDict([('TrialID', 33), ('Word', 'forquilla'), ('FileName', 'Stimuli/Sounds/forquilla.wav')]), OrderedDict([('TrialID', 34), ('Word', 'fulla'), ('FileName', 'Stimuli/Sounds/fulla.wav')]), OrderedDict([('TrialID', 35), ('Word', 'galeta'), ('FileName', 'Stimuli/Sounds/galeta.wav')]), OrderedDict([('TrialID', 36), ('Word', 'galleda'), ('FileName', 'Stimuli/Sounds/galleda.wav')]), OrderedDict([('TrialID', 37), ('Word', 'gat'), ('FileName', 'Stimuli/Sounds/gat.wav')]), OrderedDict([('TrialID', 38), ('Word', 'gerd'), ('FileName', 'Stimuli/Sounds/gerd.wav')]), OrderedDict([('TrialID', 39), ('Word', 'girafa'), ('FileName', 'Stimuli/Sounds/girafa.wav')]), OrderedDict([('TrialID', 40), ('Word', 'globus'), ('FileName', 'Stimuli/Sounds/globus.wav')]), OrderedDict([('TrialID', 41), ('Word', 'gorra'), ('FileName', 'Stimuli/Sounds/gorra.wav')]), OrderedDict([('TrialID', 42), ('Word', 'got'), ('FileName', 'Stimuli/Sounds/got.wav')]), OrderedDict([('TrialID', 43), ('Word', 'guitarra'), ('FileName', 'Stimuli/Sounds/guitarra.wav')]), OrderedDict([('TrialID', 44), ('Word', 'jaqueta'), ('FileName', 'Stimuli/Sounds/jaqueta.wav')]), OrderedDict([('TrialID', 45), ('Word', 'lleo'), ('FileName', 'Stimuli/Sounds/lleo.wav')]), OrderedDict([('TrialID', 46), ('Word', 'llibre'), ('FileName', 'Stimuli/Sounds/llibre.wav')]), OrderedDict([('TrialID', 47), ('Word', 'lloro'), ('FileName', 'Stimuli/Sounds/lloro.wav')]), OrderedDict([('TrialID', 48), ('Word', 'lluna'), ('FileName', 'Stimuli/Sounds/lluna.wav')]), OrderedDict([('TrialID', 49), ('Word', 'ma'), ('FileName', 'Stimuli/Sounds/ma.wav')]), OrderedDict([('TrialID', 50), ('Word', 'mico'), ('FileName', 'Stimuli/Sounds/mico.wav')]), OrderedDict([('TrialID', 51), ('Word', 'mirall'), ('FileName', 'Stimuli/Sounds/mirall.wav')]), OrderedDict([('TrialID', 52), ('Word', 'moneda'), ('FileName', 'Stimuli/Sounds/moneda.wav')]), OrderedDict([('TrialID', 53), ('Word', 'moto'), ('FileName', 'Stimuli/Sounds/moto.wav')]), OrderedDict([('TrialID', 54), ('Word', 'mussol'), ('FileName', 'Stimuli/Sounds/mussol.wav')]), OrderedDict([('TrialID', 55), ('Word', 'nas'), ('FileName', 'Stimuli/Sounds/nas.wav')]), OrderedDict([('TrialID', 56), ('Word', 'onada'), ('FileName', 'Stimuli/Sounds/onada.wav')]), OrderedDict([('TrialID', 57), ('Word', 'orella'), ('FileName', 'Stimuli/Sounds/orella.wav')]), OrderedDict([('TrialID', 58), ('Word', 'ovella'), ('FileName', 'Stimuli/Sounds/ovella.wav')]), OrderedDict([('TrialID', 59), ('Word', 'pa'), ('FileName', 'Stimuli/Sounds/pa.wav')]), OrderedDict([('TrialID', 60), ('Word', 'papallona'), ('FileName', 'Stimuli/Sounds/papallona.wav')]), OrderedDict([('TrialID', 61), ('Word', 'patata'), ('FileName', 'Stimuli/Sounds/patata.wav')]), OrderedDict([('TrialID', 62), ('Word', 'pernil'), ('FileName', 'Stimuli/Sounds/pernil.wav')]), OrderedDict([('TrialID', 63), ('Word', 'peu'), ('FileName', 'Stimuli/Sounds/peu.wav')]), OrderedDict([('TrialID', 64), ('Word', 'pingüí'), ('FileName', 'Stimuli/Sounds/pingui.wav')]), OrderedDict([('TrialID', 65), ('Word', 'planta'), ('FileName', 'Stimuli/Sounds/planta.wav')]), OrderedDict([('TrialID', 66), ('Word', 'plat'), ('FileName', 'Stimuli/Sounds/plat.wav')]), OrderedDict([('TrialID', 67), ('Word', 'ploma'), ('FileName', 'Stimuli/Sounds/ploma.wav')]), OrderedDict([('TrialID', 68), ('Word', 'pollastre'), ('FileName', 'Stimuli/Sounds/pollastre.wav')]), OrderedDict([('TrialID', 69), ('Word', 'poma'), ('FileName', 'Stimuli/Sounds/poma.wav')]), OrderedDict([('TrialID', 70), ('Word', 'porc'), ('FileName', 'Stimuli/Sounds/porc.wav')]), OrderedDict([('TrialID', 71), ('Word', 'porta'), ('FileName', 'Stimuli/Sounds/porta.wav')]), OrderedDict([('TrialID', 72), ('Word', 'raspall'), ('FileName', 'Stimuli/Sounds/raspall.wav')]), OrderedDict([('TrialID', 73), ('Word', 'samarreta'), ('FileName', 'Stimuli/Sounds/samarreta.wav')]), OrderedDict([('TrialID', 74), ('Word', 'sol'), ('FileName', 'Stimuli/Sounds/sol.wav')]), OrderedDict([('TrialID', 75), ('Word', 'taronja'), ('FileName', 'Stimuli/Sounds/taronja.wav')]), OrderedDict([('TrialID', 76), ('Word', 'tigre'), ('FileName', 'Stimuli/Sounds/tigre.wav')]), OrderedDict([('TrialID', 77), ('Word', 'tisores'), ('FileName', 'Stimuli/Sounds/tisores.wav')]), OrderedDict([('TrialID', 78), ('Word', 'tobogan'), ('FileName', 'Stimuli/Sounds/tobogan.wav')]), OrderedDict([('TrialID', 79), ('Word', 'tomàquet'), ('FileName', 'Stimuli/Sounds/tomaquet.wav')]), OrderedDict([('TrialID', 80), ('Word', 'tren'), ('FileName', 'Stimuli/Sounds/tren.wav')]), OrderedDict([('TrialID', 81), ('Word', 'ull'), ('FileName', 'Stimuli/Sounds/ull.wav')]), OrderedDict([('TrialID', 82), ('Word', 'ulleres'), ('FileName', 'Stimuli/Sounds/ulleres.wav')]), OrderedDict([('TrialID', 83), ('Word', 'ungla'), ('FileName', 'Stimuli/Sounds/ungla.wav')]), OrderedDict([('TrialID', 84), ('Word', 'vaixell'), ('FileName', 'Stimuli/Sounds/vaixell.wav')]), OrderedDict([('TrialID', 85), ('Word', 'xocolata'), ('FileName', 'Stimuli/Sounds/xocolata.wav')]), OrderedDict([('TrialID', 86), ('Word', 'zebra'), ('FileName', 'Stimuli/Sounds/zebra.wav')])]" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="Stimuli/trials.xlsx" valType="str"/>
+      <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
+      <Param name="loopType" updates="None" val="random" valType="str"/>
+      <Param name="nReps" updates="None" val="1" valType="code"/>
+      <Param name="name" updates="None" val="loop_trials" valType="code"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+    </LoopInitiator>
+    <Routine name="block_trial"/>
+    <LoopTerminator name="loop_trials"/>
+    <Routine name="block_farewell"/>
+  </Flow>
+</PsychoPy2experiment>
