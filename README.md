@@ -1,2 +1,0 @@
-# TransElicitation
-Translation Elicitation task targeted at monolingual participants. This repository hosts the code for the behavioural task, and survey templates used to collect data on linguistic profiles. The behavioural task was written using PsychoPy, and implemented online via Pavlovia. We will collect reaction times and accuracy measures from participants. These data will be used to train and validate an algorithm aimed at computing a featured-based measure of phonological overlap across translation equivalents.
