@@ -1,0 +1,29 @@
+---
+title: "Methods"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+library(tidyverse)
+library(here)
+library(data.table)
+library(lubridate)
+library(papaja)
+
+logs <- fread(here("Data", "01_logs.csv"), na.strings = "") %>%
+    as_tibble() %>%
+    mutate(date = as_date(date))
+dat <- fread(here("Data", "01_processed.csv"), na.strings = "") %>% 
+    as_tibble()
+
+```
+
+# Participants
+
+Data collection took place from `r format(min(logs$date), "%dth %B, %Y")` to  `r format(max(logs$date), "%dth %B, %Y")`. We collected data from `r nrow(logs)` participants ($M_{age}$ = `r printnum(mean(logs$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(sd(logs$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(min(logs$age, na.rm = TRUE))`-`r printnum(max(logs$age, na.rm = TRUE))`). `r filter(logs, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(logs, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(logs, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(logs, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We exluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(logs, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(logs, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(logs, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(logs, country %in% "Spain", !vision))/nrow(filter(logs, country=="Spain")))*100)`%. This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(logs$exclude_trials, na.rm = TRUE)`, `r printnum(100*(sum(logs$exclude_trials, na.rm = TRUE)/nrow(logs)))`%). Participants contributed a total of `r distinct(dat, participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` trials (`r filter(dat, test_language=="Catalan") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Catalan, `r filter(dat, test_language=="Spanish") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Spanish).
+
