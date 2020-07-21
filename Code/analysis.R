@@ -17,7 +17,7 @@ library(modelr) # for predicting scores from models
 library(here) # for locating files in the repository with reproducibilidy
 
 # create/load functions
-source(here("Code", "te_functions.R")) # helper functions
+source(here("Code", "functions.R")) # helper functions
 
 # set parameters
 set.seed(888) # for reproducibility
