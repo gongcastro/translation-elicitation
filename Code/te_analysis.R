@@ -4,26 +4,23 @@
 
 # load packages
 library(tidyverse)
+library(patchwork)
 library(readxl)
 library(purrr)
-library(janitor)
-library(lubridate)
-library(data.table)
-library(stringdist)
-library(mice)
-library(lme4)
-library(lmerTest)
-library(groupdata2)
-library(car)
-library(cvms)
-library(patchwork)
-library(here)
+library(janitor) # for cleaning vairable names
+library(lubridate) # for working with dates
+library(data.table) # for importing data
+library(stringdist) # for calculating Levenshtein distance
+library(brms) # for fitting Bayesian models
+library(tidybayes) # for sampling from the posterior in Bayesian models
+library(modelr) # for predicting scores from models
+library(here) # for locating files in the repository with reproducibilidy
 
 # create/load functions
-source(here("Code", "te_functions.R"))
+source(here("Code", "te_functions.R")) # helper functions
 
 # set parameters
-set.seed(888)
+set.seed(888) # for reproducibility
 practice_trials <- c(109, 147, 159, 167, 179, 1, 26, 70, 86, 96)
 spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "España", "Málaga", "Oviedo", "Santander", "Granada")
 
@@ -95,16 +92,6 @@ dat_aggregated <- dat_processed %>%
               .groups = "drop") %>%
     ungroup()
 
-#### logs #######################################################
-# participant info
-logs <- dat_aggregated %>%
-    group_by(participant, date, test_language, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>% 
-    summarise(n = n()) %>% 
-    rowwise() %>% 
-    mutate(exclude_trials = ifelse(test_language %in% "Catalan", n < 76*0.80, n < 97*0.80)) %>% 
-    ungroup() 
-fwrite(logs, here("Data", "01_logs.csv"), sep = ",", dec = ".", row.names = FALSE)
-
 #### merge with trial-level data ########################
 trials <- read_xlsx(here("Stimuli", "trials.xlsx")) # trial-level data
 
@@ -127,33 +114,104 @@ dat_merged <- dat_aggregated %>%
                                       TRUE ~ consec_longest_spacat),
            accuracy = stringdist(input_text, ort, method = "dl"),
            correct = ifelse(accuracy==0, 1, 0)) %>% 
-    select(-matches("engspa|engcat|spacat|ort|phon"))
+    select(-matches("engspa|engcat|spacat|ort|phon")) %>% 
+    select(participant, country, trial_id, word, input_text, test_language, accuracy, correct, typing_onset, similarity, match_count, shared_onset, consec_onset, consec_longest, freq)
 
-#### filter data ########################################
+#### export data #####################
+fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE)
+
+####  prepare accuracy data ##########
+# import manually coded data
+dat_coded <- read_xlsx(here("Data", "01_processed_coded.xlsx")) %>% 
+    mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
+           correct_coded = response_type %in% c("correct", "typo"))
+
 
 #### prepare data for analysis ##########################
-dat_prepared <- dat_merged %>%
-    # match each trial with its corresponding value of TE Levenshtein/similarity score
+dat_accuracy <- dat_coded %>%
     mutate(test_language = as.factor(test_language)) %>%
-    select(participant, trial_id, word, input_text, test_language, accuracy, correct, typing_onset, similarity, match_count, shared_onset, consec_onset, consec_longest, freq) %>% 
-    mutate_at(vars(freq, similarity), function(x) scale(x)[,1])
-    
-contrasts(dat_prepared$test_language) <- contr.sum(c("Catalan", "Spanish"))/2
-contrasts(dat_prepared$shared_onset) <- contr.sum(c(0, 1))/2
+    mutate_at(vars(freq, similarity), function(x) scale(x)[,1]) %>% 
+    filter(valid_response) %>% 
+    group_by(trial_id, country, test_language,  word, similarity, match_count, shared_onset, consec_onset, consec_longest, freq) %>% 
+    summarise(n = n(),
+              proportion = mean(correct_coded, na.rm = TRUE),
+              .groups = "drop") %>%
+    mutate_at(vars(match_count, consec_onset, consec_longest), function(x) scale(x)[,1]) %>% 
+    mutate_at(vars(country, test_language), as.factor)
 
-#### export data #########################
-fwrite(dat_prepared, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE)
+contrasts(dat_accuracy$test_language) <- contr.sum(c("Catalan", "Spanish"))/2
+contrasts(dat_accuracy$country) <- contr.sum(c("UK", "Spain"))/2
+contrasts(dat_accuracy$shared_onset) <- contr.sum(c(0, 1))/2
 
-#### fit models ##########################
-fit0 <- lmer(sqrt(accuracy) ~ freq + (1 | participant) + (1 | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
-fit1 <- lmer(log(accuracy) ~ freq + match_count + (1 | participant) + (1 + match_count | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
-fit2 <- lmer(log(accuracy) ~ freq + shared_onset + (1 | participant) + (1 + shared_onset | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
-fit3 <- lmer(log(accuracy) ~ freq + consec_onset + (1 | participant) + (1 + consec_onset | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
-fit4 <- lmer(log(accuracy) ~ freq + consec_longest + (1 | participant) + (1 + consec_longest | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
-fit5 <- lmer(log(accuracy) ~ freq + similarity + (1 | participant) + (1 + similarity | trial_id), REML = FALSE, data = dat_prepared, control = lmerControl(optimizer = "bobyqa"))
+#### logs #######################################################
 
-mod_selection <- anova(fit0, fit1, fit2, fit3, fit4, fit5)
+# participant info
+logs <- dat_accuracy %>%
+    group_by(participant, date, test_language, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>% 
+    summarise(n = n()) %>% 
+    rowwise() %>% 
+    mutate(exclude_trials = ifelse(test_language %in% "Catalan", n < 76*0.80, n < 97*0.80)) %>% 
+    ungroup() 
+fwrite(logs, here("Data", "01_logs.csv"), sep = ",", dec = ".", row.names = FALSE)
 
-dat_cross <- fold(dat_prepared, k = 4, cat_col = "test_language", id_col = "participant")
+#### fit models #########################################
+priors <- c(prior(lognormal(0.15, 0.20), class = "Intercept"),
+            prior(normal(0, 1), class = "b"), # fixed and random slopes
+            prior(cauchy(0, 5), class  = "sd"), # standard deviation
+            prior(beta(10, 10), class = "zoi"), # distributional parameter for Beta distribution
+            prior(beta(10, 10), class = "coi"), # distributional parameter for Beta distribution
+            prior(normal(1.5, 1), class = "phi")) # distributional parameter for Beta distribution
+            
+# null model (only frequency)
+fit0 <- brm(formula = bf(proportion ~ freq + (1 | trial_id)),
+            prior = priors,
+            data = dat_accuracy,
+            chains = 1,
+            iter = 6000,
+            cores = 2,
+            file = here("Results", "fit0.rds"), 
+            control = list(adapt_delta = 0.95),
+            save_model = here("Code", "fit0.stan"),
+            family = "zero_one_inflated_beta")
+
+# match count
+fit1 <- update(fit0, . ~ . + match_count - (1 | trial_id) + (1 + match_count | trial_id),
+                         file = here("Results", "fit1.rds"), 
+                         newdata = dat_accuracy,
+                         save_model = here("Code", "fit1.stan"))
+
+# shared onset
+fit2 <- update(fit1, . ~ . + shared_onset - (1 + match_count | trial_id) + (1 + match_count + shared_onset | trial_id),
+               file = here("Results", "fit2.rds"), 
+               newdata = dat_accuracy,
+               save_model = here("Code", "fit2.stan"))
+
+# similarity
+fit3 <- update(fit2, . ~ . + similarity - (1 + match_count + shared_onset | trial_id) + (1 + match_count + shared_onset + similarity | trial_id),
+                          file = here("Results", "fit3.rds"), 
+                          newdata = dat_accuracy,
+                          save_model = here("Code", "fit3.stan"))
+
+# compute k-fold validation and compare models
+fit0 <- add_criterion(fit0, criterion = "kfold", K = 10, overwrite = TRUE)
+fit1 <- add_criterion(fit1, criterion = "kfold", K = 10, overwrite = TRUE)
+fit2 <- add_criterion(fit2, criterion = "kfold", K = 10, overwrite = TRUE)
+fit3 <- add_criterion(fit3, criterion = "kfold", K = 10, overwrite = TRUE)
+
+selection <- loo_compare(fit0, fit1, fit2, fit3)
+
+# posterior predictive checks (what do our models predict?)
+posterior_check <- expand_grid(freq = seq_range(dat_accuracy$freq, n = 10),
+                               match_count = seq_range(dat_accuracy$match_count, n = 10),
+                               trial_id = unique(dat_accuracy$trial_id)) %>%
+    add_predicted_draws(model = fit3, n = 100, prediction = "proportion",
+                        allow_new_levels = TRUE) %>% 
+    mean_qi(.width = 0.5)
+
+posterior_check %>%  
+    ggplot(aes(match_count, proportion)) +
+    stat_lineribbon(.width = c(0.95, 0.89, 0.5), alpha = 0.5) +
+    #stat_summary(aes(group = trial_id), fun = "median", geom = "point", alpha = 0.1, size = 0.1) +
+    scale_fill_brewer(palette = "Blues")
 
 
