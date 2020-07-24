@@ -68,10 +68,9 @@ dat <- fread(here("Data", "01_processed.csv"), na.strings = "") %>%
 ```
 
 
-#Methods
+# Methods
 
 ## Translation Elicitation task
-
 
 ### Participants
 
@@ -80,7 +79,7 @@ Data collection took place from `r format(min(logs$date), "%dth %B, %Y")` to  `r
 
 ### Procedure
 
-Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). First participants were informed about the aims of the study and gave informed consent for participating. Second, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. BEfore the task, participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Spanish participants completed the list of Catalan trials.
+The experiment was implemented online using Psychopy/Pavlovia [@peirce2019]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). First, participants were informed about the aims of the study and gave informed consent for participating. Second, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. Before the task, participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Spanish participants completed the list of Catalan trials.
 
 
 ### Design
@@ -91,7 +90,13 @@ Each trial started with a yellow fixation dot presented during one second on the
 ### Stimuli
 
 
+
+
 ## Data analysis
+
+We divided participants in three groups: English natives tested in Catalan (ENG-CAT), English natives tested in Spanish (ENG-SPA), and Spanish natives tested in Catalan (SPA-CAT). We analysed the accuracy of responses to each item by calculating the proportion of correct responses across participants, resulting in one data point per item and group. We compared how our similarity score fitted the data in comparison with other measures:total shared phonemes, shared phonemic onset, and orthographical Damerau-Levenshtein distance. We fit several Bayesian linear models [@sorensen2015], each including one of the aforementioned variables as predictor, and the proportion of correct reponses as output. Continuous predictors were standadised and categorical predictors were sum-coded [@schad2020]. Missing predictor scores were imputed before fitting the models using multiple imputation [@vanbuuren2013]. To test and account for cross-group differences, we included a random intercept for each group. We compared models using Paretho-Smoothed Importance Sampling (PSIS-LOO, @vehtari2016). More information about the models and model comparison can be found in Appendix X.
+
+All analyses were performed in R environment [@rcoreteam2019]. We used the `tidyverse` family of R packages to process data and to generate figures, the `mice` R package [@vanbuuren2013] to impute missing data, and the `brms` R package to [@burkner2017] to fit and compare models, which uses the Stan probabilistic programming language language [@carpenter2016].
 
 
 # Results

@@ -1,20 +1,21 @@
-#### te_analysius: Process and analyse data #########
+#### analysius: Process and analyse data #########
 
 #### set up #########################################
 
 # load packages
-library(tidyverse)
-library(patchwork)
-library(readxl)
-library(purrr)
-library(janitor) # for cleaning vairable names
-library(lubridate) # for working with dates
+library(tidyverse)  # for basically everything
+library(patchwork)  # for arranging plots
+library(readxl)     # for importing Excel spreadsheets
+library(purrr)      # for working with lists
+library(janitor)    # for cleaning vairable names
+library(lubridate)  # for working with dates
 library(data.table) # for importing data
 library(stringdist) # for calculating Levenshtein distance
-library(brms) # for fitting Bayesian models
-library(tidybayes) # for sampling from the posterior in Bayesian models
-library(modelr) # for predicting scores from models
-library(here) # for locating files in the repository with reproducibilidy
+library(brms)       # for fitting Bayesian models
+library(mice)       # for imputing data
+library(tidybayes)  # for sampling from the posterior in Bayesian models
+library(modelr)     # for predicting scores from models
+library(here)       # for locating files in the repository with reproducibilidy
 
 # create/load functions
 source(here("Code", "functions.R")) # helper functions
@@ -52,15 +53,20 @@ dat_raw <- list.files(here("Data", "Raw"), full.names = TRUE) %>%
     mutate(city = str_to_sentence(city),
            country = ifelse(city %in% spanish_cities, "Spain", "UK"),
            date = as_datetime(ymd_hms(date)),
-           demo_sex = case_when(country %in% "UK" & demo_sex %in% "m" ~ "Male",
-                                country %in% "UK" & demo_sex %in% "f" ~ "Female",
-                                country %in% "Spain" & demo_sex %in% "m" ~ "Female",
-                                country %in% "Spain" & demo_sex %in% "h" ~ "Male"),
-           language_l1 = case_when(country %in% "Spain" & language_l1 %in% "e" ~ "Spanish",
-                                   country %in% "UK" & language_l1 %in% "e" ~ "English"),
+           demo_sex = case_when(country %in% "UK" & demo_sex %in% "M" ~ "Male",
+                                country %in% "UK" & demo_sex %in% "F" ~ "Female",
+                                country %in% "Spain" & demo_sex %in% "M" ~ "Female",
+                                country %in% "Spain" & demo_sex %in% "H" ~ "Male"),
+           language_l1 = case_when(country %in% "Spain" & language_l1 %in% "E" ~ "Spanish",
+                                   country %in% "UK" & language_l1 %in% "E" ~ "English"),
            demo_education = as.numeric(demo_education),
            demo_vision = ifelse(country %in% "UK", !(demo_vision %in% "N"), demo_vision %in% "S"),
-           demo_impairment = !(demo_impairment %in% "N")) %>%
+           demo_impairment = !(demo_impairment %in% "N"),
+           group = case_when(country %in% "UK" & test_language %in% "Catalan" ~ "ENG-CAT",
+                             country %in% "UK" & test_language %in% "Spanish" ~ "ENG-SPA",
+                             TRUE ~ "SPA-CAT"),
+           language_l2 = ifelse(is.na(language_l2), "None", language_l2),
+           language_l1 = ifelse(str_detect(group, "ENG"), "ENG", "SPA")) %>%
     ungroup() %>% 
     rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "")
 
@@ -72,7 +78,6 @@ dat_processed <- dat_raw %>%
            key_press_time = key_press_time-1,
            input_text = str_to_lower(input_text),
            date = as_datetime(date)) %>%
-    filter(word %!in% practice_trials) %>% # filter out practice trials
     # for each participant, select the first non-missing value of the following variables:
     group_by(participant) %>%
     mutate_at(vars(matches("language_|demo_|setup_")), first_non_na) %>%
@@ -80,12 +85,9 @@ dat_processed <- dat_raw %>%
     mutate(correction = ifelse(first_non_na(error) %in% "yes", TRUE, FALSE)) %>% # for each participant and trial, convert first non-missing argument into logical)
     ungroup() %>%
     drop_na(test_language) %>% # filter out rows without relevant info
-    relocate(participant, test_language, country, trial_id, word, input_text, key_pressed, key_press_time, error)
-    
-#### aggregate ##################################################
-dat_aggregated <- dat_processed %>%
-    # for each participant and trial, select first and last non-missing values
-    group_by(participant, date, trial_id, test_language, word, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>%
+    relocate(participant, group, test_language, country, trial_id, word, input_text, key_pressed, key_press_time, error) %>% 
+    # aggregate by trial (take only one data point per trial)
+    group_by(participant, group, date, trial_id, test_language, word, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>%
     summarise(input_text = last_non_na(input_text),
               typing_onset = first_non_na(key_press_time),
               typing_offset = last_non_na(key_press_time),
@@ -95,11 +97,13 @@ dat_aggregated <- dat_processed %>%
 #### merge with trial-level data ########################
 trials <- read_xlsx(here("Stimuli", "trials.xlsx")) # trial-level data
 
-dat_merged <- dat_aggregated %>%
+dat_merged <- dat_processed %>%
     left_join(trials, by = c("trial_id", "test_language" = "language", "word")) %>% 
     mutate(similarity = case_when(country=="UK" & test_language=="Spanish" ~ similarity_engspa,
                                   country=="UK" & test_language=="Catalan" ~ similarity_engcat,
                                   TRUE ~ similarity_spacat),
+           similarity_dl = case_when(country=="UK" ~ stringsim(ort, ort_eng, method = "dl"),
+                                     country=="Spain" ~ stringsim(ort, ort_spa, method = "dl")),
            match_count = case_when(country=="UK" & test_language=="Spanish" ~ match_count_engspa,
                                    country=="UK" & test_language=="Catalan" ~ match_count_engcat,
                                    TRUE ~ match_count_spacat),
@@ -112,106 +116,202 @@ dat_merged <- dat_aggregated %>%
            consec_longest = case_when(country=="UK" & test_language=="Spanish" ~ consec_longest_engspa,
                                       country=="UK" & test_language=="Catalan" ~ consec_longest_engspa,
                                       TRUE ~ consec_longest_spacat),
+           pthn = ifelse(l1 %in% "ENG", pthn_eng, pthn_spa),
            accuracy = stringdist(input_text, ort, method = "dl"),
            correct = ifelse(accuracy==0, 1, 0)) %>% 
-    select(-matches("engspa|engcat|spacat|ort|phon")) %>% 
-    select(participant, country, trial_id, word, input_text, test_language, accuracy, correct, typing_onset, similarity, match_count, shared_onset, consec_onset, consec_longest, freq)
+    select(-matches("engspa|engcat|spacat|phon")) %>% 
+    select(participant, group, trial_id, word, ort, input_text, accuracy, correct, typing_offset, similarity, similarity_dl, match_count, shared_onset, consec_onset, consec_longest, freq, pthn)
 
-#### export data #####################
+# export data
 fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE)
 
-####  prepare accuracy data ##########
-# import manually coded data
-dat_coded <- read_xlsx(here("Data", "01_processed_coded.xlsx")) %>% 
+#### participant data ###################################
+dat_participants <- read_xlsx(here("Data", "01_processed_coded.xlsx")) %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
-           correct_coded = response_type %in% c("correct", "typo"))
-
-
-#### prepare data for analysis ##########################
-dat_accuracy <- dat_coded %>%
-    mutate(test_language = as.factor(test_language)) %>%
-    mutate_at(vars(freq, similarity), function(x) scale(x)[,1]) %>% 
-    filter(valid_response) %>% 
-    group_by(trial_id, country, test_language,  word, similarity, match_count, shared_onset, consec_onset, consec_longest, freq) %>% 
+           correct_coded = response_type %in% c("correct", "typo")) %>%
+    group_by(participant, group) %>%
     summarise(n = n(),
-              proportion = mean(correct_coded, na.rm = TRUE),
-              .groups = "drop") %>%
-    mutate_at(vars(match_count, consec_onset, consec_longest), function(x) scale(x)[,1]) %>% 
-    mutate_at(vars(country, test_language), as.factor)
+              n_valid = sum(valid_response, na.rm = TRUE),
+              n_correct = sum(correct_coded, na.rm = TRUE),
+              prop_correct = n_correct/n_valid,
+              .groups = "drop") %>% 
+    left_join(distinct(dat_processed, participant, test_language, age, sex, l2, l2oral, l2written, impairment)) %>% 
+    mutate(valid_participant = ifelse(test_language %in% "Catalan",
+                                      between(age, 18, 26) & n_valid >= 0.80*86 & !impairment,
+                                      between(age, 18, 26) & n_valid >= 0.80*103 & !impairment))
 
-contrasts(dat_accuracy$test_language) <- contr.sum(c("Catalan", "Spanish"))/2
-contrasts(dat_accuracy$country) <- contr.sum(c("UK", "Spain"))/2
+valid_participants <- filter(dat_participants, valid_participant) %>% pull(participant)
+
+####  prepare accuracy data ###############################
+dat_accuracy <- read_xlsx(here("Data", "01_processed_coded.xlsx")) %>% 
+    mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
+           correct_coded = response_type %in% c("correct", "typo"),
+           test_language = as.factor(test_language)) %>%
+    filter(participant %in% valid_participants, # participant is valid
+           valid_response, # response is valid 
+           word %!in% practice_trials) %>% # not a practice trial
+    mutate_at(vars(freq, pthn, similarity, similarity_dl, match_count), function(x) scale(x)[,1]) %>% # standardise continuous predictors
+    mutate_at(vars(group), as.factor)
+
+contrasts(dat_accuracy$group) <- contr.helmert(c("UK-SPA", "UK-CAT", "SPA-CAT"))/2
 contrasts(dat_accuracy$shared_onset) <- contr.sum(c(0, 1))/2
 
-#### logs #######################################################
-
-# participant info
-logs <- dat_accuracy %>%
-    group_by(participant, date, test_language, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>% 
-    summarise(n = n()) %>% 
-    rowwise() %>% 
-    mutate(exclude_trials = ifelse(test_language %in% "Catalan", n < 76*0.80, n < 97*0.80)) %>% 
-    ungroup() 
-fwrite(logs, here("Data", "01_logs.csv"), sep = ",", dec = ".", row.names = FALSE)
+#### impute missing data ##################################
+dat_imputed <- mice(dat_accuracy, m = 5, print = FALSE, method = "pmm") %>% 
+    complete() %>% 
+    as_tibble()
 
 #### fit models #########################################
-priors <- c(prior(lognormal(0.15, 0.20), class = "Intercept"),
-            prior(normal(0, 1), class = "b"), # fixed and random slopes
-            prior(cauchy(0, 5), class  = "sd"), # standard deviation
-            prior(beta(10, 10), class = "zoi"), # distributional parameter for Beta distribution
-            prior(beta(10, 10), class = "coi"), # distributional parameter for Beta distribution
-            prior(normal(1.5, 1), class = "phi")) # distributional parameter for Beta distribution
-            
+priors_dist <- c(prior(lognormal(0.0774, 0.50), class = "Intercept"), # main intercept
+                 prior(beta(10, 10), class = "zoi"), # distributional parameter for Beta distribution
+                 prior(beta(10, 10), class = "coi"), # distributional parameter for Beta distribution
+                 prior(normal(1.5, 1), class = "phi")) # distributional parameter for Beta distribution
+priors_random <- c(prior(cauchy(0, 5), class = "sd")) # positive SDs
+priors_fixed <- c(prior(normal(0, 5), class = "b")) # fixed and random slopes
+
 # null model (only frequency)
-fit0 <- brm(formula = bf(proportion ~ freq + (1 | trial_id)),
-            prior = priors,
-            data = dat_accuracy,
-            chains = 1,
-            iter = 6000,
-            cores = 2,
-            file = here("Results", "fit0.rds"), 
-            control = list(adapt_delta = 0.95),
-            save_model = here("Code", "fit0.stan"),
-            family = "zero_one_inflated_beta")
+fit0_null <- brm(formula = bf(proportion ~ inv_lo + (1 | group)),
+                 prior = c(priors_dist),
+                 data = dat_imputed,
+                 cores = 2,
+                 file = here("Results", "fit0_null.rds"), 
+                 control = list(adapt_delta = 0.95),
+                 save_model = here("Code", "fit0_null.stan"),
+                 save_all_pars = TRUE,
+                 family = bernoulli("identity"))
+
+# null model (only frequency)
+fit1_freq <- update(fit0_null, . ~ . + freq + (1 + freq | group),
+                     file = here("Results", "fit1_freq.rds"),
+                     prior = c(priors_dist, priors_random),
+                     newdata = dat_imputed,
+                     save_model = here("Code", "Models", "fit1_freq.stan"))
+
+# random intercepts
+fit2_count <- update(fit0_null, . ~ . + freq*match_count - (1 | group) + (1 + freq*match_count | group),
+                     file = here("Results", "fit2_count.rds"),
+                     prior = c(priors_dist, priors_random),
+                     newdata = dat_imputed,
+                     save_model = here("Code", "Models", "fit2_count.stan"))
 
 # match count
-fit1 <- update(fit0, . ~ . + match_count - (1 | trial_id) + (1 + match_count | trial_id),
-                         file = here("Results", "fit1.rds"), 
-                         newdata = dat_accuracy,
-                         save_model = here("Code", "fit1.stan"))
-
-# shared onset
-fit2 <- update(fit1, . ~ . + shared_onset - (1 + match_count | trial_id) + (1 + match_count + shared_onset | trial_id),
-               file = here("Results", "fit2.rds"), 
-               newdata = dat_accuracy,
-               save_model = here("Code", "fit2.stan"))
+fit3_dl <- update(fit0_null, . ~ . + freq*similarity_dl - (1 | group) + (1 + freq*similarity_dl | group),
+                     file = here("Results", "fit3_dl.rds"),
+                     prior = c(priors_dist, priors_random),
+                     newdata = dat_imputed,
+                     save_model = here("Code", "Models", "fit3_dl.stan"))
 
 # similarity
-fit3 <- update(fit2, . ~ . + similarity - (1 + match_count + shared_onset | trial_id) + (1 + match_count + shared_onset + similarity | trial_id),
-                          file = here("Results", "fit3.rds"), 
-                          newdata = dat_accuracy,
-                          save_model = here("Code", "fit3.stan"))
+fit4_sim <- update(fit0_null, . ~ . + freq*similarity - (1 | group) + (1 + freq*similarity | group),
+                  file = here("Results", "fit4_sim"),
+                  prior = c(priors_dist, priors_random),
+                  newdata = dat_imputed,
+                  save_model = here("Code", "Models", "fit4_sim.stan"))
+
 
 # compute k-fold validation and compare models
-fit0 <- add_criterion(fit0, criterion = "kfold", K = 10, overwrite = TRUE)
-fit1 <- add_criterion(fit1, criterion = "kfold", K = 10, overwrite = TRUE)
-fit2 <- add_criterion(fit2, criterion = "kfold", K = 10, overwrite = TRUE)
-fit3 <- add_criterion(fit3, criterion = "kfold", K = 10, overwrite = TRUE)
-
-selection <- loo_compare(fit0, fit1, fit2, fit3)
+loo_comp <- loo(fit0_null, fit1_groups, fit2_count, fit3_dl, fit4_sim)
 
 # posterior predictive checks (what do our models predict?)
-posterior_check <- expand_grid(freq = seq_range(dat_accuracy$freq, n = 10),
-                               match_count = seq_range(dat_accuracy$match_count, n = 10),
-                               trial_id = unique(dat_accuracy$trial_id)) %>%
-    add_predicted_draws(model = fit3, n = 100, prediction = "proportion",
-                        allow_new_levels = TRUE) %>% 
-    mean_qi(.width = 0.5)
+design_matrix <- expand_grid(group = c("ENG-CAT", "ENG-SPA", "SPA-CAT"),
+                             match_count = unique(dat_imputed$match_count),
+                             similarity = seq_range(dat_imputed$similarity, n = 10),
+                             similarity_dl = seq_range(dat_imputed$similarity, n = 10)) 
 
-posterior_check %>%  
-    ggplot(aes(match_count, proportion)) +
-    stat_lineribbon(.width = c(0.95, 0.89, 0.5), alpha = 0.5) +
-    #stat_summary(aes(group = trial_id), fun = "median", geom = "point", alpha = 0.1, size = 0.1) +
-    scale_fill_brewer(palette = "Blues")
+int <- mean_hdi(.value, .width = 0.95, .exclude = c(".chain", ".iteration", ".draw", ".row"))
+
+
+#### examine posterior #####################################
+
+posterior <- fit4_sim %>% 
+    gather_draws(b_Intercept, b_freq, b_similarity, `b_freq:similarity`, phi, coi, zoi) %>% 
+    ungroup() %>% 
+    mutate_at(vars(.chain, .variable), function(x) factor(x, levels = unique(x), ordered = TRUE))
+
+posterior_summary <- posterior %>% 
+    group_by(.variable) %>% 
+    median_hdi(.width = c(0.95, 0.89, 0.67, 0.50))
+    
+posterior %>%
+    filter(.iteration < 2000) %>% 
+    ggplot(aes(.iteration, .value, colour = .chain)) +
+    facet_wrap(~.variable, scales = "free_y") +
+    geom_line() +
+    labs(x = "Iteration", y = "Value", colour = "Chain") +
+    theme_custom +
+    theme(legend.position = "top") +
+    ggsave(here("Figures", "convergence.png"))
+
+posterior %>%
+    ggplot(aes(.value, .variable)) +
+    #geom_point() +
+    stat_slab(colour = "black") + 
+    ggsave(here("Figures", "coefs.png"))
+
+#### Analyse random effects structure #####################
+groups <- fit4_sim %>%
+    spread_draws(r_group[group, parameter]) %>% 
+    median_qi(r_group, .width = .50) %>% 
+    rename(.estimate = r_group) %>%
+    select(-c(.width, .point, .interval)) %>% 
+    pivot_wider(names_from = parameter, values_from = c(.estimate, .lower, .upper)) %>% 
+    clean_names()
+
+group_cors <- fit4_sim %>% 
+    gather_draws(`cor_group__Intercept__freq`,
+                 `cor_group__Intercept__similarity`,
+                 `cor_group__Intercept__freq:similarity`,
+                 `cor_group__freq__similarity`,
+                 `cor_group__freq__freq:similarity`,
+                 `cor_group__similarity__freq:similarity`) %>% 
+    median_qi(.value, .width = .50) %>% 
+    mutate(.variable = str_remove(.variable, ".*?__")) %>% 
+    select(-c(.width, .point, .interval)) %>% 
+    separate(.variable, c("var1", "var2"), "__")
+
+ggplot(groups, aes(x = estimate_intercept, y = estimate_freq, colour = group)) +
+    geom_errorbar(aes(xmin = lower_intercept, xmax = upper_intercept), size = 0.5, width = 0) +
+    geom_errorbar(aes(ymin = lower_freq, ymax = upper_freq), size = 0.5, width = 0) +
+    geom_abline(slope = filter(group_cors, var1 %in% "Intercept", var2 %in% "freq") %>% pull(.value), size = 0.75) +
+    labs(x = "Intercept", y = "Frequency", colour = "Group") +
+    scale_color_brewer(palette = "Set1") +
+    
+    ggplot(groups, aes(x = estimate_intercept, y = estimate_similarity, colour = group)) +
+    geom_errorbar(aes(xmin = lower_intercept, xmax = upper_intercept), size = 0.5, width = 0) +
+    geom_errorbar(aes(ymin = lower_similarity, ymax = upper_similarity), size = 0.5, width = 0) +
+    geom_abline(slope = filter(group_cors, var1 %in% "Intercept", var2 %in% "similarity") %>% pull(.value), size = 0.75) +
+    labs(x = "Intercept", y = "Similarity", colour = "Group") +
+    scale_color_brewer(palette = "Set1") +
+    
+    ggplot(groups, aes(x = estimate_intercept, y = estimate_freq_similarity, colour = group)) +
+    geom_errorbar(aes(xmin = lower_intercept, xmax = upper_intercept), size = 0.5, width = 0) +
+    geom_errorbar(aes(ymin = lower_freq_similarity, ymax = upper_freq_similarity), size = 0.5, width = 0) +
+    geom_abline(slope = filter(group_cors, var1 %in% "Intercept", var2 %in% "freq:similarity") %>% pull(.value), size = 0.75) +
+    labs(x = "Intercept", y = "Frequency:Similarity", colour = "Group") +
+    scale_color_brewer(palette = "Set1") +
+    
+    guide_area() +
+    
+    plot_layout(guides = "collect") &
+    plot_annotation(tag_levels = "A") &
+    theme_custom &
+    theme(legend.key = element_rect(fill = "transparent")) &
+    ggsave(here("Figures", "groups.png"), width = 5)
+
+ dat_accuracy %>%  
+    pivot_longer(data = ., cols = c(match_count, similarity_dl, similarity), names_to = "measure", values_to = "value") %>% 
+    mutate(measure = case_when(measure %in% "match_count" ~ "Match count",
+                               measure %in%  "similarity_dl" ~ "Ort. similarity",
+                               measure %in%  "similarity" ~ "Phon. similarity")) %>% 
+    ggplot(aes(x = value, y = freq)) +
+    facet_grid(measure~group) +
+    stat_density_2d(aes(fill = after_stat(density)), geom = "raster", contour = FALSE) +
+    geom_rug(alpha = 0.25, size = 0.1, length = unit(0.1, "cm")) +
+    geom_smooth(method = "lm", colour = "red", fill = "grey", size = 0.5) +
+    #geom_point(dat = dat_imputed) +
+    labs(x = "Lexical similarity", y = "Frequency", fill = "Density") +
+    theme_custom +
+    theme(legend.position = "top") +
+    ggsave(here("Figures", "correlations.png"), height = 6)
 
 
