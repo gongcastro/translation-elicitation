@@ -1,7 +1,9 @@
 .Rproj.user
 .Rhistory
 .RData
+.Rproj
 .Ruserdata
 .secrets
 Stimuli/
 Media/
+Results/
