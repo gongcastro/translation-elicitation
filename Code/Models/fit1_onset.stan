@@ -14,6 +14,7 @@ data {
   // group-level predictor values
   vector[N] Z_1_1;
   vector[N] Z_1_2;
+  vector[N] Z_1_3;
   int<lower=1> NC_1;  // number of group-level correlations
   // data for group-level effects of ID 2
   int<lower=1> N_2;  // number of grouping levels
@@ -22,6 +23,7 @@ data {
   // group-level predictor values
   vector[N] Z_2_1;
   vector[N] Z_2_2;
+  vector[N] Z_2_3;
   int<lower=1> NC_2;  // number of group-level correlations
   int prior_only;  // should the likelihood be ignored?
 }
@@ -49,35 +51,39 @@ transformed parameters {
   // using vectors speeds up indexing in loops
   vector[N_1] r_1_1;
   vector[N_1] r_1_2;
+  vector[N_1] r_1_3;
   matrix[N_2, M_2] r_2;  // actual group-level effects
   // using vectors speeds up indexing in loops
   vector[N_2] r_2_1;
   vector[N_2] r_2_2;
+  vector[N_2] r_2_3;
   // compute actual group-level effects
   r_1 = (diag_pre_multiply(sd_1, L_1) * z_1)';
   r_1_1 = r_1[, 1];
   r_1_2 = r_1[, 2];
+  r_1_3 = r_1[, 3];
   // compute actual group-level effects
   r_2 = (diag_pre_multiply(sd_2, L_2) * z_2)';
   r_2_1 = r_2[, 1];
   r_2_2 = r_2[, 2];
+  r_2_3 = r_2[, 3];
 }
 model {
   // initialize linear predictor term
   vector[N] mu = Intercept + Xc * b;
   for (n in 1:N) {
     // add more terms to the linear predictor
-    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_2_1[J_2[n]] * Z_2_1[n] + r_2_2[J_2[n]] * Z_2_2[n];
+    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_2_1[J_2[n]] * Z_2_1[n] + r_2_2[J_2[n]] * Z_2_2[n] + r_2_3[J_2[n]] * Z_2_3[n];
   }
   // priors including all constants
   target += normal_lpdf(b | 0, 5);
   target += normal_lpdf(Intercept | 0, 0.001);
   target += cauchy_lpdf(sd_1 | 0, 5)
-    - 2 * cauchy_lccdf(0 | 0, 5);
+    - 3 * cauchy_lccdf(0 | 0, 5);
   target += normal_lpdf(to_vector(z_1) | 0, 1);
   target += lkj_corr_cholesky_lpdf(L_1 | 2);
   target += cauchy_lpdf(sd_2 | 0, 5)
-    - 2 * cauchy_lccdf(0 | 0, 5);
+    - 3 * cauchy_lccdf(0 | 0, 5);
   target += normal_lpdf(to_vector(z_2) | 0, 1);
   target += lkj_corr_cholesky_lpdf(L_2 | 2);
   // likelihood including all constants

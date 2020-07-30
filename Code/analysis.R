@@ -3,10 +3,10 @@
 #### set up #########################################
 
 # load packages
-library(dplyr)  # for basically everything
-library(tidyr)
-library(ggplot2)
-library(stringr)
+library(dplyr)      # for manipulating variables
+library(tidyr)      # for reshaping datasets
+library(ggplot2)    # for visualising plots
+library(stringr)    # for manipulating string characters
 library(patchwork)  # for arranging plots
 library(readxl)     # for importing Excel spreadsheets
 library(purrr)      # for working with lists
@@ -28,14 +28,14 @@ set.seed(888) # for reproducibility
 practice_trials <- c(109, 147, 159, 167, 179, 1, 26, 70, 86, 96)
 spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "España", "Málaga", "Oviedo", "Santander", "Granada")
 
-#### import data ####################################
+#### process data ####################################
 
 # participant files
 filenames <- list.files(here("Data", "Raw")) %>% 
     str_extract(".*?\\_") %>% 
     str_remove("_")
 
-dat_raw <- list.files(here("Data", "Raw"), full.names = TRUE) %>% 
+dat_processed <- list.files(here("Data", "Raw"), full.names = TRUE) %>% 
     map(fread, na.string = "") %>%  # import participant files
     map(mutate, participant = as.character(participant)) %>% 
     set_names(filenames) %>% # label each dataset with the participant's ID
@@ -44,12 +44,12 @@ dat_raw <- list.files(here("Data", "Raw"), full.names = TRUE) %>%
     clean_names() %>% 
     # select relevant variables and rename if necessary
     select(participant, test_language, trial_id, word, soundfile, key_pressed, input_text, key_press_time, error, age, date, city,
-           matches("language_l|demo_|setup_"), -contains("_rt")) %>% 
+           matches("language_l|language_s|language_c|demo_|setup_"), -matches("_rt|_time")) %>% 
     rename(demo_impairment = demo_language_key_keys) %>% 
     rename_all(gsub, pattern = "_key_keys|key_keys", replacement = "") %>% 
     # clean text input by participants (because of typos of need to translate) and redefine location    
     group_by(participant) %>% 
-    mutate_at(vars(starts_with("demo_"), starts_with("l"), starts_with("setup_"), city, setup_location, setup_noise), first_non_na) %>% 
+    mutate_at(vars(starts_with("demo_"), starts_with("l"), starts_with("setup_"), age, city, setup_location, setup_noise), first_non_na) %>% 
     mutate(date = max(date, na.rm = TRUE)) %>% 
     ungroup() %>% 
     mutate_at(vars(starts_with("language_"), city, starts_with("demo_"), starts_with("l")), clean_input_text) %>% 
@@ -73,9 +73,8 @@ dat_raw <- list.files(here("Data", "Raw"), full.names = TRUE) %>%
     ungroup() %>% 
     rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "")
 
-
-#### process data ###############################################
-dat_processed <- dat_raw %>%
+#### clean data ###############################################
+dat_clean <- dat_processed %>%
     group_by(participant) %>% 
     mutate(age = max(age, na.rm = TRUE),
            key_press_time = key_press_time-1,
@@ -98,55 +97,57 @@ dat_processed <- dat_raw %>%
     ungroup()
 
 #### merge with trial-level data ########################
-trials <- read_xlsx(here("Stimuli", "trials.xlsx")) # trial-level data
+trials <- fread(here("Data", "00_trial_stats.csv"), na.strings = "") # trial-level data
 
-dat_merged <- dat_processed %>%
+dat_merged <- dat_clean %>%
     left_join(trials, by = c("trial_id", "test_language" = "language", "word")) %>% 
-    mutate(similarity = case_when(country=="UK" & test_language=="Spanish" ~ similarity_engspa,
+    mutate(similarity_phon = case_when(country=="UK" & test_language=="Spanish" ~ similarity_engspa,
                                   country=="UK" & test_language=="Catalan" ~ similarity_engcat,
                                   TRUE ~ similarity_spacat),
-           similarity_dl = case_when(country=="UK" ~ stringsim(ort, ort_eng, method = "dl"),
-                                     country=="Spain" ~ stringsim(ort, ort_spa, method = "dl")),
-           match_count = case_when(country=="UK" & test_language=="Spanish" ~ match_count_engspa,
-                                   country=="UK" & test_language=="Catalan" ~ match_count_engcat,
-                                   TRUE ~ match_count_spacat),
-           shared_onset = case_when(country=="UK" & test_language=="Spanish" ~ shared_onset_engspa,
-                                    country=="UK" & test_language=="Catalan" ~ shared_onset_engcat,
-                                    TRUE ~ shared_onset_spacat),
-           consec_onset = case_when(country=="UK" & test_language=="Spanish" ~ consec_onset_engspa,
-                                    country=="UK" & test_language=="Catalan" ~ consec_onset_engcat,
-                                    TRUE ~ consec_onset_spacat),
-           consec_longest = case_when(country=="UK" & test_language=="Spanish" ~ consec_longest_engspa,
-                                      country=="UK" & test_language=="Catalan" ~ consec_longest_engspa,
-                                      TRUE ~ consec_longest_spacat),
+           similarity_ort = case_when(country=="UK" ~ stringsim(orthography, translation_english_orthography, method = "dl"),
+                                     country=="Spain" ~ stringsim(orthography, translation_spanish_orthography, method = "lv")),
+           close_substitutions = case_when(country=="UK" & test_language=="Spanish" ~ close_substitutions_engspa,
+                                  country=="UK" & test_language=="Catalan" ~ close_substitutions_engcat,
+                                  TRUE ~ close_substitutions_spacat),
+           same_onset = case_when(country=="UK" & test_language=="Spanish" ~ same_onset_engspa,
+                                  country=="UK" & test_language=="Catalan" ~ same_onset_engcat,
+                                  TRUE ~ same_onset_spacat),
+           consecutive_longest = case_when(country=="UK" & test_language=="Spanish" ~ consecutive_longest_engspa,
+                                           country=="UK" & test_language=="Catalan" ~ consecutive_longest_engspa,
+                                           TRUE ~ consecutive_longest_spacat),
            pthn = ifelse(l1 %in% "ENG", pthn_eng, pthn_spa),
            freq = ifelse(l1 %in% "ENG", freq_eng, freq_spa),
-           accuracy = stringdist(input_text, ort, method = "dl"),
+           accuracy = stringdist(input_text, orthography, method = "dl"),
            correct = ifelse(accuracy==0, 1, 0)) %>% 
-    select(-matches("engspa|engcat|spacat|phon")) %>% 
-    select(participant, group, trial_id, word, ort, input_text, accuracy, correct, typing_offset, similarity, similarity_dl, match_count, shared_onset, consec_onset, consec_longest, freq, pthn)
+    select(participant, group, trial_id, word, orthography, input_text, accuracy, correct, typing_offset, similarity_phon, similarity_ort, close_substitutions, same_onset, consecutive_longest, freq, pthn)
 
 # export data
-fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE)
+fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 
 #### participant data ###################################
 dat_participants <- fread(here("Data", "01_processed_coded.csv"), na.strings = "") %>% 
+    rowwise() %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
            correct_coded = response_type %in% c("correct", "typo")) %>%
-    group_by(participant, group) %>%
+    group_by(participant, group, country) %>%
     summarise(n = n(),
               n_valid = sum(valid_response, na.rm = TRUE),
               n_correct = sum(correct_coded, na.rm = TRUE),
               prop_correct = n_correct/n_valid,
               .groups = "drop") %>% 
-    left_join(distinct(dat_processed, participant, test_language, age, sex, l2, l2oral, l2written, impairment)) %>% 
-    mutate(valid_participant = ifelse(test_language %in% "Catalan",
+    left_join(distinct(dat_processed, participant, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision)) %>% 
+    # participant is valid if has completed >= 80% trials (valid)
+    mutate(invalid_participant_trials = ifelse(test_language %in% "Catalan", n_valid < 0.80*86, n_valid < 0.80*103),
+           valid_participant = ifelse(test_language %in% "Catalan",
                                       between(age, 18, 26) & n_valid >= 0.80*86 & !impairment,
                                       between(age, 18, 26) & n_valid >= 0.80*103 & !impairment))
 
+
+fwrite(dat_participants, here("Data", "01_participants.csv"), sep = ",", dec = ".")
+
 valid_participants <- filter(dat_participants, valid_participant) %>% pull(participant)
 
-####  prepare accuracy data ###############################
+#### prepare accuracy data ###############################
 dat_accuracy <- fread(here("Data", "01_processed_coded.csv"), na.strings = "") %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
            correct_coded = response_type %in% c("correct", "typo"),
@@ -155,20 +156,23 @@ dat_accuracy <- fread(here("Data", "01_processed_coded.csv"), na.strings = "") %
     filter(participant %in% valid_participants, # participant is valid
            valid_response, # response is valid 
            word %!in% practice_trials) %>% # not a practice trial %>% 
-    group_by(trial_id, word, freq, pthn, match_count, similarity_dl, similarity, group) %>% 
+    group_by(trial_id, word, freq, pthn, consecutive_longest, same_onset, close_substitutions, similarity_ort, similarity_phon, group) %>% 
     summarise(correct = sum(correct_coded, na.rm = TRUE),
               n = n(),
               proportion = prod(correct, 1/n, na.rm = TRUE),
               .groups = "drop") %>% 
     mutate(freq = log10(freq)+3) %>%  
-    mutate_at(vars(freq, pthn, similarity, similarity_dl, match_count), function(x) scale(x)[,1]) %>% # standardise continuous predictors
-    mutate_at(vars(group), as.factor)
-
+    mutate_at(vars(freq, pthn, similarity_phon, similarity_ort, consecutive_longest, close_substitutions), function(x) scale(x)[,1]) %>% # standardise continuous predictors
+    mutate(group = as.factor(group),
+           same_onset = factor(same_onset, levels = c("different", "same_vowel", "same_consonant")))
+    
 #### impute missing data ##################################
 dat_imputed <- mice(dat_accuracy, m = 5, print = FALSE, method = "pmm") %>% 
     complete() %>% 
     as_tibble() %>% 
     arrange(trial_id, group)
+
+contrasts(dat_imputed$same_onset) <- cbind(c(-1, 0.5, 0.5), c(0, 0.5, -0.5))
 
 #### fit models #########################################
 priors <- c(prior(normal(0, 0.001), class = "Intercept"),
@@ -182,147 +186,134 @@ fit0_null <- brm(formula = bf(correct | trials(n) ~ pthn + (1 | group/trial_id))
                  data = dat_imputed,
                  chains = 1,
                  iter = 5000,
-                 cores = 4,
                  file = here("Results", "fit0_null.rds"), 
                  control = list(adapt_delta = 0.95),
-                 save_model = here("Code", "fit0_null.stan"),
+                 save_model = here("Code", "Models", "fit0_null.stan"),
                  save_all_pars = TRUE)
-`
+
 # null model (only frequency)
-fit1_count <- update(fit0_null, . ~ . -pthn + pthn*match_count - (1 | group/trial_id) + (1 + match_count | group/trial_id),
-                     file = here("Results", "fit1_count.rds"),
+fit1_onset <- update(fit0_null, . ~ . + same_onset - (1 | group/trial_id) + (1 + same_onset | group/trial_id),
+                     file = here("Results", "fit1_onset.rds"),
                      prior = c(priors, prior(lkj(2), class = "cor")),
                      newdata = dat_imputed,
-                     cores = 4,
-                     save_model = here("Code", "Models", "fit1_count.stan"))
+                     save_model = here("Code", "Models", "fit1_onset.stan"))
 
 # random intercepts
-fit2_dl <- update(fit0_null, . ~ . -pthn + pthn*similarity_dl - (1 | group/trial_id) + (1 + similarity_dl | group/trial_id),
-                  file = here("Results", "fit2_dl.rds"),
-                  prior = c(priors, prior(lkj(2), class = "cor")),
+fit2_consec <- update(fit1_onset, . ~ . + consecutive_longest - (1 + same_onset | group/trial_id) + (1 + same_onset + consecutive_longest | group/trial_id),
+                  file = here("Results", "fit2_consec.rds"),
                   newdata = dat_imputed,
-                  cores = 4,
-                  save_model = here("Code", "Models", "fit2_dl.stan"))
+                  save_model = here("Code", "Models", "fit2_consec.stan"))
 
 # match count
-fit3_sim <- update(fit0_null, . ~ . -pthn + pthn*similarity - (1 | group/trial_id) + (1 + similarity | group/trial_id),
-                   file = here("Results", "fit3_sim.rds"),
-                   prior = c(priors, prior(lkj(2), class = "cor")),
+fit3_phon <- update(fit2_consec, . ~ . + similarity_phon -  (1 + same_onset + consecutive_longest | group/trial_id) +  (1 + same_onset + consecutive_longest + similarity_phon | group/trial_id),
+                   file = here("Results", "fit3_phon.rds"),
                    newdata = dat_imputed,
-                   cores = 4,
-                   save_model = here("Code", "Models", "fit3_sim.stan"))
+                   save_model = here("Code", "Models", "fit3_phon.stan"))
+
+# orthographic similarity (Damerau-Levenshtein distance)
+fit4_ort <- update(fit0_null, . ~ . + similarity_ort - (1 | group/trial_id) + (1 + similarity_ort | group/trial_id),
+                     file = here("Results", "fit4_ort.rds"),
+                     newdata = dat_imputed,
+                     save_model = here("Code", "Models", "fit4_ort.stan"))
+
+# prior
+fit_prior <- update(fit0_null,
+                    newdata = dat_imputed,
+                    sample_prior = "only",
+                    file = here("Results", "fit_prior.rds"), 
+                    save_model = here("Code", "Models", "fit_prior.stan"))
 
 # compute k-fold validation and compare models
-loo_comp <- loo(fit0_null, fit1_count, fit2_dl, fit3_sim)
+comparison_loo <- loo(fit0_null, fit1_onset, fit2_consec, fit3_phon, fit4_ort)
+comparison_waic <- list(fit0_null = fit0_null, fit1_onset = fit1_onset, fit2_consec = fit2_consec, fit3_phon = fit3_phon, fit4_ort = fit4_ort) %>%
+    map(WAIC) %>% 
+    map_dbl("waic")
 
+
+saveRDS(comparison_waic, here("Results", "model_comparison.rds"))
 
 #### examine posterior #####################################
-posterior <- fit3_sim %>% 
-    gather_draws(b_Intercept, b_pthn, b_similarity, `b_pthn:similarity`) %>% 
+posterior <- fit3_phon %>% 
+    gather_draws(`b_.*`, regex = TRUE) %>% 
     ungroup() %>% 
     mutate_at(vars(.chain, .variable), function(x) factor(x, levels = unique(x), ordered = TRUE))
 
-posterior_summary <- posterior %>% 
-    group_by(.variable) %>% 
-    median_hdi(.width = c(0.95, 0.89, 0.67, 0.50))
-    
-posterior %>%
-    filter(.iteration < 2000) %>% 
-    ggplot(aes(.iteration, .value, colour = .chain)) +
-    facet_wrap(~.variable, scales = "free_y") +
-    geom_line() +
-    labs(x = "Iteration", y = "Value", colour = "Chain") +
-    theme_custom +
-    theme(legend.position = "top") +
-    ggsave(here("Figures", "convergence.png"))
+fwrite(posterior, here("Results", "posterior_draws.csv"), sep = ",", dec = ".", row.names = FALSE)
 
-posterior %>%
-    ggplot(aes(.value, .variable)) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    stat_slab(fill = "black") + 
-    stat_interval(.width = c(0.95, 0.89, 0.67, 0.5), position = position_nudge(y = -0.15)) +
-    labs(x = "Estimate", y = "Coefficient", colour = "Credible interval",
-         title = "Posterior distribution of coefficients of fixed effects") +
-    scale_colour_brewer(palette = "Blues") +
-    theme_custom +
-    theme(panel.grid.major.y = element_line(colour = "grey"),
-          legend.position = "top",
-          legend.key = element_rect(fill = "transparent")) +
-    ggsave(here("Figures", "coefs.png"))
+#### prior predictive checks ##############################
+predictions_prior <- expand_grid(n = 1,
+                                 pthn = c(-1, 1),
+                                 same_onset = c("different", "same_vowel", "same_consonant"),
+                                 consecutive_longest = c(-1, 1),
+                                 similarity_phon = seq_range(dat_imputed$similarity_phon, n = 100)) %>% 
+    add_fitted_draws(fit_prior, newdata = ., re_formula = NA, scale = "response", n = 1000) %>% 
+    ungroup() %>%
+    mutate(same_onset = factor(same_onset, labels = c("Different", "Same (Vowel)", "Same (Consonant)")),
+           pthn = factor(pthn, labels = c("Small neighbourhood", "Big neightbourhood")),
+           consecutive_longest = factor(consecutive_longest, labels = c("-1 SD", "+1 SD")))
 
-
+fwrite(predictions_prior, here("Results", "prior_predictions.csv"), sep = ",", dec = ".", row.names = FALSE)
 
 #### posterior predictive checks ##########################
 
 # posterior predictive checks (what do our models predict?)
 predictions <- expand_grid(n = 1,
-                           pthn = seq_range(dat_imputed$pthn, n = 4),
-                           similarity = seq_range(dat_imputed$similarity, n = 100)) %>% 
-    add_fitted_draws(fit3_sim, newdata = ., re_formula = NA, scale = "response", n = 1000) %>% 
-    mutate(pthn_cat = factor(pthn, levels = unique(.$pthn), labels = paste0("Q", seq(4, 1)))) %>% 
-    ungroup() 
+                           pthn = c(-1, 1),
+                           same_onset = c("different", "same_vowel", "same_consonant"),
+                           consecutive_longest = c(-1, 1),
+                           similarity_phon = seq_range(dat_imputed$similarity_phon, n = 100)) %>% 
+    add_fitted_draws(fit3_phon, newdata = ., re_formula = NA, scale = "response", n = 1000) %>% 
+    ungroup() %>%
+    mutate(same_onset = factor(same_onset, labels = c("Different", "Same (Vowel)", "Same (Consonant)")),
+                               pthn = factor(pthn, labels = c("Small neighbourhood", "Big neightbourhood")),
+           consecutive_longest = factor(consecutive_longest, labels = c("-1 SD", "+1 SD")))
 
+fwrite(predictions, here("Results", "posterior_predictions.csv"), sep = ",", dec = ".", row.names = FALSE)
 
-predictions %>%
-    ggplot(aes(similarity, .value)) +
-    stat_lineribbon(.width = c(0.95, 0.89, 0.67, 0.5)) +
-    geom_vline(xintercept = 0, colour= "grey") +
-    geom_hline(yintercept = 0.5, colour= "grey") +
-    stat_summary(data = mutate(dat_imputed, pthn = cut_interval(pthn, n = 4, labels = paste0("Q", seq(4, 1)))),
-                 aes(y = proportion), fun = "mean", geom = "point", size = 0.5) +
-    facet_wrap(~pthn_cat) +
-    
-    labs(x = "Phonological similarity", y = "Probability of correct translation",
-         fill = "Credible interval",
-         title = "Effect of phonological similarity on probability of correct translation",
-         subtitle = "Model predictions are displayed for different quartiles of PTHN") +
-    scale_fill_brewer() +
-    theme_custom +
-    theme(legend.position = "top") +
-    ggsave(here("Figures", "predictions.png"))
 
 #### analyse random effects structure #####################
-cors_items <- spread_draws(fit3_sim, `cor_group:trial_id__Intercept__similarity`) %>%
-    median_hdi() %>% 
-    clean_names()
 
-items <- ranef(fit3_sim)$`group:trial_id` %>% 
+item_effects <- ranef(fit3_phon)$`group:trial_id` %>% 
+    as.data.frame() %>% 
+    rownames_to_column("trial_id") %>% 
+    clean_names() %>% 
+    separate(trial_id, c("group", "trial_id"), sep = "_") %>% 
+    rename_all(str_replace, "q2_5", "lower") %>% 
+    rename_all(str_replace, "q97_5", "upper") %>% 
     as_tibble() %>% 
+    rename_all(str_remove, "est_") %>% 
+    rename_all(str_replace, "same_onset", "sameonset") %>% 
+    rename_all(str_replace, "consecutive_longest", "consecutivelongest") %>% 
+    rename_all(str_replace, "similarity_phon", "similarityphon") %>% 
+    pivot_longer(cols = -c(trial_id, group), names_to = "estimate_param", values_to = "value") %>% 
+    separate(estimate_param, c("estimate", "param"), sep = "_")  
+
+    
+
+group_effects <- ranef(fit3_phon)$`group` %>% 
+    as.data.frame() %>% 
+    rownames_to_column("group") %>% 
     clean_names() %>% 
     rename_all(str_replace, "q2_5", "lower") %>% 
-    rename_all(str_replace, "q97_5", "upper") %>%
-    bind_cols(dat_imputed)
+    rename_all(str_replace, "q97_5", "upper") %>% 
+    as_tibble() %>% 
+    rename_all(str_remove, "est_") %>% 
+    rename_all(str_replace, "same_onset", "sameonset") %>% 
+    rename_all(str_replace, "consecutive_longest", "consecutivelongest") %>% 
+    rename_all(str_replace, "similarity_phon", "similarityphon") %>% 
+    pivot_longer(cols = -group, names_to = "estimate_param", values_to = "value") %>% 
+    separate(estimate_param, c("estimate", "param"), sep = "_")  
 
-groups <- spread_draws(fit3_sim, r_group[group, param]) %>% 
-    pivot_wider(names_from = param, values_from = r_group) %>% 
+
+corrs <- gather_draws(fit3_phon, `cor_.*`, regex = TRUE) %>%
+    median_hdi() %>% 
+    select(-matches("width|point|interval")) %>% 
     clean_names()
 
-# item correlations
-ggplot(items, aes(x = estimate_intercept, y = estimate_similarity, colour = group, fill = group)) +
-    geom_point(size = 2, alpha = 0.5, show.legend = FALSE) +
-    geom_smooth(method = "lm", formula = "y ~ x") +
-    labs(x = "Intercept", y = "Similarity slope", colour = "Group", fill = "Group",
-         title = "Correlation between intercepts and similarity slopes",
-         subtitle = paste0("r = ", round(cors_items$cor_group_trial_id_intercept_similarity, 2),
-                           ", Median 95% HDI = [", round(cors_items$lower, 2), "-", round(cors_items$upper, 2), "]",
-                           ", R² = ", round(cors_items$cor_group_trial_id_intercept_similarity^2, 2))) +
-    scale_colour_brewer(palette = "Set1") +
-    scale_fill_brewer(palette = "Set1") +
-    theme_custom +
-    theme(legend.position = c(0.01, 0.9),
-          legend.direction = "horizontal",
-          legend.justification = 0) +
-    ggsave(here("Figures", "random_items.png"))
 
-# group correlations
-ggplot(groups, aes(x = intercept, y = similarity, colour = group)) +
-    facet_wrap(~group) +
-    stat_density_2d_filled(colour = "transparent", contour_var = "ndensity", n = 100, h = 1) +
-    labs(x = "Intercept", y = "Similarity slope", fill = "Probability density") +
-    scale_fill_viridis_d(option = "plasma") +
-    theme_custom +
-    theme(legend.position = "none",
-          panel.border = element_blank()) +
-    ggsave(here("Figures", "random_groups.png"))
-    
-    
+
+fwrite(item_effects, here("Results", "item_effects.csv"), sep = ",", dec = ".", row.names = FALSE)
+fwrite(group_effects, here("Results", "group_effects.csv"), sep = ",", dec = ".", row.names = FALSE)
+fwrite(corrs, here("Results", "corrs.csv"), sep = ",", dec = ".", row.names = FALSE)
+
+

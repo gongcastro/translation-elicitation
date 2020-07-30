@@ -1,31 +1,10 @@
-// generated with brms 2.13.0
+// generated with brms 2.12.0
 functions {
-
-  /* zero-one-inflated beta log-PDF of a single response 
-   * Args: 
-   *   y: response value 
-   *   mu: mean parameter of the beta part
-   *   phi: precision parameter of the beta part
-   *   zoi: zero-one-inflation probability
-   *   coi: conditional one-inflation probability
-   * Returns:  
-   *   a scalar to be added to the log posterior 
-   */ 
-   real zero_one_inflated_beta_lpdf(real y, real mu, real phi,
-                                    real zoi, real coi) {
-     row_vector[2] shape = [mu * phi, (1 - mu) * phi]; 
-     if (y == 0) { 
-       return bernoulli_lpmf(1 | zoi) + bernoulli_lpmf(0 | coi); 
-     } else if (y == 1) {
-       return bernoulli_lpmf(1 | zoi) + bernoulli_lpmf(1 | coi);
-     } else { 
-       return bernoulli_lpmf(0 | zoi) + beta_lpdf(y | shape[1], shape[2]);
-     } 
-   }
 }
 data {
   int<lower=1> N;  // number of observations
-  vector[N] Y;  // response variable
+  int Y[N];  // response variable
+  int trials[N];  // number of trials
   int<lower=1> K;  // number of population-level effects
   matrix[N, K] X;  // population-level design matrix
   // data for group-level effects of ID 1
@@ -35,9 +14,15 @@ data {
   // group-level predictor values
   vector[N] Z_1_1;
   vector[N] Z_1_2;
-  vector[N] Z_1_3;
-  vector[N] Z_1_4;
   int<lower=1> NC_1;  // number of group-level correlations
+  // data for group-level effects of ID 2
+  int<lower=1> N_2;  // number of grouping levels
+  int<lower=1> M_2;  // number of coefficients per level
+  int<lower=1> J_2[N];  // grouping indicator per observation
+  // group-level predictor values
+  vector[N] Z_2_1;
+  vector[N] Z_2_2;
+  int<lower=1> NC_2;  // number of group-level correlations
   int prior_only;  // should the likelihood be ignored?
 }
 transformed data {
@@ -52,53 +37,50 @@ transformed data {
 parameters {
   vector[Kc] b;  // population-level effects
   real Intercept;  // temporary intercept for centered predictors
-  real<lower=0> phi;  // precision parameter
-  real<lower=0,upper=1> zoi;  // zero-one-inflation probability
-  real<lower=0,upper=1> coi;  // conditional one-inflation probability
   vector<lower=0>[M_1] sd_1;  // group-level standard deviations
   matrix[M_1, N_1] z_1;  // standardized group-level effects
   cholesky_factor_corr[M_1] L_1;  // cholesky factor of correlation matrix
+  vector<lower=0>[M_2] sd_2;  // group-level standard deviations
+  matrix[M_2, N_2] z_2;  // standardized group-level effects
+  cholesky_factor_corr[M_2] L_2;  // cholesky factor of correlation matrix
 }
 transformed parameters {
   matrix[N_1, M_1] r_1;  // actual group-level effects
   // using vectors speeds up indexing in loops
   vector[N_1] r_1_1;
   vector[N_1] r_1_2;
-  vector[N_1] r_1_3;
-  vector[N_1] r_1_4;
+  matrix[N_2, M_2] r_2;  // actual group-level effects
+  // using vectors speeds up indexing in loops
+  vector[N_2] r_2_1;
+  vector[N_2] r_2_2;
   // compute actual group-level effects
   r_1 = (diag_pre_multiply(sd_1, L_1) * z_1)';
   r_1_1 = r_1[, 1];
   r_1_2 = r_1[, 2];
-  r_1_3 = r_1[, 3];
-  r_1_4 = r_1[, 4];
+  // compute actual group-level effects
+  r_2 = (diag_pre_multiply(sd_2, L_2) * z_2)';
+  r_2_1 = r_2[, 1];
+  r_2_2 = r_2[, 2];
 }
 model {
   // initialize linear predictor term
   vector[N] mu = Intercept + Xc * b;
   for (n in 1:N) {
     // add more terms to the linear predictor
-    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n];
-  }
-  for (n in 1:N) {
-    // apply the inverse link function
-    mu[n] = inv_logit(mu[n]);
+    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_2_1[J_2[n]] * Z_2_1[n] + r_2_2[J_2[n]] * Z_2_2[n];
   }
   // priors including all constants
-  target += lognormal_lpdf(Intercept | 0.0774, 0.5);
-  target += normal_lpdf(phi | 1.5, 1)
-    - 1 * normal_lccdf(0 | 1.5, 1);
-  target += beta_lpdf(zoi | 10, 10);
-  target += beta_lpdf(coi | 10, 10);
-  target += cauchy_lpdf(sd_1 | 0, 10)
-    - 4 * cauchy_lccdf(0 | 0, 10);
-  target += std_normal_lpdf(to_vector(z_1));
-  target += lkj_corr_cholesky_lpdf(L_1 | 1);
+  target += normal_lpdf(b | 0, 5);
+  target += normal_lpdf(Intercept | 0, 0.001);
+  target += cauchy_lpdf(sd_1 | 0, 5)
+    - 2 * cauchy_lccdf(0 | 0, 5);
+  target += normal_lpdf(to_vector(z_1) | 0, 1);
+  target += cauchy_lpdf(sd_2 | 0, 5)
+    - 2 * cauchy_lccdf(0 | 0, 5);
+  target += normal_lpdf(to_vector(z_2) | 0, 1);
   // likelihood including all constants
   if (!prior_only) {
-    for (n in 1:N) {
-      target += zero_one_inflated_beta_lpdf(Y[n] | mu[n], phi, zoi, coi);
-    }
+    target += binomial_logit_lpmf(Y | trials, mu);
   }
 }
 generated quantities {
@@ -107,10 +89,19 @@ generated quantities {
   // compute group-level correlations
   corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
   vector<lower=-1,upper=1>[NC_1] cor_1;
+  // compute group-level correlations
+  corr_matrix[M_2] Cor_2 = multiply_lower_tri_self_transpose(L_2);
+  vector<lower=-1,upper=1>[NC_2] cor_2;
   // extract upper diagonal of correlation matrix
   for (k in 1:M_1) {
     for (j in 1:(k - 1)) {
       cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
+    }
+  }
+  // extract upper diagonal of correlation matrix
+  for (k in 1:M_2) {
+    for (j in 1:(k - 1)) {
+      cor_2[choose(k - 1, 2) + j] = Cor_2[j, k];
     }
   }
 }

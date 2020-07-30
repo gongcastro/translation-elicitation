@@ -1,0 +1,291 @@
+---
+title: "Translation Elicitation"
+date: "30/07/2020"
+output: html_document
+---
+
+```{r prepare, include=FALSE}
+
+library(dplyr)
+library(papaja)
+library(tidyr)
+library(tibble)
+library(stringr)
+library(forcats)
+library(ggplot2)
+library(here)
+library(data.table)
+library(tidybayes)
+library(gt)
+library(lubridate)
+
+participants <- fread(here("Data", "01_participants.csv"), na.strings = "") %>% as_tibble() %>% mutate(date = as_date(date))
+dat <- fread(here("Data", "01_processed_coded.csv"), na.strings = "") %>% as_tibble()
+posterior <- fread(here("Results", "posterior_draws.csv"), na.strings = "") %>% as_tibble()
+predictions <- fread(here("Results", "posterior_predictions.csv"), na.strings = "") %>% as_tibble()
+fit <- readRDS(here("Results", "fit3_phon.rds"))
+comparison <- readRDS(here("Results", "model_comparison.rds"))
+item_effects <- fread(here("Results", "item_effects.csv"), na.strings = "") %>% as_tibble()
+group_effects <- fread(here("Results", "group_effects.csv"), na.strings = "") %>% as_tibble()
+corrs <- fread(here("Results", "corrs.csv"), na.strings = "") %>% as_tibble()
+
+valid_participant <- filter(participants, valid_participant) %>% pull(participant)
+```
+
+# Behavioural task
+
+## Sample
+
+`r nrow(participants)` participants (mean age = `r printnum(mean(participants$age, na.rm = TRUE))`, *SD* age = `r printnum(sd(participants$age, na.rm = TRUE))`, age range = `r printnum(min(participants$age, na.rm = TRUE))`-`r printnum(max(participants$age, na.rm = TRUE))`). 
+
+`r filter(participants, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(participants, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(participants, country=="Spain") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(participants, country=="Spain", sex =="Female") %>% nrow()` female). 
+
+
+Exclusion criteria:
+
+a) Oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`)
+b) Language impairment (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.]
+c) Did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`)
+
+This resulted in `r nrow(participants)-sum(participants$valid_participant)` participants excluded, leaving `r nrow(filter(participants, valid_participant))` valid participants and `r dat %>% filter(response_type %in% c("correct", "typo", "wrong", "false_friend")) %>% nrow() %>% printnum(big.mark = ",")` valid trials.
+
+```{r participants_group, echo=FALSE}
+
+dat %>%
+    filter(participant %in% valid_participant, response_type %in% c("correct", "typo", "wrong", "false_friend")) %>% 
+    group_by(group, participant) %>% 
+    summarise(n_trials = n()) %>% 
+    group_by(group)%>%
+    summarise(n = n(),
+              n_trials = sum(n_trials)) %>% 
+    gt() %>% 
+    cols_label(group = "Group", n_trials = "Trials")
+
+```
+
+
+```{r participants_language, echo=FALSE}
+
+
+participants %>%
+    ggplot(aes(l2, fill = l2)) +
+    facet_wrap(~group, ncol = 2) +
+    geom_bar(stat = "count", show.legend = FALSE) +
+    labs(x = "L2", y = "Count", title = "What languages others than you native one do you know?") +
+    theme_classic() +
+    theme(panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+          axis.text.x = element_text(angle = 330, hjust = 0))
+
+
+```
+
+```{r participants_prof_l2, echo=FALSE}
+
+participants %>%
+    filter(!(l2 %in% "None")) %>% 
+    pivot_longer(c(l2oral, l2written), names_to = "modality", values_to = "proficiency") %>%
+    mutate(modality = str_to_sentence(str_remove(modality, "l2"))) %>% 
+    ggplot(aes(l2, proficiency, fill = l2)) +
+    facet_wrap(group~modality) +
+    geom_col(show.legend = FALSE) +
+    labs(x = "L2", y = "Self rated proficiency (0-5)") +
+    theme_classic() +
+    theme(panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+          axis.text.x = element_text(angle = 330, hjust = 0))
+
+```
+
+```{r participants_prof_spacat, echo=FALSE}
+
+participants %>%
+    pivot_longer(c(spanish_oral, spanish_written, catalan_oral, catalan_written), names_to = "language", values_to = "proficiency") %>%
+    separate(language, c("language", "modality"), sep = "_") %>% 
+    mutate(modality = str_to_sentence(str_remove(modality, "l2")),
+           language = str_to_sentence(language)) %>% 
+    ggplot(aes(proficiency)) +
+    facet_wrap(group~language~modality, nrow = 3) +
+    geom_bar(position = position_dodge(), fill = "black") +
+    labs(y = "Count", x = "Self rated proficiency (0-5)") +
+    scale_x_continuous(limits = c(0, 5)) +
+    theme_classic() +
+    theme(panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"))
+
+```
+
+## Design
+
+* 0 - 1000 ms: fixation point
+* 1000 - 2500 ms: audio
+* 2500 ms - Press RETURN key
+
+
+## Data analysis
+
+We fit Bayesian logistic models to model the probability of participants typing a correct translation in each trial. As predictors, we included the number of more frequent phonological neighbours of the translation (`PTHN`, standardised), whether both translation equivalents started with the same phoneme (`same_onset`, with levels `different`, `same_vowel`, `same_consonant`, helmert contrast comparing different vs. same and same vowel vs. same consonant), the highest number of consecutive phonemes shared (`consecutive_longest`, standardised), and our meausure of phonological similarity (`similarity_phop`, standardised). We first for a null model `fit0_null` that only included PTHN as predictor. We then extended the model incrementally by adding other predictors. The models were finally, we fitted a model that only included `PTHN` and the traditional orthographical Levenshtein similarity (`similarity`, standardised), we test whether our measure predicted participants responses better than just relying on orthographic similarity. The models were implemente in the `brms` R package using the following formulas:
+
+* `fit0_null <- correct | total ~ pthn + (1 + pthn | group/trial_id)`
+* `fit1_onset <- correct | total ~ pthn + same_onset + (1 +  same_onset | group/trial_id)`
+* `fit2_consec <- correct | total ~ pthn + same_onset + consecutive_longest + (1 + same_onset + consecutive_longest | group/trial_id)`
+* `fit3_phon <- correct | total ~ pthn + same_onset + consecutive_longest + similarity_phon + (1 + same_onset + consecutive_longest + similarity_phon | group/trial_id)`
+* `fit4_ort <- correct | total ~ pthn + similarity_ort + (1 + similarity_ort | group/trial_id)`
+
+
+
+# Results
+
+
+
+## Model comparison
+
+
+```{r waic, echo=FALSE}
+
+waic <- comparison %>%
+    unlist() %>%
+    as.data.frame() %>% 
+    rownames_to_column("model") 
+
+colnames(waic) <- c("Model", "WAIC")
+
+waic %>%
+    gt()
+
+
+```
+
+
+## Posterior distributions
+
+
+```{r posterior_draws, echo=FALSE}
+
+posterior %>%
+    ggplot(aes(.value, .variable)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    stat_slab(fill = "black") + 
+    stat_interval(.width = c(0.95, 0.89, 0.67, 0.5), position = position_nudge(y = -0.15)) +
+    labs(x = "Estimate", y = "Coefficient", colour = "Credible interval",
+         title = "Posterior distribution of coefficients of fixed effects") +
+    scale_colour_brewer(palette = "Blues") +
+    theme_classic() +
+    theme(panel.grid.major.y = element_line(colour = "grey"),
+          legend.position = "top",
+          legend.key = element_rect(fill = "transparent"))
+
+```
+
+
+## Posterior predictors
+
+
+```{r posterior_predictions, echo=FALSE}
+
+predictions %>%
+    ggplot(aes(similarity_phon, .value, colour = same_onset, fill = same_onset)) +
+    facet_grid(consecutive_longest~pthn)+
+    stat_summary(fun = mean, geom = "line", size = 1) +
+    geom_vline(xintercept = 0, colour= "grey") +
+    geom_hline(yintercept = 0.5, colour= "grey") +
+   labs(x = "Phonological similarity", y = "Probability of correct translation",
+         fill = "Credible interval", colour = "Onset",
+         title = "Effect of phonological similarity on probability of correct translation",
+         subtitle = "Model predictions are displayed for different quartiles of PTHN") +
+    scale_fill_brewer(palette = "Set1") +
+    scale_colour_brewer(palette = "Set1") +
+    theme_classic() +
+    theme(legend.position = "top") 
+
+```
+
+
+## Random effects
+
+### Item-level effects
+
+
+```{r item_effects, echo=FALSE}
+
+item_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(estimate, fill = param)) +
+  facet_wrap(~param, scales = "free") +
+  geom_histogram(bins = 20) +
+  geom_rug(alpha = 0.1) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Estimate", y = "Density", fill = "Parameter") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+  
+```
+
+
+### Group-level effects
+
+
+```{r goup_effects_table, echo=FALSE}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  mutate(hdi = paste0("[", lower, ", ", upper, "]")) %>% 
+  select(param, group, error, hdi) %>% 
+  group_by(param) %>% 
+  gt() %>% 
+  cols_label(group = "Group", error = "SE", hdi = "95% HDI") 
+
+```
+
+
+```{r group_effects, echo=FALSE}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(group, estimate)) +
+  facet_wrap(~param) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = lower, ymax = upper, colour =  group), width = 0, size = 5) +
+  geom_errorbar(aes(ymin = estimate-error, ymax = estimate+error), width = 0, size = 1, alpha = 0.5) +
+  geom_point(size = 3) +
+  labs(x = "Group", y = "Estimate", fill = "Group") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+  
+
+```
+
+
+### Correlations
+
+
+```{r correlations, echo=FALSE}
+
+corrs %>% 
+  filter(str_detect(variable, "trial_id")) %>%
+  mutate(variable = str_remove(variable, "cor_group:trial_id__"),
+         variable = str_replace(variable, "__" , " - ")) %>% 
+  ggplot(aes(value, variable, xmin = lower, xmax = upper)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  geom_errorbarh(show.legend = FALSE, height = 0) +
+  geom_point(size = 2, show.legend = FALSE) +
+  labs(x = "Estimate", y = "Correlation") +
+  theme_classic() +
+  theme(axis.title.y = element_blank())
+
+
+```
+
+
+
+ 

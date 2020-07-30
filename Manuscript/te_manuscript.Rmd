@@ -37,11 +37,13 @@ draft             : no
 
 documentclass     : "apa6"
 classoption       : "man"
-output            : papaja::apa6_pdf
+output            :
+  papaja::apa6_pdf:
+    latex_engine: "xelatex"
 ---
 
 ```{r setup, include = FALSE}
-library("papaja")
+library(papaja)
 ```
 
 ```{r analysis-preferences}
@@ -53,28 +55,40 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
 ```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(stringr)
+library(ggplot2)
 library(here)
 library(data.table)
+library(tidybayes)
+library(gt)
 library(lubridate)
-library(papaja)
 
-logs <- fread(here("Data", "01_logs.csv"), na.strings = "") %>%
-    as_tibble() %>%
-    mutate(date = as_date(date))
-dat <- fread(here("Data", "01_processed.csv"), na.strings = "") %>% 
-    as_tibble()
+participants <- fread(here("Data", "01_participants.csv"), na.strings = "") %>% as_tibble() %>% mutate(date = as_date(date))
+dat <- fread(here("Data", "01_processed_coded.csv"), na.strings = "") %>% as_tibble()
+posterior <- fread(here("Results", "posterior_draws.csv"), na.strings = "") %>% as_tibble()
+predictions <- fread(here("Results", "posterior_predictions.csv"), na.strings = "") %>% as_tibble()
+fit <- readRDS(here("Results", "fit3_phon.rds"))
+comparison <- readRDS(here("Results", "model_comparison.rds"))
+item_effects <- fread(here("Results", "item_effects.csv"), na.strings = "") %>% as_tibble()
+group_effects <- fread(here("Results", "group_effects.csv"), na.strings = "") %>% as_tibble()
+corrs <- fread(here("Results", "corrs.csv"), na.strings = "") %>% as_tibble()
+
 
 ```
 
 
 # Methods
 
+## Algorithm
+
 ## Translation Elicitation task
 
 ### Participants
 
-Data collection took place from `r format(min(logs$date), "%dth %B, %Y")` to  `r format(max(logs$date), "%dth %B, %Y")`. We collected data from `r nrow(logs)` participants ($M_{age}$ = `r printnum(mean(logs$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(sd(logs$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(min(logs$age, na.rm = TRUE))`-`r printnum(max(logs$age, na.rm = TRUE))`). `r filter(logs, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(logs, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(logs, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(logs, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We exluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(logs, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(logs, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(logs, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(logs, country %in% "Spain", !vision))/nrow(filter(logs, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(logs$exclude_trials, na.rm = TRUE)`).
+Data collection took place from `r format(min(participants$date), "%dth %B, %Y")` to  `r format(max(participants$date), "%dth %B, %Y")`. We collected data from `r nrow(participants)` participants ($M_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(sd(participants$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(min(participants$age, na.rm = TRUE))`-`r printnum(max(participants$age, na.rm = TRUE))`). `r filter(participants, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(participants, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(participants, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(participants, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We excluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`).
 
 
 ### Procedure
@@ -101,6 +115,132 @@ All analyses were performed in R environment [@rcoreteam2019]. We used the `tidy
 
 # Results
 
+## Posterior draws
+
+```{r posterior_draws}
+
+posterior %>%
+    ggplot(aes(.value, .variable)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    stat_slab(fill = "black") + 
+    stat_interval(.width = c(0.95, 0.89, 0.67, 0.5), position = position_nudge(y = -0.15)) +
+    labs(x = "Estimate", y = "Coefficient", colour = "Credible interval",
+         title = "Posterior distribution of coefficients of fixed effects") +
+    scale_colour_brewer(palette = "Blues") +
+    theme_classic() +
+    theme(panel.grid.major.y = element_line(colour = "grey"),
+          legend.position = "top",
+          legend.key = element_rect(fill = "transparent")) +
+    ggsave(here("Figures", "coefs.png"))
+
+```
+
+
+## Posterior predictions
+
+```{r posterior_predictions}
+
+predictions %>%
+    ggplot(aes(similarity_phon, .value, colour = same_onset, fill = same_onset)) +
+    facet_grid(consecutive_longest~pthn)+
+    stat_summary(fun = mean, geom = "line", size = 1) +
+    geom_vline(xintercept = 0, colour= "grey") +
+    geom_hline(yintercept = 0.5, colour= "grey") +
+   labs(x = "Phonological similarity", y = "Probability of correct translation",
+         fill = "Credible interval", colour = "Onset",
+         title = "Effect of phonological similarity on probability of correct translation",
+         subtitle = "Model predictions are displayed for different quartiles of PTHN") +
+    scale_fill_brewer(palette = "Set1") +
+    scale_colour_brewer(palette = "Set1") +
+    theme_classic() +
+    theme(legend.position = "top") +
+    ggsave(here("Figures", "predictions.png"), height = 4)
+
+```
+
+## Random effects
+
+### Item effects
+
+```{r item_effects}
+
+item_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(estimate, fill = param)) +
+  facet_wrap(~param, scales = "free") +
+  geom_histogram(bins = 20) +
+  geom_rug(alpha = 0.1) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Estimate", y = "Density", fill = "Parameter") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+  
+```
+
+
+
+### Group effects
+
+
+```{r goup_effects_table}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  mutate(hdi = paste0("[", lower, ", ", upper, "]")) %>% 
+  select(param, group, error, hdi) %>% 
+  group_by(param) %>% 
+  gt() %>% 
+  cols_label(group = "Group", error = "SE", hdi = "95% HDI") 
+
+```
+
+```{r group_effects}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(group, estimate)) +
+  facet_wrap(~param) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = lower, ymax = upper, colour =  group), width = 0, size = 5) +
+  geom_errorbar(aes(ymin = estimate-error, ymax = estimate+error), width = 0, size = 1, alpha = 0.5) +
+  geom_point(size = 3) +
+  labs(x = "Group", y = "Estimate", fill = "Group") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+  
+
+```
+### Correlations
+
+```{r correlations}
+
+corrs %>% 
+  filter(str_detect(variable, "trial_id")) %>%
+  mutate(variable = str_remove(variable, "cor_group:trial_id__"),
+         variable = str_replace(variable, "__" , " - ")) %>% 
+  ggplot(aes(value, variable, xmin = lower, xmax = upper)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  geom_errorbarh(show.legend = FALSE, height = 0) +
+  geom_point(size = 2, show.legend = FALSE) +
+  labs(x = "Estimate", y = "Correlation") +
+  theme_classic() +
+  theme(axis.title.y = element_blank())
+
+
+```
 
 # Discussion
 
