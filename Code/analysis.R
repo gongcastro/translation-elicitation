@@ -25,7 +25,7 @@ source(here("Code", "functions.R")) # helper functions
 set.seed(888) # for reproducibility
 
 #### import data ##########################################
-dat_accuracy <- fread(here("Data", "04_prepared.csv"), na.strings = c("", "NA")) %>%
+dat_accuracy <- fread(here("Data", "04_accuracy.csv"), na.strings = c("", "NA")) %>%
     as_tibble() %>% 
     mutate_at(vars(same_onset, group), as.factor)
 

@@ -60,7 +60,7 @@ trials <- read_xlsx(here("Data", "trials.xlsx")) %>%
     rename_all(str_replace, "translation_", "word_") %>%
     relocate(trial_id, practice, word, orthography, phonology, language)
     
-fwrite(trials, here("Data", "trial_stats.csv"), sep = ",", dec = ".", row.names = FALSE)
+fwrite(trials, here("Data", "00_trial_stats.csv"), sep = ",", dec = ".", row.names = FALSE)
 
 #### process data ####################################
 
@@ -198,6 +198,6 @@ dat_accuracy <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = c("", 
     relocate(group, trial_id) %>% 
     arrange(group, trial_id)
 
-fwrite(dat_accuracy, here("Data", "04_prepared.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
+fwrite(dat_accuracy, here("Data", "04_accuracy.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 
     

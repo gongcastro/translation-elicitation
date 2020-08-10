@@ -93,13 +93,13 @@ clean_varnames <- function(x){
 Exclusion criteria:
 
 a) Oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`)
-b) Language impairment (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.]
+b) Language impairment (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct. This item was phrased as *Do you have normal or corrected-to-normal VISION? (Yes/No)* in English, and as *¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)*. Surprisingly, the proportion of Spanish participants that reported visual impairment was implausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to some participants using glasses daily and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.]
 c) Did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`)
 
 This resulted in `r nrow(participants)-sum(participants$valid_participant)` participants excluded, leaving `r nrow(filter(participants, valid_participant))` valid participants and `r accuracy %>% filter(response_type %in% c("correct", "typo", "wrong", "false_friend")) %>% nrow() %>% printnum(big.mark = ",")` valid trials.
 
 
-```{r participants_prof_l2, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r participants_prof_l2, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Second languages. Some participants reported being familiar with one or more langugaes other than English (for UK participants) or Spanish (for participants in Spain). We asked them to self-report their oral and written proficiency in those languages in a 0-to-5 scale. This graph shows the mean proficiency reported by participants that reported being familiar with each language. the number of participants that reported being familiar with each language is reported on top of each bar. Data are presented for UK and Spanish participants separately."}
 
 participants %>%
   filter(!(l2 %in% "None")) %>% 
@@ -111,7 +111,7 @@ participants %>%
   arrange(n) %>% 
   mutate(l2 = fct_inorder(as.factor(l2))) %>% 
   ggplot(aes(l2, mean, fill = l2)) +
-  facet_grid(country~modality) +
+  facet_wrap(country~modality) +
   geom_col(show.legend = FALSE) +
   geom_text(aes(y = mean-0.5, label = paste0("n = ", n)), size = 3) +
   labs(x = "L2", y = "Self-rated proficiency (0-5)") +
@@ -124,7 +124,7 @@ participants %>%
 
 ```
 
-```{r participants_prof_spacat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r participants_prof_spacat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="We also asked participants to rate their oral and written proficiency in the target languages (Spanish and Catalan). UK participants were aked about Spanish and Catalan while Spanish participants were aonly asked about Catalan. The graph represents how many participants (self-) reported each levels of proficiency (0-5). Data are presented separately for UK and Spanish participants."}
 
 participants %>%
   pivot_longer(c(spanish_oral, spanish_written, catalan_oral, catalan_written), names_to = "language", values_to = "proficiency") %>%
@@ -134,7 +134,7 @@ participants %>%
   group_by(language, country, modality, proficiency) %>% 
   summarise(n = n(), .groups = "drop") %>% 
   ggplot(aes(x = proficiency, y = n, fill = country)) +
-  facet_grid(language~modality) +
+  facet_wrap(language~modality) +
   geom_col() +
   labs(y = "Count", x = "Self rated proficiency (0-5)", fill = "Country") +
   scale_x_continuous(limits = c(0, 5)) +
@@ -148,12 +148,12 @@ participants %>%
 
 * 0 - 1000 ms: fixation point
 * 1000 - 2500 ms: audio
-* 2500 ms - Press RETURN key
+* 2500 ms - Press RETURN key: type response
 
 
 ## Stimuli
 
-```{r stimuli, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r stimuli, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Distribution of trial words from the three groups accross different levels of the predictors."}
 
 plot_onset <- trials %>%
   select(trial_id, word, language, matches("same_onset")) %>% 
@@ -171,19 +171,19 @@ plot_onset <- trials %>%
   theme(legend.position = "none") 
 
 plot_subs <- trials %>%
-  select(trial_id, word, language, matches("close_")) %>% 
+  select(trial_id, word, language, matches("close_|similarity"), -matches("ort")) %>% 
   rename_all(str_remove, "close_") %>% 
-  pivot_longer(matches("substitutions"), names_to = "language_pair", values_to = "substitutions") %>% 
+  pivot_longer(matches("substitutions|similarity"), names_to = c("measure", "language_pair"), values_to = "value", names_sep = "_") %>% 
+  pivot_wider(names_from = "measure", values_from = "value") %>% 
   mutate(language_pair = str_to_upper(str_remove(language_pair, "substitutions_"))) %>% 
-  ggplot(aes(language_pair, substitutions, colour = language_pair, fill = language_pair)) +
-  geom_violin() +
-  stat_summary(fun = "mean", geom = "point", colour = "black", shape = "_", size = 10) +
-  labs(x = "Close substitutions", y = "Phonological similarity",
+  ggplot(aes(similarity, substitutions, colour = language_pair, fill = language_pair)) +
+  geom_point(alpha = 0.5, shape = 1) +
+  geom_smooth(formula = "y ~ x", method = "lm") +
+  labs(x = "Close substitutions", y = "Base similarity",
        colour = "Language pair", fill = "Language pair") +
   scale_y_continuous(limits = c(0, 1)) +
   theme_classic() +
-  theme(legend.position = "none",
-        axis.title.x = element_blank())
+  theme(legend.position = "none")
   
   
 plot_sim <- trials %>%
@@ -195,9 +195,9 @@ plot_sim <- trials %>%
   pivot_wider(names_from = modality, values_from = similarity) %>% 
   mutate(language_pair = str_to_upper(language_pair)) %>% 
   ggplot(aes(ort, phon, colour = language_pair, fill = language_pair)) +
-  geom_point(alpha = 0.5, size = 0.25) +
+  geom_point(alpha = 0.5, shape = 1) +
   geom_smooth(formula = "y ~ x", method = "lm") +
-  labs(x = "Orthographical similarity", y = "Phonological similarity",
+  labs(x = "Orthographical similarity", y = "Base similarity",
        colour = "Language pair", fill = "Language pair") +
   scale_y_continuous(limits = c(0, 1)) +
   scale_x_continuous(limits = c(0, 1)) +
@@ -209,9 +209,19 @@ plot_onset + plot_subs + plot_sim + guide_area() +
         panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"))
 
 ```
+
+
+
 ## Data analysis
 
-We fit Bayesian logistic models to model the probability of participants typing a correct translation in each trial. As predictors, we included the number of more frequent phonological neighbours of the translation (`PTHN`, standardised), whether both translation equivalents started with the same phoneme (`same_onset`, with levels `different`, `same_vowel`, `same_consonant`, sum-coded as `different` (-0.5) vs. `same` (0.5), the highest number of consecutive phonemes shared (`consecutive_longest`, standardised), and our measure of phonological similarity (`similarity_phop`, standardised). We first for a null model `fit0_null` that only included PTHN as predictor. We then extended the model incrementally by adding other predictors. The models were finally, we fitted a model that only included `PTHN` and the traditional orthographical Levenshtein similarity (`similarity`, standardised), we test whether our measure predicted participants responses better than just relying on orthographic similarity. The models were implemented in the `brms` R package using the following formulas:
+We fit Bayesian logistic models to model the probability of participants typing a correct translation in each trial. As predictors, we included:
+
+* *PTHN*: the number of more frequent phonological neighbours of the translation (`PTHN`, standardised)
+* *Onset*: do both translation equivalents start with the same phoneme? (`same_onset`, with levels `Different`, and `Same`, sum-coded as `different` (-0.5) vs. `same` (0.5)
+* *Close substitutions*: proportion of phoneme matches differing by 1 level on 1 feature (`close_substitutions`, standardised).
+* *Base similarity*: Proportion of phoneme matches with identical codes (`similarity_phon`, standardised).
+
+We first for a null model `fit1_pthn` that only included PTHN as predictor. We then extended the model by fitting three other models that included one of the predictors of interest (*Onset*, *Close substitutions*, or *Base similarity*) in interaction with *PTHN*. Finally, we fitted a model that included the traditional orthographical Levenshtein similarity (`similarity_ort`, standardised) to test whether our phonology-based measure predicted participants responses better than just relying on orthography. The models included a maximal random-effects structure (with random intercepts and slopes for all fixed effects) and were implemented in the `brms` R package using the following formulas:
 
 * `fit1_pthn <- correct | trials(total) ~ pthn + (1 + pthn | group)`
 * `fit2_onset <- correct | trials(total) ~ pthn*same_onset + (1 +  pthn*same_onset | group)`
@@ -240,7 +250,7 @@ pairs <- pairwise_comparisons(data = participants,
 
 ```
 
-We performed a one-way ANOVA to analyse how participants' accuracy (the proportion of correct trials) changed across groups the three groups (ENG-SPA, ENG-CAT, and SPA-CAT). The `group` predictor explained a significant proportion of the variance, *F*(`r printnum(anov$df[1])`, `r printnum(anov$df[2])`) = `r printnum(anov$statistic[1])`, `r printp(anov$p.value[1])`, $\hat{\eta}^2$ = `r printnum(es)`). Follow-up *t*-tests revealed that Spanish-native speakers translating Catalan words were more accurate than English-native participants translating Spanish words, *t*(`r printnum(pairs$df[3])`) = `r printnum(pairs$t.value[3])`, `r printp(pairs$p.value[3])`, Cohen's *d* = `r printnum(pairs$t.value[3]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`), or Catalan words, *t*(`r printnum(pairs$df[2])`) = `r printnum(pairs$t.value[2])`, `r printp(pairs$p.value[2])`, Cohen's *d* = `r printnum(pairs$t.value[2]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`). We did not find evidence against accuracy being similar in both English-native groups, , *t*(`r printnum(pairs$df[1])`) = `r printnum(pairs$t.value[1])`, `r printp(pairs$p.value[1])`, Cohen's *d* = `r printnum(pairs$t.value[1]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`). Bonferroni corrections were applied in the aforementioned contrasts.
+We performed a one-way ANOVA to analyse how participants' accuracy (the proportion of correct trials) changed across groups the three groups (ENG-SPA, ENG-CAT, and SPA-CAT). The `group` predictor explained a significant proportion of the variance, *F*(`r printnum(anov$df[1])`, `r printnum(anov$df[2])`) = `r printnum(anov$statistic[1])`, `r printp(anov$p.value[1])`, $\hat{\eta}^2$ = `r printnum(es)`). Follow-up *t*-tests revealed that Spanish-native speakers translating Catalan words (ENG-SPA, ENG-CAT), *t*(`r printnum(pairs$df[3])`) = `r printnum(pairs$t.value[3])`, `r printp(pairs$p.value[3])`, Cohen's *d* = `r printnum(pairs$t.value[3]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`), or Catalan words, *t*(`r printnum(pairs$df[2])`) = `r printnum(pairs$t.value[2])`, `r printp(pairs$p.value[2])`, Cohen's *d* = `r printnum(pairs$t.value[2]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`). We did not find evidence against accuracy being similar in both English-native groups, , *t*(`r printnum(pairs$df[1])`) = `r printnum(pairs$t.value[1])`, `r printp(pairs$p.value[1])`, Cohen's *d* = `r printnum(pairs$t.value[1]/sqrt(nrow(filter(participants, group %in% c("SPA-CAT", "ENG-SPA")))))`). Bonferroni corrections were applied in the aforementioned contrasts.
 
 
 
@@ -286,7 +296,7 @@ loos$diffs %>%
 
 ## Posterior distributions
 
-```{r posterior_coefs, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r posterior_coefs, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, fig.cap="Point estimations (median), standard errors, 95% credible intervals, and diagnostics of the fixed efffects of the model."}
 
 summary(fit)$fixed %>%
   as.data.frame() %>% 
@@ -319,7 +329,8 @@ posterior %>%
   theme(panel.grid.major.y = element_line(colour = "grey"),
         legend.position = "top",
         legend.key = element_rect(fill = "transparent", colour = NA),
-        axis.text = element_text(colour = "black"))
+        axis.text = element_text(colour = "black"),
+        axis.title.y = element_blank())
 
 ```
 
@@ -330,10 +341,10 @@ posterior %>%
 ```{r posterior_predictions, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Predicted probability of correct translation across different measures of phonological similarity scores. Predictions were generated by sampling 1000 random draws from the posterior distribution of each predictor in the extended model (fit3_phon)."}
 
 predictions %>%
-  ggplot(aes(similarity_phon, .value)) +
-  geom_point(data = accuracy, aes(y = correct_coded), shape = "|") +
+  ggplot(aes(similarity_phon, .value, colour = group)) +
+  geom_point(data = accuracy, aes(y = correct_coded), shape = 1, alpha = 0.1) +
   geom_line(aes(group = .draw), alpha = 0.25, colour = "grey") +
-  stat_summary(fun = "mean", geom = "line", colour = "blue") +
+  stat_summary(fun = "mean", geom = "line", colour = "black", size = 1) +
   labs(x = "Phonological similarity", y = "Probability of correct translation",
        fill = "PTHN", colour = "Group") +
   theme_classic() +
@@ -344,7 +355,7 @@ predictions %>%
 ## Random effects
 
 
-```{r group_effects, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Group-level effects. We specified a maximal random effects structure. As a result, intercepts and slopes were estimated for each group. This figure shows how the estimated intercepts and slopes varied across groups. There are not any remarkable differences across groups, except for the slope of phonological similarity. The accuracy of Spanish-native speakers translating from Catala \\(SPA-CAT\\) was slightly boosted by the phonological similarity between translation equivalents in comparison with the rest of the groups \\(ENG-SPA, ENG-CAT\\)."}
+```{r group_effects, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Group-level effects. We specified a maximal random effects structure. As a result, intercepts and slopes were estimated for each group. This figure shows how the estimated intercepts and slopes varied across groups. There are not any remarkable differences across groups, except for the slope of phonological similarity. The accuracy of Spanish-native speakers translating from Catala (SPA-CAT) was slightly boosted by the phonological similarity between translation equivalents in comparison with the rest of the groups (ENG-SPA and ENG-CAT)."}
 
 group_effects %>%
   mutate(param = clean_varnames(param)) %>% 
@@ -365,7 +376,7 @@ group_effects %>%
 
 
 
-```{r correlations, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Pairwise correlations between group-level effects. This figure displaya"}
+```{r correlations, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Pairwise correlations between group-level effects. This figure displays the correlation between the posterior draws of all pairs of coefficients in the random effects structure. All 95% HDI of the correlation included zero, and no remarkable differences can be found across groups."}
 
 corrs %>% 
   mutate(.variable = str_remove(.variable, "cor_group__"),
