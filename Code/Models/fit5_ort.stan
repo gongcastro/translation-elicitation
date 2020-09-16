@@ -1,4 +1,4 @@
-// generated with brms 2.12.0
+// generated with brms 2.13.5
 functions {
 }
 data {
@@ -61,7 +61,7 @@ model {
   target += normal_lpdf(Intercept | 0, 1);
   target += cauchy_lpdf(sd_1 | 0, 1)
     - 4 * cauchy_lccdf(0 | 0, 1);
-  target += normal_lpdf(to_vector(z_1) | 0, 1);
+  target += std_normal_lpdf(to_vector(z_1));
   target += lkj_corr_cholesky_lpdf(L_1 | 2);
   // likelihood including all constants
   if (!prior_only) {

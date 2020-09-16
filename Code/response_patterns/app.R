@@ -10,8 +10,10 @@
 library(shiny)
 library(dplyr)
 library(scales)
+library(forcats)
 library(stringr)
 library(ggplot2)
+library(data.table)
 
 integer_breaks <- function(n = 5, ...) {
     fxn <- function(x) {
@@ -22,7 +24,7 @@ integer_breaks <- function(n = 5, ...) {
     return(fxn)
 }
 
-dat <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = c("", "NA")) %>% 
+dat <- fread("03_accuracy_coded.csv", na.strings = c("", "NA")) %>% 
     as_tibble() %>% 
     mutate_at(vars(same_onset, group), as.factor) %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),

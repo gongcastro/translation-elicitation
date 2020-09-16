@@ -1,4 +1,4 @@
-// generated with brms 2.12.0
+// generated with brms 2.13.5
 functions {
 }
 data {
@@ -14,8 +14,6 @@ data {
   // group-level predictor values
   vector[N] Z_1_1;
   vector[N] Z_1_2;
-  vector[N] Z_1_3;
-  vector[N] Z_1_4;
   int<lower=1> NC_1;  // number of group-level correlations
   int prior_only;  // should the likelihood be ignored?
 }
@@ -40,28 +38,24 @@ transformed parameters {
   // using vectors speeds up indexing in loops
   vector[N_1] r_1_1;
   vector[N_1] r_1_2;
-  vector[N_1] r_1_3;
-  vector[N_1] r_1_4;
   // compute actual group-level effects
   r_1 = (diag_pre_multiply(sd_1, L_1) * z_1)';
   r_1_1 = r_1[, 1];
   r_1_2 = r_1[, 2];
-  r_1_3 = r_1[, 3];
-  r_1_4 = r_1[, 4];
 }
 model {
   // initialize linear predictor term
   vector[N] mu = Intercept + Xc * b;
   for (n in 1:N) {
     // add more terms to the linear predictor
-    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n];
+    mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n];
   }
   // priors including all constants
   target += normal_lpdf(b | 0, 1);
   target += normal_lpdf(Intercept | 0, 1);
   target += cauchy_lpdf(sd_1 | 0, 1)
-    - 4 * cauchy_lccdf(0 | 0, 1);
-  target += normal_lpdf(to_vector(z_1) | 0, 1);
+    - 2 * cauchy_lccdf(0 | 0, 1);
+  target += std_normal_lpdf(to_vector(z_1));
   target += lkj_corr_cholesky_lpdf(L_1 | 2);
   // likelihood including all constants
   if (!prior_only) {

@@ -11,11 +11,10 @@ library(stringr)    # for manipulating character strings
 library(purrr)      # for working with lists
 library(janitor)    # for cleaning variable names
 library(data.table) # for importing data
-library(brms)       # for fitting Bayesian models
 library(mice)       # for imputing data
-library(bayesplot)  # for plotting MCMC
-library(tidybayes)  # for sampling from the posterior in Bayesian models
-library(modelr)     # for predicting scores from models
+library(lme4)       # for fitting multilevel generalised linear models
+library(broom.mixed)
+library(car)        # for performing F-tests
 library(here)       # for locating paths
 
 # create/load functions
@@ -25,130 +24,67 @@ source(here("Code", "functions.R")) # helper functions
 set.seed(888) # for reproducibility
 
 #### import data ##########################################
-dat_accuracy <- fread(here("Data", "04_accuracy.csv"), na.strings = c("", "NA")) %>%
+dat <- fread(here("Data", "04_accuracy.csv"), na.strings = c("", "NA")) %>%
     as_tibble() %>% 
-    mutate_at(vars(same_onset, group), as.factor)
-
-#### impute missing data ##################################
-dat_imputed <- mice(dat_accuracy, m = 5, print = FALSE, method = "pmm") %>% 
+    mutate_at(vars(onset, stress_overlap, group), as.factor) %>% 
+    mutate_at(vars(consonant_ratio, vowel_ratio, pthn, freq),
+              function(x) scale(x, center = TRUE, scale = FALSE)[,1]) %>% 
+    mice(m = 5, print = FALSE, method = "pmm") %>% # impute missing data
     complete() %>% 
     as_tibble() %>% 
     arrange(trial_id, group)
 
-contrasts(dat_imputed$same_onset) <- c(-0.5, 0.5)
+contrasts(dat$onset) <- c(-0.5, 0.5)
+contrasts(dat$stress_overlap) <- c(-0.5, 0.5)
 
-#### fit models #########################################
-priors <- c(prior(normal(0, 1), class = "Intercept"),
-            prior(normal(0, 1), class = "b"), 
-            prior(cauchy(0, 1), class = "sd"),
-            prior(lkj(2), class = "cor"))
+#### fit models ###########################################
 
+fit0 <- glmer(cbind(correct, n-correct) ~ 1 + (1 | group),
+              data = dat, family = binomial)
+fit1 <- glmer(cbind(correct, n-correct) ~ 1 + pthn + (1 + pthn | group),
+              data = dat, family = binomial)
+fit2 <- glmer(cbind(correct, n-correct) ~ 1 + pthn + vowel_ratio + (1 + pthn + vowel_ratio | group),
+              data = dat, family = binomial)
+fit3 <- glmer(cbind(correct, n-correct) ~ 1 + pthn + vowel_ratio + consonant_ratio + (1 + pthn + vowel_ratio + consonant_ratio | group),
+              data = dat, family = binomial)
 
+selection <- anova(fit0, fit1, fit2, fit3)
 
-fit1_pthn <- brm(formula = bf(correct | trials(n) ~ pthn + (1 + pthn | group)),
-                  prior = priors,
-                  family = binomial("logit"),
-                  data = dat_imputed,
-                  cores = 4,
-                  file = here("Results", "fit0_prior.rds"), 
-                  control = list(adapt_delta = 0.95),
-                  save_model = here("Code", "Models", "fit0_prior.stan"),
-                  save_all_pars = TRUE)
+anova <- Anova(fit3, type = "III", test.statistic = "Chisq")
 
+output  <- tidy(fit3, conf.int = TRUE)
+#### model predictions ####################################
 
-# null model (only frequency)
-fit2_onset <- update(fit1_pthn, bf(correct | trials(n) ~ pthn*same_onset + (1 + pthn*same_onset | group)),
-                     file = here("Results", "fit2_onset.rds"),
-                     newdata = dat_imputed,
-                     cores = 4,
-                     save_model = here("Code", "Models", "fit2_onset.stan"))
+dat_preds <- expand_grid(pthn = unique(dat$pthn),
+                         vowel_ratio = seq(min(dat$vowel_ratio, na.rm = TRUE),
+                                           max(dat$vowel_ratio, na.rm = TRUE),
+                                           by = 0.01),
+                         consonant_ratio = seq(min(dat$consonant_ratio, na.rm = TRUE),
+                                               max(dat$consonant_ratio, na.rm = TRUE),
+                                               by = 0.01),
+                         group = unique(dat$group)) %>% 
+    mutate(pred = predict(fit3, newdata = ., type = "response")) %>% 
+    mutate(vowel_ratio = cut_interval(vowel_ratio, n = 4, labels = c("0-25th", "26-50th", "51-75th", "76-100th"))) 
 
-# match count
-fit3_close <- update(fit1_pthn,  bf(correct | trials(n) ~ pthn*close_substitutions + (1 + pthn*close_substitutions | group)),
-                     file = here("Results", "fit3_close.rds"),
-                     newdata = dat_imputed,
-                     cores = 4,
-                     save_model = here("Code", "Models", "fit3_close.stan"))
-
-fit4_phon <- update(fit1_pthn, bf(correct | trials(n) ~ pthn*similarity_phon + (1 + pthn*similarity_phon | group)),
-                     file = here("Results", "fit4_phon.rds"),
-                     newdata = dat_imputed,
-                     cores = 4,
-                     save_model = here("Code", "Models", "fit4_phon.stan"))
-
-# orthographic similarity (Damerau-Levenshtein distance)
-fit5_ort <- update(fit1_pthn, bf(correct | trials(n) ~ pthn*similarity_ort + (1 + pthn*similarity_ort | group)),
-                   file = here("Results", "fit5_ort.rds"),
-                   newdata = dat_imputed,
-                   cores = 4,
-                   save_model = here("Code", "Models", "fit5_ort.stan"))
-
-# null model (only frequency)
-fit0_prior <- update(fit4_phon,
-                     newdata = dat_imputed,
-                     sample_prior = "only",
-                     cores = 4,
-                     file = here("Results", "fit0_prior.rds"), 
-                     save_model = here("Code", "Models", "fit0_prior.stan"))
+dat %>%
+    mutate(vowel_ratio = cut_interval(vowel_ratio, n = 4, labels = c("0-25th", "26-50th", "51-75th", "76-100th"))) %>% 
+    ggplot(aes(consonant_ratio, proportion, size = pthn, colour = vowel_ratio)) +
+    facet_wrap(~group, ncol = 2) +
+    geom_point(alpha = 0.25) +
+    stat_summary(data = dat_preds, aes(y = pred), fun = "mean", geom = "line", size = 1) +
+    labs(x = "Consonant ratio", y = "P. correct translation", colour = "Vowel ratio percentile", size = "PTHN") +
+    scale_color_brewer(palette = "Spectral") +
+    guides(colour = guide_legend(ncol = 2),
+           size = guide_legend(direction = "horizontal", ncol = 3, title.position = "top")) +
+    theme(legend.position = c(0.75, 0.25),
+          legend.title = element_text(size = 9),
+          legend.text = element_text(size = 9),
+          legend.margin = margin(0.05, unit = "cm"),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_line(colour = "grey", linetype = "dotted")) +
+    ggsave(here("Figures", "predictions.png"), height = 4, width = 5)
 
 
-# compute k-fold validation and compare models
-loos <- loo(fit1_pthn, fit2_onset, fit3_close, fit4_phon, fit5_ort)
-
-r2 <- list(fit1_pthn, fit2_onset, fit3_close, fit4_phon, fit5_ort) %>% 
-    set_names(c("fit1_pthn", "fit2_onset", "fit3_close", "fit4_phon", "fit5_ort")) %>% 
-    map(., bayes_R2) %>%
-    map(., as.data.frame) %>% 
-    map(remove_rownames) %>% 
-    bind_rows(.id = "model") %>% 
-    arrange(Estimate) %>% 
-    clean_names()
-saveRDS(loos, here("Results", "loos.rds"))
-saveRDS(r2, here("Results", "r2.rds"))
-
-#### examine prior/posterior #####################################
-prior <- fit0_prior %>% 
-    gather_draws(`b_.*`, regex = TRUE) %>% 
-    ungroup() %>% 
-    mutate_at(vars(.chain, .variable), function(x) factor(x, levels = unique(x), ordered = TRUE))
-
-posterior <- fit4_phon %>% 
-    gather_draws(`b_.*`, regex = TRUE) %>% 
-    ungroup() %>% 
-    mutate_at(vars(.chain, .variable), function(x) factor(x, levels = unique(x), ordered = TRUE))
-
-fwrite(posterior, here("Results", "posterior_draws.csv"), sep = ",", dec = ".", row.names = FALSE)
-fwrite(prior, here("Results", "prior_draws.csv"), sep = ",", dec = ".", row.names = FALSE)
-
-#### predictive checks ##############################
-
-# prior predictive checks
-prior_preds <- expand_grid(n = 1,
-                           pthn = median(dat_imputed$pthn, na.rm = TRUE),                           
-                           similarity_phon = seq_range(dat_imputed$similarity_phon, n = 100)) %>%   
-    add_fitted_draws(fit0_prior, newdata = ., re_formula = NA, scale = "response", n = 100) %>% 
-    ungroup() 
-# posterior predictive checks
-posterior_preds <- expand_grid(n = 1,
-                               group = unique(dat_imputed$group),
-                               pthn = median(dat_imputed$pthn, na.rm = TRUE),                           
-                               similarity_phon = seq_range(dat_imputed$similarity_phon, n = 100)) %>%   
-    add_fitted_draws(fit4_phon, newdata = ., re_formula = NA, scale = "response", n = 100, ) %>% 
-    ungroup() 
-
-fwrite(prior_preds, here("Results", "prior_predictions.csv"), sep = ",", dec = ".", row.names = FALSE)
-fwrite(posterior_preds, here("Results", "posterior_predictions.csv"), sep = ",", dec = ".", row.names = FALSE)
 
 
-#### analyse random effects structure #####################
-
-# get group-level effects
-group_effects <- gather_draws(fit4_phon, r_group[group, param])
-    
-# get correlations between group-level effects
-corrs <- gather_draws(fit4_phon, `cor_.*`, regex = TRUE)
-
-# export data
-fwrite(group_effects, here("Results", "group_effects.csv"), sep = ",", dec = ".", row.names = FALSE)
-fwrite(corrs, here("Results", "corrs.csv"), sep = ",", dec = ".", row.names = FALSE)
 

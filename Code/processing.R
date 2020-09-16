@@ -26,41 +26,10 @@ spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "Españ
 
 #### import trial data ###############################
 
-# frequency and phonological neighbourhoods for English (from CLEARPOND)
-clearpond_eng <- fread(here("Data", "clearpond_Eng.csv"), na.strings = "") %>%
-    select(-matches("spa")) %>% 
-    distinct(Word_eng, .keep_all = TRUE)
-clearpond_spa <- fread(here("Data", "clearpond_Spa.csv"), na.strings = "") %>%
-    rename(pthn_spa = PTHN) %>% 
-    distinct(Word, .keep_all = TRUE)
-
-
-# word pair comparison statistics - similarity, same_onset, consecutive_longest, close_substitutions
-# statistics for each language pair are different columns
-# only includes statistics for words that appear in trials for the specific language
-similarity_engspa <- read_excel(here("Data", "Output_similarity.xlsx"), sheet = "English-Spanish") %>%
-    select(-c("Phon_eng", "Phon_spa", "check_diff")) 
-similarity_engcat <- read_excel(here("Data", "Output_similarity.xlsx"), sheet = "English-Catalan") %>%
-    select(-c("Phon_eng", "Phon_cat", "check_diff"))
-similarity_spacat <- read_excel(here("Data", "Output_similarity.xlsx"), sheet = "Spanish-Catalan") %>%
-    select(-c("Phon_cat", "Phon_spa", "check_diff"))
-
-# replace name to match up to trial list - similarity is calculated for pork
-similarity_engcat$Word_eng[similarity_engcat$Word_eng=="pork"]<-"pig/pork"
-
-trials <- read_xlsx(here("Data", "trials.xlsx")) %>% 
-    left_join(clearpond_spa, by = c("translation_spanish_orthography" = "Word")) %>% 
-    left_join(clearpond_eng, by = c("translation_english_orthography" = "Word_eng")) %>% 
-    clean_names() %>% 
-    select(trial_id, word, orthography, phonology, starts_with("translation_"), language, practice, starts_with("pthn"), matches("freq_eng|freq_per")) %>% 
-    rename(freq_spa = freq_per_million) %>% 
-    left_join(similarity_engspa, by = c("translation_english_orthography" = "Word_eng", "translation_spanish_orthography" = "Word_spa")) %>% 
-    left_join(similarity_engcat, by = c("translation_english_orthography" = "Word_eng", "translation_catalan_orthography" = "Word_cat")) %>% 
-    left_join(similarity_spacat, by = c("translation_spanish_orthography" = "Word_spa", "translation_catalan_orthography" = "Word_cat")) %>% 
-    rename_all(str_replace, "translation_", "word_") %>%
-    relocate(trial_id, practice, word, orthography, phonology, language)
-    
-fwrite(trials, here("Data", "00_trial_stats.csv"), sep = ",", dec = ".", row.names = FALSE)
+stim <- map(c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
+            ~read_xlsx(here("Data", "00_trials.xlsx"), sheet = .)) %>% 
+    bind_rows(.id = "group") %>% 
+    clean_names()
 
 #### process data ####################################
 
@@ -133,31 +102,15 @@ dat_clean <- dat_processed %>%
 #### merge with trial-level data ########################
 
 dat_merged <- dat_clean %>%
-    left_join(trials, by = c("trial_id", "test_language" = "language", "word")) %>% 
-    mutate(similarity_phon = case_when(country=="UK" & test_language=="Spanish" ~ similarity_engspa,
-                                  country=="UK" & test_language=="Catalan" ~ similarity_engcat,
-                                  TRUE ~ similarity_spacat),
-           similarity_ort = case_when(country=="UK" & test_language=="Catalan" ~ similarity_ort_engcat,
-                                      country=="UK" & test_language=="Spanish" ~ similarity_ort_engspa,
-                                      TRUE ~ similarity_ort_spacat),
-           close_substitutions = case_when(country=="UK" & test_language=="Spanish" ~ close_substitutions_engspa,
-                                           country=="UK" & test_language=="Catalan" ~ close_substitutions_engcat,
-                                           TRUE ~ close_substitutions_spacat),
-           same_onset = case_when(country=="UK" & test_language=="Spanish" ~ same_onset_engspa,
-                                  country=="UK" & test_language=="Catalan" ~ same_onset_engcat,
-                                  TRUE ~ same_onset_spacat),
-           consecutive_longest = case_when(country=="UK" & test_language=="Spanish" ~ consecutive_longest_engspa,
-                                           country=="UK" & test_language=="Catalan" ~ consecutive_longest_engspa,
-                                           TRUE ~ consecutive_longest_spacat),
-           pthn = ifelse(l1 %in% "ENG", pthn_eng, pthn_spa),
-           freq = ifelse(l1 %in% "ENG", freq_eng, freq_spa))%>% 
-    select(participant, group, trial_id, test_language, country, word, input_text, typing_offset, similarity_phon, similarity_ort, close_substitutions, same_onset, consecutive_longest, freq, pthn)
+    left_join(stim, by = c("group", "trial_id")) %>% 
+    select(participant, group, trial_id, test_language, country, word, input_text, typing_offset, consonant_ratio, vowel_ratio, onset, pthn, freq, stress_overlap)
 
 # export data
 fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 
+
 #### participant data ###################################
-dat_participants <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = "") %>% 
+dat_participants <- fread(here("Data", "02_coded.csv"), na.strings = "") %>% 
     rowwise() %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
            correct_coded = response_type %in% c("correct", "typo")) %>%
@@ -167,20 +120,21 @@ dat_participants <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = ""
               n_correct = sum(correct_coded, na.rm = TRUE),
               prop_correct = n_correct/n_valid,
               .groups = "drop") %>% 
-    left_join(distinct(dat_processed, participant, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision)) %>% 
+    left_join(distinct(dat_processed, participant, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision),
+              by = "participant") %>% 
     # participant is valid if has completed >= 80% trials (valid)
     mutate(invalid_participant_trials = ifelse(test_language %in% "Catalan", n_valid < 0.80*86, n_valid < 0.80*103),
            valid_participant = ifelse(test_language %in% "Catalan",
                                       between(age, 18, 26) & n_valid >= 0.80*86 & !impairment,
-                                      between(age, 18, 26) & n_valid >= 0.80*103 & !impairment))
-
-
-fwrite(dat_participants, here("Data", "02_participants.csv"), sep = ",", dec = ".")
+                                      between(age, 18, 26) & n_valid >= 0.80*103 & !impairment) &
+               l2 %!in% c("Italian", "Spanish"))
 
 valid_participants <- filter(dat_participants, valid_participant) %>% pull(participant)
 
+fwrite(dat_participants, here("Data", "03_participants.csv"), sep = ",", dec = ".")
+
 #### prepare accuracy data ###############################
-dat_accuracy <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = c("", "NA")) %>% 
+dat_accuracy <- fread(here("Data", "02_coded.csv"), na.strings = c("", "NA")) %>% 
     mutate(valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
            correct_coded = response_type %in% c("correct", "typo"),
            correct_coded = as.numeric(correct_coded),
@@ -188,16 +142,22 @@ dat_accuracy <- fread(here("Data", "03_accuracy_coded.csv"), na.strings = c("", 
     filter(participant %in% valid_participants, # participant is valid
            valid_response, # response is valid 
            word %!in% practice_trials) %>%  # not a practice trial %>% 
-    group_by(trial_id, test_language, word, freq, pthn, consecutive_longest, same_onset, close_substitutions, similarity_ort, similarity_phon, group) %>% 
+    group_by(trial_id, group, test_language, word, freq, pthn, onset, stress_overlap, vowel_ratio, consonant_ratio, ) %>% 
     summarise(correct = sum(correct_coded, na.rm = TRUE),
               n = n(),
               proportion = prod(correct, 1/n, na.rm = TRUE),
               .groups = "drop") %>% 
     mutate(freq = log10(freq)+3,
-           same_onset = ifelse(str_detect(same_onset, "same"), "Same", "Different")) %>% 
+           onset = ifelse(str_detect(onset, "same"), "Same", "Different"),
+           stress_overlap = ifelse(stress_overlap==1, "Overlap", "No overlap")) %>% 
     relocate(group, trial_id) %>% 
     arrange(group, trial_id)
 
 fwrite(dat_accuracy, here("Data", "04_accuracy.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
+
+
+
+
+
 
     
