@@ -29,7 +29,8 @@ spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "Españ
 stim <- map(c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
             ~read_xlsx(here("Data", "00_trials.xlsx"), sheet = .)) %>% 
     bind_rows(.id = "group") %>% 
-    clean_names()
+    clean_names() %>% 
+    mutate(lv = stringsim(ipa1, ipa2, method = "lv"))
 
 #### process data ####################################
 
@@ -103,7 +104,7 @@ dat_clean <- dat_processed %>%
 
 dat_merged <- dat_clean %>%
     left_join(stim, by = c("group", "trial_id")) %>% 
-    select(participant, group, trial_id, test_language, country, word, input_text, typing_offset, consonant_ratio, vowel_ratio, onset, pthn, freq, stress_overlap)
+    select(participant, group, trial_id, test_language, country, word, input_text, typing_offset, lv, consonant_ratio, vowel_ratio, onset, pthn, freq, stress_overlap)
 
 # export data
 fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
@@ -142,7 +143,7 @@ dat_accuracy <- fread(here("Data", "02_coded.csv"), na.strings = c("", "NA")) %>
     filter(participant %in% valid_participants, # participant is valid
            valid_response, # response is valid 
            word %!in% practice_trials) %>%  # not a practice trial %>% 
-    group_by(trial_id, group, test_language, word, freq, pthn, onset, stress_overlap, vowel_ratio, consonant_ratio, ) %>% 
+    group_by(trial_id, group, test_language, word, freq, pthn, onset, lv, stress_overlap, vowel_ratio, consonant_ratio, ) %>% 
     summarise(correct = sum(correct_coded, na.rm = TRUE),
               n = n(),
               proportion = prod(correct, 1/n, na.rm = TRUE),
