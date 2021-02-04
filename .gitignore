@@ -4,7 +4,13 @@
 .Rproj
 .Ruserdata
 .secrets
+*.Pitch
+*.PitchTier
+*.pdf
+*.png
+*.csv
 Stimuli/
 Media/
 Results/
+Figures/
 Data/
