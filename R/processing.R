@@ -212,7 +212,7 @@ dat_accuracy <- fread(here("Data", "02_coded.csv"), na.strings = c("", "NA")) %>
     arrange(group, trial_id)
 
 fwrite(dat_accuracy, here("Data", "04_accuracy.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
-saveRDS(dat_participants, file = here("Results", "accuracy.rds"))
+saveRDS(dat_accuracy, file = here("Results", "accuracy.rds"))
 
 
 
