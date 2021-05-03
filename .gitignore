@@ -9,6 +9,7 @@
 *.pdf
 *.png
 *.csv
+*.rds
 Stimuli/
 Media/
 Results/

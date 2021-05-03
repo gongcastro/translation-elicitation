@@ -29,18 +29,19 @@ clean_input_text <- function(x) {
             TRUE ~ value)) %>% 
         pull(value)
 }
-#### ggplot custom theme ##################################
+# ggplot custom theme
 theme_custom <- function(){
     theme(
         panel.background = element_rect(fill = "transparent"),
-        panel.grid = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid = element_blank(),
+        #panel.grid = element_line(colour = "grey", linetype = "dotted"),
         panel.border = element_rect(fill = "transparent", colour = "black"),
         text = element_text(colour = "black", size = 15),
         axis.text = element_text(colour = "black")
     )
 }
 
-#### extract formants #####################################
+# extract formants
 extract_formants <- function(
     file,
     time_step = 0.001,
@@ -118,7 +119,7 @@ extract_formants <- function(
     
 }
 
-#### extract pitch ######################################
+# extract pitch
 extract_pitch <- function(
     file,
     time_step = 0.001,
@@ -174,5 +175,119 @@ extract_pitch <- function(
         bind_rows(.id = "file") %>%
         clean_names() %>%
         rename(time = v1, f0 = v2)
+    
+}
+
+# download clearpond
+import_clearpond <- function(language = c("english", "dutch", "french", "spanish", "german")){
+    require(tidyverse)
+    require(janitor)
+    urls <- tribble(
+        ~lang, ~url, ~data, ~header,
+        "english", "https://clearpond.northwestern.edu/englishCPdatabase2.zip", "englishCPdatabase2.txt", "clearpondHeaders_EN.txt",
+        "dutch", "https://clearpond.northwestern.edu/dutchCPdatabase2.zip", "dutchCPdatabase2.txt", "clearpondHeaders_NL.txt",
+        "french", "https://clearpond.northwestern.edu/frenchCPdatabase2.zip", "frenchCPdatabase2.txt", "clearpondHeaders_FR.txt",
+        "german", "https://clearpond.northwestern.edu/germanCPdatabase2.zip", "germanCPdatabase2.txt", "clearpondHeaders_DE.txt",
+        "spanish", "https://clearpond.northwestern.edu/spanishCPdatabase2.zip", "spanishCPdatabase2.txt", "clearpondHeaders_SP.txt"
+    ) %>% 
+        filter(lang %in% language)
+    
+    dir <- tempdir()
+    files <- replicate(tempfile(), n = length(urls$lang))
+    d <- pmap(
+        .l = list(url = as.list(urls$url), file = as.list(files), data = as.list(urls$data), header = as.list(urls$header)),
+        .f = function(url = .l[[1]], file = .l[[2]], data = .l[[3]], header = .l[[4]]) {
+            download.file(url, destfile = file)
+            unzip(zipfile = file, exdir = dir)
+            headers <- c("word", read.delim(paste0(dir, .Platform$file.sep, header))[,1])
+            d <- read.delim(paste0(dir, .Platform$file.sep, data)) %>% 
+                `colnames<-`(., headers) %>% 
+                as_tibble() %>% 
+                mutate_at(vars(ends_with("W")), ~str_split(., pattern = ";"))
+            return(d)
+        }
+    ) %>% 
+        set_names(language) %>% 
+        bind_rows(.id = "language") %>% 
+        clean_names()
+    return(d)
+}
+
+# import subtlex
+import_subtlex <- function() {
+    df <- list.files("Data", pattern = "SUBTLEX", full.names = TRUE, recursive = TRUE) %>% 
+        map(
+            function(x) {
+                readxl::read_xlsx(x, na = c("", "NA")) %>% 
+                    janitor::clean_names()
+            }
+        ) %>% 
+        set_names(c("Catalan", "Spanish", "English"))
+    df$English$freq_rel <- zipf_to_relative(df$English$freq_zipf)
+    df <- df %>% 
+        bind_rows(.id = "language") %>% 
+        select(word, language, freq_rel) %>% 
+        mutate(freq_zipf = 3 + log10(freq_rel))
+    return(df)
+}
+
+# relative frequency to zipf
+relative_to_zipf <- function(x){
+    3 + log10(x)
+}
+
+# zipf frequency to relative
+zipf_to_relative <- function(x){
+    10^(x-3)
+}
+
+# import_trials
+import_trials <- function(path = "Stimuli/trials.xlsx", subtlex = NULL){
+    if (is.null(subtlex)) subtlex <- import_subtlex()
+    trials <- map(
+        readxl::excel_sheets(path)[-1],
+        function(x) readxl::read_xlsx(path, sheet = x, na = c("", "NA"))
+    ) %>% 
+        set_names(c("Spanish-English", "Catalan-English", "Catalan-Spanish")) %>% 
+        map2(
+            .y = list(
+                filter(subtlex, language=="English"),
+                filter(subtlex, language=="English"),
+                filter(subtlex, language=="Spanish")
+            ),
+            function(x, y) left_join(x, y, by = c("word2" = "word"))
+        ) %>% 
+        bind_rows(.id = "list") %>% 
+        select(list, trial_id, word1, word2, jtrace1, jtrace2, consonant_ratio, vowel_ratio, onset, overlap_stress, starts_with("freq_"))
+    return(trials)
+}
+
+# create jTRACE lexicon
+get_jtrace_lexicon <- function(trials = NULL, language = "English", output_path = NULL){
+    
+    if(is.null(trials)) trials <- import_trials()
+    if(!(language %in% c("English", "Spanish"))){
+        stop("language must be English or Spanish")
+    }
+    if(is.null(output_path)) output_path <- paste0(getwd(), "/lexicon_", tolower(language), ".jt")
+    
+    # following McLelland & Rumelhart (1981, see also Dahan et al., 2001), missing frequencies are assigned 1
+    trials <- trials %>% 
+        mutate(freq_jtrace = ifelse(is.na(freq_rel), 1.001, freq_rel)) %>% 
+        drop_na()
+    
+    header <- "<?xml version='1.0' encoding='UTF-8'?>\n<lexicon xmlns='http://xml.netbeans.org/examples/targetNS'\nxmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\nxsi:schemaLocation='http://xml.netbeans.org/examples/targetNS file:/Ted/develop/cvs/sswr/code/WebTrace/Schema/WebTraceSchema.xsd'>"
+    
+    body <- paste0(
+        "<lexeme><phonology>",
+        trials$jtrace2,
+        "</phonology><frequency>",
+        trials$freq_jtrace,
+        "</frequency></lexeme>"
+    )
+    
+    footer <- "</lexicon>"
+    
+    write_lines(c(header, body, footer), file = output_path)
     
 }
