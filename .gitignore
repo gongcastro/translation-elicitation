@@ -9,6 +9,8 @@
 *.pdf
 *.png
 *.csv
+*.pptx
+*.docx
 *.rds
 Stimuli/*
 Media/*
