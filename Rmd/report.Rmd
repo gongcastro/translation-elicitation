@@ -1,0 +1,542 @@
+---
+title: "Translation Elicitation"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message = TRUE,
+    warning = TRUE, 
+    cache.extra = knitr::rand_seed,
+    out.width = "100%",
+    results = "asis",
+    dev.args = list(png = list(type = "cairo"))
+)
+options(knitr.kable.NA = '-')
+```
+
+
+```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# load packages
+library(tidyverse)
+library(gt)
+library(ggdist)
+library(readxl)
+library(tidytext)
+library(brms)
+library(tidybayes)
+library(patchwork)
+library(mice)
+library(here)
+
+# set params
+source(here("R", "utils.R"))
+
+# import data
+trials <- readRDS(here("Data", "trials.rds")) %>% 
+    mutate(
+        test_language = ifelse(group=="ENG-SPA", "Spanish", "Catalan"),
+        zipf = log10(frequency)+3,
+        pthn_log = log(pthn),
+        overlap_stress = ifelse(overlap_stress==1, "Same", "Different")
+    )
+accuracy <- readRDS(here("Data", "accuracy.rds"))
+d <- readRDS(here("Data", "accuracy.rds")) %>% 
+    # typos are considered correct responses
+    mutate_at(vars(onset, overlap_stress, group), as.factor) %>% 
+    # center predictors
+    mutate_at(
+        vars(consonant_ratio, vowel_ratio, pthn, frequency),
+        function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
+    # impute missing data
+    mice(m = 5, print = FALSE, method = "pmm") %>% 
+    complete() %>% 
+    as_tibble() %>% 
+    arrange(trial_id, group)
+
+participants <- readRDS(here("Data", "participants.rds")) %>% 
+    mutate(valid_participant = ifelse(valid_participant, "Valid", "Not valid"))
+fit <- readRDS(here("Results", "fit.rds"))
+coefs <- readRDS(here("Results", "coefficients.rds")) %>% 
+    select(term, estimate, std.error, conf.low, conf.high)
+
+
+```
+
+
+# Experimental task: Translation Elicitation
+
+## Methods
+
+
+### Participants {.tabset .tab-pills}
+
+#### Summary
+
+```{r participants_summary, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggplot(participants, aes(group, fill = valid_participant)) +
+    geom_bar() +
+    labs(x = "Group", y = "# participants", fill = "Valid?") +
+    theme_custom() +
+    theme(
+        legend.title = element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        panel.grid.major.y = element_line(linetype = "dotted", colour = "grey")
+    )
+
+```
+
+#### Demographic information
+
+```{r participants_demo, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+participants_valid <- filter(participants, valid_participant=="Valid")
+p_sex <- ggplot(participants_valid, aes(group, fill = sex)) +
+    geom_bar() +
+    labs(x = "Group", y = "# participants", fill = "Sex") +
+    theme(axis.title.x = element_blank())
+
+p_age <- ggplot(participants_valid, aes(as.factor(age), fill = group, colour = group)) +
+    geom_bar() +
+    labs(x = "Age (years)", y = "# participants", fill = "Group", colour = "Group")
+
+(p_sex + p_age) &
+    plot_layout() &
+    plot_annotation() &
+    theme_custom() +
+    theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.grid.major.y = element_line(linetype = "dotted", colour = "grey")
+    )
+
+```
+
+#### Second language
+
+```{r participants_l2, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+participants_valid %>% 
+    count(group, l2) %>% 
+    mutate(l2 = reorder_within(l2, n, within = group)) %>% 
+    ggplot(aes(x = reorder(l2, -n), n,  fill = l2)) +
+    facet_wrap(~group, scales = "free_x") +
+    geom_col() +
+    labs(x = "L2", y = "# participants", fill = "L2") +
+    scale_x_reordered() +
+    theme_custom() +
+    theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        axis.text.x = element_text(angle = 90)
+    )
+
+```
+
+
+#### Language profile proficiency
+
+```{r participants_proficiency, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+participants_valid %>% 
+    select(participant, group, catalan_oral, spanish_oral, catalan_written, spanish_written) %>% 
+    mutate_at(vars(catalan_oral, spanish_oral, catalan_written, spanish_written), replace_na, 0) %>% 
+    pivot_longer(c(catalan_oral, spanish_oral, catalan_written, spanish_written),
+                 names_to = "type", values_to = "score") %>% 
+    separate(type, c("language", "modality"), sep = "_") %>% 
+    mutate_at(vars(language, modality), str_to_sentence) %>%
+    ggplot(aes(as.integer(score), fill = language)) +
+    facet_grid(modality~group) +
+    geom_bar() +
+    labs(y = "# participants", x = "Self-reportd proficiency (0-5)", fill = "Language") +
+    scale_x_continuous(limits = c(0, 5)) +
+    coord_flip() +
+    theme_custom() +
+    theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+#### {-}
+
+
+### Stimuli {.tabset .tab-pill}
+
+#### Lexical frequency
+
+```{r trials_frequency, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+trials %>% 
+    ggplot(aes(zipf, fill = test_language)) +
+    geom_histogram(bins = 25) +
+    labs(x = "Lexical frequency (Zipf score)\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language") +
+    theme_custom() +
+    theme(
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+#### PTHN
+
+```{r trials_pthn, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+trials %>% 
+    count(test_language, pthn) %>% 
+    ggplot(aes(reorder(as.factor(pthn), -n), n, fill = test_language)) +
+    geom_col() +
+    labs(x = "# Phonological neighbours with higher lexical frequency\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language") +
+    theme_custom() +
+    theme(
+        legend.position = "top",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+#### Vowel and consonant similarity
+
+```{r trials_similarity, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+trials %>% 
+    select(trial_id, group, ends_with("_ratio")) %>% 
+    pivot_longer(ends_with("_ratio"), names_to = "type", values_to = "ratio") %>% 
+    mutate(type = str_to_sentence(str_remove(type, "_ratio"))) %>% 
+    ggplot(aes(group, ratio, fill = group, colour = group)) +
+    facet_wrap(~type) +
+    geom_violin() +
+    geom_point(shape = 1, stroke = 1, position = position_jitter(width = 0.1), colour = "black", alpha = 0.25) +
+    geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
+    labs(x = "Grouop", y = "Similarity", fill = "Test language") +
+    scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+    theme_custom() +
+    theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+#### Phonological onset
+
+```{r trials_onset, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+trials %>% 
+    select(trial_id, group, onset) %>% 
+    ggplot(aes(group, fill = onset, colour = onset)) +
+    geom_bar(position = position_dodge(width = 0.9)) +
+    labs(x = "Group", y = "# trials", fill = "Phonological onset", colour = "Phonological onset") +
+    theme_custom() +
+    theme(
+        legend.position = "top",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+```
+
+#### Stress position
+
+```{r trials_stress, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+trials %>% 
+    select(trial_id, group, overlap_stress) %>% 
+    ggplot(aes(group, fill = overlap_stress, colour = overlap_stress)) +
+    geom_bar(position = position_dodge(width = 0.9)) +
+    labs(x = "Group", y = "# trials", fill = "Same stress position?", colour = "Same stress position?") +
+    theme_custom() +
+    theme(
+        legend.position = "top",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+```
+
+#### {-}
+
+### Design
+
+
+### Data analysis
+
+
+## Results {.tabset .tab-pill}
+
+
+### Posterior samples: Fixed coefficients
+
+```{r coefs_fixed_table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+summary(fit)$fixed %>% 
+    as.data.frame() %>%
+    rownames_to_column("term") %>% 
+    mutate(
+        Estimate = ifelse(term=="Intercept", inv_logit_scaled(Estimate), Estimate/4),
+        `l-95% CI` = ifelse(term=="Intercept", inv_logit_scaled(`l-95% CI`), `l-95% CI`/4),
+        `u-95% CI` = ifelse(term=="Intercept", inv_logit_scaled(`u-95% CI`), `u-95% CI`/4),
+        Est.Error = ifelse(term=="Intercep)", inv_logit_scaled(Est.Error), Est.Error/4)
+    ) %>% 
+    gt() %>% 
+    fmt_percent(2:5) %>% 
+    fmt_number(6:6, decimals = 2) %>% 
+    fmt_number(7:8, decimals = 0) %>% 
+    cols_merge(vars("l-95% CI", "u-95% CI"), pattern = "[{1}, {2}]") %>% 
+    cols_label(
+        term = md("**Predictor**"),
+        Estimate = md("**Mean**"),
+        Est.Error = md("**SEM**"),
+        "l-95% CI" = md("**95\\% CrI**"),
+        Rhat = md("**Rhat**"),
+        Bulk_ESS = md("**Bulk ESS**"),
+        Tail_ESS = md("**Tail ESS**")
+    ) %>% 
+    tab_footnote(
+        footnote = "Transformed using the inverse logit to get the average probability of correct response",
+        locations = cells_body(columns = "term", rows = term=="(Intercept)")
+    ) %>% 
+    tab_footnote(
+        footnote = "Transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable.",
+        locations = cells_body(columns = "term", rows = term %in% c("pthn", "frequency", "consonant_ratio", "vowel_ratio", "onset1", "overlap_stress1"))
+    ) %>% 
+    tab_footnote(
+        footnote = "ESS: Effective sample size",
+        locations = cells_column_labels(columns = c("Bulk_ESS", "Tail_ESS"))
+    ) %>% 
+    cols_align(
+        align = c("center"),
+        columns = 2:4
+    )
+```
+
+
+```{r post_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+post <- gather_draws(fit, `b_.*`, regex = TRUE) 
+
+ggplot(post, aes(.value, fill = .variable)) +
+    facet_wrap(~.variable, scales = "free") +
+    stat_histinterval() +
+    labs(x = "Value", y = "Posterior probability density", fill = "Variable") +
+    theme_custom() +
+    theme(
+        legend.position = "none",
+        axis.text.x = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+```
+
+### Random effects
+
+
+```{r post_re, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+post_re <- gather_draws(fit, r_participant[participant, .param]) %>% 
+    mean_qi() %>% 
+    ungroup() %>% 
+    left_join(select(participants, participant, group)) %>% 
+    arrange(group, participant, .param)
+
+ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = .upper, colour = group)) +
+    facet_wrap(~.param) +
+    geom_errorbarh(height = 0, alpha = 0.75) +
+    geom_point(size = 0.1, shape = 4) +
+    labs(x = "Estimate", y = "Participant", colour = "Group") +
+    theme_custom() +
+    theme(
+        legend.position = c(0.65, 0.15),
+        legend.direction = "horizontal",
+        axis.title.x = element_blank(),
+        legend.title = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank()
+    )
+```
+
+### Marginal effects
+
+```{r emmeans, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+nd <- expand_grid(
+    pthn = seq(min(d$pthn, na.rm = TRUE), max(d$pthn, na.rm = TRUE), by = 0.1),
+    onset = unique(d$onset),
+    overlap_stress = unique(d$overlap_stress),
+    vowel_ratio = c(-1, 1),
+    consonant_ratio = c(-1, 1)
+) %>% 
+    mutate(frequency = 0)
+m <- add_fitted_draws(nd, fit, n = 20, re_formula = NA) %>% 
+    mutate_at(vars(ends_with("_ratio")),
+              function(x) ifelse(x>0, paste0(x, " SD"), paste0("-", x, " SD")))
+
+ggplot(m, aes(pthn, .value, 
+              colour = interaction(consonant_ratio, vowel_ratio, sep = "/"),
+              fill = interaction(consonant_ratio, vowel_ratio, sep = "/"))) +
+    facet_grid(~overlap_stress~onset) +
+    stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
+    stat_summary(fun = mean, geom = "line", size = 1) +
+    labs(x = "Phonological neighbourhood density\n(higher frequency neighbours)",
+         y = "P(Correct)", colour = "Consonant similarity / Vowel similarity",
+         fill = "Consonant similarity / Vowel similarity") +
+    theme_ggdist() +
+    theme(
+        legend.position = "top"
+    )
+```
+
+### {-}
+
+# TRACE simulations  {.tabset .tab-pill}
+
+```{r jtrace_import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+filedir <- here("Data/jtrace")
+# directory with save files (
+## 1 file per input word, with 1 output word per column
+## files should be named with input word orthography and language (e.g. "gato_spanish.xlsx")
+## files should be xlsx (csv doesn't deal well with special characters like ^ and @)
+## folder should not contain any other files
+
+# Note: it's effortful to have to convert to xlsx (jTRACE doesn't allow direct xlsx export), but it's the most reliable method to preserve special characters I've found so far. Would welcome ideas
+
+# Export jTRACE output with Top 100 items and 100 cycles (arbritary value)
+# Max ad-hoc activation
+
+fnames <- dir(filedir) # extract list of file names in directory
+
+trace_output <- data.frame() # create empty data frame
+# for loop to extract highest activations for each input word
+for (i in 1:length(fnames)){
+    filename <- paste(filedir, fnames[i], sep = "/") # get file name
+    temp <- read_excel(filename) # read file
+    
+    temp <- apply(temp,2,max) # get highest value in each column
+    temp <- as.data.frame(temp)
+    temp <- cbind(newColName = rownames(temp), temp) # change index column (which has output items) into column 1 for easier organisation
+    rownames(temp) <- 1:nrow(temp)
+    names(temp)[1] <- "output" # (rename col) output item
+    names(temp)[2] <- "activation" # (rename col) max activation value
+    
+    temp <- temp %>%
+        filter(!output == "cycle") %>% # remove row corresponding to cycle number
+        mutate(input = fnames[i]) %>% # specify input word
+        arrange(desc(activation)) %>%
+        filter(!activation <= 0) # remove low activation (maybe even apply a higher threshold? TBD)
+    trace_output <- bind_rows(trace_output, temp)
+}
+
+trace_output <- trace_output %>%
+    mutate(input = str_remove(input, ".xlsx")) %>%
+    separate(input, c("input", "language"), "_")
+
+# xlsx file with 1 column for TRACE transcriptions and 1 column for orthography (English words) 
+df_transcription <- read_excel(here("Stimuli", "trace.xlsx")) %>%
+    select(trace_eng, ort_eng) %>%
+    unique()
+
+# Match the jTRACE output transcriptions with their orthography
+trace_output <- left_join(trace_output, df_transcription, by = c("output" = "trace_eng")) %>%
+    rename(output_word = ort_eng) %>% 
+    mutate(language = str_to_sentence(language))
+
+# Cleaned file with participant answers, 1 row per trial per participant
+
+# count the number of participants who gave each answer in response to a given trial
+df_answer <- accuracy %>%
+    rename(answer = input_text) %>% 
+    group_by(test_language, word, answer) %>%
+    summarise(n_participant = n(), .groups = "drop") %>%
+    group_by(test_language, word) %>%
+    mutate(pct_participant = n_participant/sum(n_participant)*100) #%>%
+#  filter(!n_participant == 1) # remove answers only given by 1 participant as idiosyncratic answers?
+
+```
+
+
+## Predicting participant response by jTRACE 
+
+Presented words and the answer that was given by the most number of participants for that trial.
+
+```{r jtrace_all, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Predicting participant response by jTRACE
+
+df_match <- full_join(trace_output, df_answer, by = c("input" = "word", "output_word" = "answer", "language" = "test_language")) %>%
+    semi_join(., trace_output, by = c("input", "language"))
+
+# If "output" is <NA>, the word is not in the currently-used jTRACE lexicon
+df_match %>%
+    filter(language == "Spanish") %>% 
+    arrange(input, desc(pct_participant)) %>%
+    group_by(input) %>%
+    slice(1) %>%
+    select(input, output_word, pct_participant, output, activation) %>%
+    arrange(desc(pct_participant))
+
+df_match %>%
+    filter(language == "Catalan") %>% 
+    arrange(input, desc(pct_participant)) %>%
+    group_by(input) %>%
+    slice(1) %>%
+    select(input, output_word, pct_participant, output, activation) %>%
+    arrange(desc(pct_participant))
+
+
+# if no data for a given output word is available in df_answer, it means no participants gave that word as a response - recode as 0
+df_match$pct_participant[is.na(df_match$pct_participant)] <- 0
+
+# if no data for a given output word is available in trace output, it means that activation is outside of Top 100 words and/or below 0
+df_match$activation[is.na(df_match$activation)] <- 0
+
+
+# However, this is also constrained by the size of TRACE's lexicon, so subset only the words that do appear in the lexicon
+df_match_trace <- semi_join(df_match, df_transcription, by = c("output_word" = "ort_eng"))
+
+```
+
+
+```{r jtrace_all_plot, echo=FALSE, warning=FALSE}
+ggplot(df_match_trace, aes(x = activation, y = pct_participant)) +
+    geom_smooth() +
+    geom_point(shape = 1, stroke = 1, alpha = 0.5) +
+    labs(
+        x = "jTRACE activation value for the word",
+        y = "% participants who responded with the word",
+        title = "jTRACE activation against % participants who gave word as response"
+    ) +
+    theme_custom() +
+    theme(
+        panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+
+## Item-wise analysis
+
+```{r jtrace_word_plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# plot by word
+df_match_trace %>% 
+    mutate(input_language = paste0(input, " (", language, ")")) %>% 
+    ggplot(aes(x = activation, y = pct_participant)) +
+    facet_wrap(~input_language) +
+    geom_smooth() +
+    geom_point(shape = 1, stroke = 1, alpha = 0.5) +
+    labs(
+        x = "jTRACE activation value for the word",
+        y = "% participants who responded with the word",
+        title = "jTRACE activation against % participants who gave word as response"
+    ) +
+    theme_custom() +
+    theme(
+        panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+    )
+
+```
+
+
+## {-}
+
+# References
