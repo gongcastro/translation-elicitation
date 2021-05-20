@@ -1,58 +1,64 @@
-#### analysis ------------------------------------------------------------------
+# preprocessing
 
-#### set up --------------------------------------------------------------------
+# set up ----
 
 # load packages
-library(tidyverse)  # for manipulating variables
-library(readxl)     # for importing Excel spreadsheets
-library(janitor)    # for cleaning variable names
-library(lubridate)  # for working with dates
+library(tidyverse) # for manipulating variables
+library(readxl) # for importing Excel spreadsheets
+library(googlesheets4) # for importing Google spreadsheets
+library(janitor) # for cleaning variable names
+library(lubridate) # for working with dates
 library(data.table) # for importing data
 library(stringdist) # for calculating Levenshtein distance
-library(here)       # for locating files in the repository with reproducibility
 
 # create/load functions
-source(here("R", "utils.R")) # helper functions
+source("R/utils.R") # helper functions
 
 # set parameters
 set.seed(888) # for reproducibility
 practice_trials <- c(109, 147, 159, 167, 179, 1, 26, 70, 86, 96)
 spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "España", "Málaga", "Oviedo", "Santander", "Granada")
 
-#### import trial data ---------------------------------------------------------
-stim <- c("ENG-SPA" = "English-Spanish",
-          "ENG-CAT" = "English-Catalan",
-          "SPA-CAT" = "Spanish-Catalan") %>% 
-    map(~read_xlsx(here("Data", "00_trials.xlsx"), sheet = .)) %>% 
+# import trial data ----
+# import Clearpond data
+clearpond_english <- read.csv("Data/clearpond_english.csv") %>% clean_names() %>% as_tibble() %>% select(-c(x, s_pthn))
+clearpond_spanish <- read.csv("Data/clearpond_spanish.csv")[, -1] %>% clean_names() %>% as_tibble()
+clearpond <- bind_rows(
+    list(
+        `ENG-CAT` = clearpond_english,
+        `ENG-SPA` = clearpond_english,
+        `SPA-CAT` = clearpond_spanish),
+    .id = "group"
+) %>% 
+    rename(word2 = word, frequency = freq_per_million) %>% 
+    mutate(word2 = str_to_lower(word2)) %>% 
+    select(word2, group, pthn, frequency)
+
+# import trials
+trace <- read_xlsx("Stimuli/trace.xlsx") %>% 
+    list("ENG-SPA" = ., "ENG-CAT" = .) %>% 
+    bind_rows(.id = "group") %>% 
+    rename(word2 = ort_eng, trace = trace_eng)
+
+trials <- c("ENG-SPA" = "English-Spanish",
+            "ENG-CAT" = "English-Catalan",
+            "SPA-CAT" = "Spanish-Catalan") %>% 
+    map(function(x) range_read(ss = "1pZE58wHYGFxaIC90hSr-202Qv9go6-VZLixl_lF1QKY", sheet = x)) %>% 
     bind_rows(.id = "group") %>% 
     clean_names() %>% 
-    mutate(lv = stringsim(ipa1, ipa2, method = "lv"))
+    select(trial_id, group, word1, word2, consonant_ratio, vowel_ratio, onset, overlap_stress) %>% 
+    left_join(clearpond) %>% 
+    distinct(trial_id, group, word1, word2, .keep_all = TRUE) %>% 
+    left_join(trace) %>% 
+    relocate(trace, .after = word2)
 
-sim_cor <- cor.test(stim$similarity_ipa, stim$lv, method = "pearson")    
-ggplot(stim, aes(similarity_ipa, lv, colour = group, fill = group)) +
-    geom_point(shape = 1) +
-    geom_smooth(method = "lm", formula = "y ~ x") +
-    labs(x = "Similarity (IPA)", y = "Similarity (Levenshtein)",
-         colour = "Language pair", fill = "Language pair",
-         subtitle = paste0("Pearson r = ", round(sim_cor$estimate, 2),
-                           ", 95% CI = [", round(sim_cor$conf.int[1], 2), ", ",
-                           round(sim_cor$conf.int[2], 2), "]",
-                           ", R2 = ", round(sim_cor$estimate^2, 2))) +
-    scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
-    theme_minimal() +
-    theme(axis.title = element_text(face = "bold"),
-          legend.position = c(0.15, 0.8)) +
-    ggsave(here("Figures", "similarity.png"), width = 4, height = 4)
-
-
-#### process data --------------------------------------------------------------
+# process data ----
 # participant files
-filenames <- list.files(here("Data", "Raw")) %>% 
+filenames <- list.files("Data/Raw") %>% 
     str_extract(".*?\\_") %>% 
     str_remove("_")
 
-dat_processed <- list.files(here("Data", "Raw"), full.names = TRUE) %>% 
+processed <- list.files("Data/Raw", full.names = TRUE) %>% 
     map(fread, na.string = "") %>%  # import participant files
     map(mutate, participant = as.character(participant)) %>% 
     set_names(filenames) %>% # label each dataset with the participant's ID
@@ -114,7 +120,7 @@ dat_processed <- list.files(here("Data", "Raw"), full.names = TRUE) %>%
     rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "")
 
 #### clean data ----------------------------------------------------------------
-dat_clean <- dat_processed %>%
+clean <- processed %>%
     group_by(participant) %>% 
     mutate(
         age = max(age, na.rm = TRUE),
@@ -141,17 +147,17 @@ dat_clean <- dat_processed %>%
     ungroup()
 
 #### merge with trial-level data -----------------------------------------------
-dat_merged <- dat_clean %>%
-    left_join(stim, by = c("group", "trial_id" = "index")) %>% 
-    select(participant, group, trial_id, test_language, country, word, input_text, typing_offset, lv, vowel_ratio, consonant_ratio, vowel_ratio2, consonant_ratio2, similarity_ipa, similarity_code)
+merged <- clean %>%
+    left_join(trials) %>% 
+    select(participant, group, trial_id, test_language, country, word, target_word = word2, trace, input_text,
+           typing_offset, vowel_ratio, consonant_ratio, pthn, frequency)
 
 # export data
-saveRDS(dat_merged, file = here("Results", "processed.rds"))
-fwrite(dat_merged, here("Data", "01_processed.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
-
+saveRDS(merged, file = "Data/processed.rds")
+fwrite(merged, "Data/01_processed.csv", sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 
 #### participant data ----------------------------------------------------------
-dat_participants <- fread(here("Data", "02_coded.csv"), na.strings = "") %>% 
+participants <- read_xlsx("Data/02_coded.xlsx", na = "") %>% 
     rowwise() %>% 
     mutate(
         valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
@@ -166,7 +172,7 @@ dat_participants <- fread(here("Data", "02_coded.csv"), na.strings = "") %>%
         .groups = "drop"
     ) %>% 
     left_join(
-        distinct(dat_processed, participant, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision),
+        distinct(processed, participant, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision),
         by = "participant"
     ) %>% 
     # participant is valid if has completed >= 80% trials (valid)
@@ -178,41 +184,34 @@ dat_participants <- fread(here("Data", "02_coded.csv"), na.strings = "") %>%
             between(age, 18, 26) & n_valid >= 0.80*103 & !impairment) & l2 %!in% c("Italian", "Spanish")
     )
 
-valid_participants <- filter(dat_participants, valid_participant) %>% pull(participant)
+valid_participants <- filter(participants, valid_participant) %>% pull(participant)
 
-fwrite(dat_participants, here("Data", "03_participants.csv"), sep = ",", dec = ".")
-saveRDS(dat_participants, file = here("Results", "participants.rds"))
+fwrite(participants, "Data/03_participants.csv", sep = ",", dec = ".")
+saveRDS(participants, file = "Data/participants.rds")
 
 #### prepare accuracy data -----------------------------------------------------
-dat_accuracy <- fread(here("Data", "02_coded.csv"), na.strings = c("", "NA")) %>% 
+accuracy <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>% 
     mutate(
         valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
-        correct_coded = response_type %in% c("correct", "typo"),
-        correct_coded = as.numeric(correct_coded),
+        correct = response_type %in% c("correct", "type"),
         group = as.factor(group)
     ) %>%
     filter(
         participant %in% valid_participants, # participant is valid
         valid_response, # response is valid 
-        word %!in% practice_trials
-    ) %>%  # not a practice trial %>% 
-    group_by(trial_id, group, test_language, word, freq, pthn, onset, lv, stress_overlap, vowel_ratio, consonant_ratio, vowel_ratio2, consonant_ratio2, similarity_ipa, similarity_code) %>% 
-    summarise(
-        correct = sum(correct_coded, na.rm = TRUE),
-        n = n(),
-        proportion = prod(correct, 1/n, na.rm = TRUE),
-        .groups = "drop"
-    ) %>% 
+        word %!in% practice_trials # not a practice trial
+    ) %>%
+    left_join(trials) %>% 
     mutate(
-        freq = log10(freq)+3,
-        onset = ifelse(str_detect(onset, "same"), "Same", "Different"),
-        stress_overlap = ifelse(stress_overlap==1, "Overlap", "No overlap")
+        frequency = log10(frequency)+3,
+        onset = ifelse(str_detect(onset, "Same"), "Same", "Different"),
+        overlap_stress = ifelse(overlap_stress==1, "Overlap", "No overlap")
     ) %>% 
     relocate(group, trial_id) %>% 
     arrange(group, trial_id)
 
-fwrite(dat_accuracy, here("Data", "04_accuracy.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
-saveRDS(dat_accuracy, file = here("Results", "accuracy.rds"))
+fwrite(accuracy, "Data/04_accuracy.csv", sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
+saveRDS(accuracy, file = "Data/accuracy.rds")
 
 
 

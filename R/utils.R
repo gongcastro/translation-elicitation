@@ -262,32 +262,4 @@ import_trials <- function(path = "Stimuli/trials.xlsx", subtlex = NULL){
     return(trials)
 }
 
-# create jTRACE lexicon
-get_jtrace_lexicon <- function(trials = NULL, language = "English", output_path = NULL){
-    
-    if(is.null(trials)) trials <- import_trials()
-    if(!(language %in% c("English", "Spanish"))){
-        stop("language must be English or Spanish")
-    }
-    if(is.null(output_path)) output_path <- paste0(getwd(), "/lexicon_", tolower(language), ".jt")
-    
-    # following McLelland & Rumelhart (1981, see also Dahan et al., 2001), missing frequencies are assigned 1
-    trials <- trials %>% 
-        mutate(freq_jtrace = ifelse(is.na(freq_rel), 1.001, freq_rel)) %>% 
-        drop_na()
-    
-    header <- "<?xml version='1.0' encoding='UTF-8'?>\n<lexicon xmlns='http://xml.netbeans.org/examples/targetNS'\nxmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\nxsi:schemaLocation='http://xml.netbeans.org/examples/targetNS file:/Ted/develop/cvs/sswr/code/WebTrace/Schema/WebTraceSchema.xsd'>"
-    
-    body <- paste0(
-        "<lexeme><phonology>",
-        trials$jtrace2,
-        "</phonology><frequency>",
-        trials$freq_jtrace,
-        "</frequency></lexeme>"
-    )
-    
-    footer <- "</lexicon>"
-    
-    write_lines(c(header, body, footer), file = output_path)
-    
-}
+
