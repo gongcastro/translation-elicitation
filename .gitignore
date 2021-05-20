@@ -10,8 +10,8 @@
 *.png
 *.csv
 *.rds
-Stimuli/
-Media/
-Results/
-Figures/
-Data/
+Stimuli/*
+Media/*
+Results/*
+Figures/*
+Data/*
