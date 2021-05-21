@@ -11,9 +11,7 @@
 *.csv
 *.pptx
 *.docx
-*.rds
 Stimuli/*
 Media/*
-Results/*
 Figures/*
 Data/*
