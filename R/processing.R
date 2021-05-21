@@ -189,7 +189,7 @@ fwrite(participants, "Data/03_participants.csv", sep = ",", dec = ".")
 saveRDS(participants, file = "Data/participants.rds")
 
 #### prepare accuracy data -----------------------------------------------------
-accuracy <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>% 
+responses <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>% 
     mutate(
         valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
         correct = response_type %in% c("correct", "type"),
@@ -209,8 +209,8 @@ accuracy <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>%
     relocate(group, trial_id) %>% 
     arrange(group, trial_id) 
 
-fwrite(accuracy, "Data/04_accuracy.csv", sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
-saveRDS(accuracy, file = "Data/accuracy.rds")
+fwrite(responses, "Data/04_responses.csv", sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
+saveRDS(responses, file = "Data/responses.rds")
 
 
 

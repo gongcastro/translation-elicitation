@@ -12,11 +12,13 @@ library(mice) # for multiple imputation
 # set parameters
 set.seed(888) # for reproducibility
 options(mc.cores = 4, chains = 4, iter = 500, seed = 888)
+source("R/utils.R")
 
 # import data ----
-d <- readRDS("Data/accuracy.rds") %>% 
+responses <- readRDS("Data/responses.rds") 
     # typos are considered correct responses
-    mutate_at(vars(onset, overlap_stress, group), as.factor) %>% 
+    # transform relative frequency to Zipf score
+    mutate(frequency_zipf = relative_to_zipf(frequency)) %>% 
     # center predictors
     mutate_at(
         vars(consonant_ratio, vowel_ratio, pthn, frequency),
@@ -25,18 +27,17 @@ d <- readRDS("Data/accuracy.rds") %>%
     mice(m = 5, print = FALSE, method = "pmm") %>% 
     complete() %>% 
     as_tibble() %>% 
-    arrange(trial_id, group)
+    arrange(trial_id, group) %>% 
+    mutate_at(vars(onset, overlap_stress, group), as.factor)
 
-contrasts(d$group) <- c(-0.5, -0.5, 1)
-contrasts(d$onset) <- c(-0.5, 0.5)
-contrasts(d$overlap_stress) <- c(-0.5, 0.5)
+contrasts(responses$group) <- c(-0.5, -0.5, 1)
+contrasts(responses$onset) <- c(-0.5, 0.5)
 
 # fit models ----
 # formula
 f <- bf(
-    correct ~ pthn + frequency + consonant_ratio + vowel_ratio + onset + overlap_stress +
-        (1 + pthn + frequency + consonant_ratio + vowel_ratio + onset + overlap_stress | participant) +
-        (1 | trial_id),
+    correct ~ pthn + consonant_ratio + vowel_ratio + onset +
+        (1 + pthn + consonant_ratio + vowel_ratio | participant),
     family = bernoulli(link = "logit")
 )
 # prior
@@ -44,22 +45,14 @@ priors <- c(
     prior(normal(0, 1), class = "Intercept"),
     prior(normal(0, 1), clas = "b"),
     prior(cauchy(0, 3), class= "sd", group = "participant"),
-    prior(constant(1), class = "sd", group = "trial_id"),
     prior(lkj(5), class = "cor")
 )
 # fit model
 fit <- brm(
-    formula = f, data = d, prior = priors,
+    formula = f, data = responses, prior = priors,
     backend = "cmdstanr",
-    file = "Results/fit.rds"
+    file = "Results/fit_responses.rds"
 )
-s <- broom.mixed::tidy(fit, effects = "fixed") %>% 
-    mutate(
-        estimate = ifelse(term=="(Intercept)", inv_logit_scaled(estimate), estimate/4),
-        conf.low = ifelse(term=="(Intercept)", inv_logit_scaled(conf.low), conf.low/4),
-        conf.high = ifelse(term=="(Intercept)", inv_logit_scaled(conf.high), conf.high/4)
-    )
-saveRDS(s, "Results/coefficients.rds")
 
 # posterior ----
 # fixed effects

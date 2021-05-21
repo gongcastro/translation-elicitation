@@ -8,10 +8,18 @@ library(tidytext)
 library(janitor)
 library(patchwork)
 library(tidybayes)
+library(here)
 
 # set parameters
 set.seed(888) # for reproducibility
-options(mc.cores = 4, chains = 4, iter = 500, seed = 888)
+options(
+    mc.cores = 4, chains = 4, iter = 500, seed = 888,
+    ggplot2.discrete.fill = wesanderson::wes_palettes$Darjeeling1,
+    ggplot2.discrete.colour = wesanderson::wes_palettes$Darjeeling1,
+    ggplot2.continuous.fill = wesanderson::wes_palettes$Darjeeling1,
+    ggplot2.continuous.colour = wesanderson::wes_palettes$Darjeeling1
+)
+source("R/utils.R")
 
 # import data ----
 trials <- readRDS(here("Data", "trials.rds")) %>% 
@@ -21,7 +29,7 @@ trials <- readRDS(here("Data", "trials.rds")) %>%
         pthn_log = log(pthn),
         overlap_stress = ifelse(overlap_stress==1, "Same", "Different")
     )
-accuracy <- readRDS(here("Data", "accuracy.rds"))
+responses <- readRDS(here("Data", "responses.rds"))
 
 
 # by Serene (some fixes by Gonzalo) ----
@@ -78,7 +86,7 @@ trace_output <- left_join(trace_output, df_transcription, by = c("output" = "tra
 # Cleaned file with participant answers, 1 row per trial per participant
 
 # count the number of participants who gave each answer in response to a given trial
-df_match <- accuracy %>%
+df_match <- responses %>%
     rename(answer = input_text) %>% 
     group_by(test_language, word, answer) %>%
     summarise(n_participant = n(), .groups = "drop") %>%
@@ -112,9 +120,8 @@ d <- df_match %>%
 contrasts(d$onset) <- c(-0.5, 0.5)
 contrasts(d$overlap_stress) <- c(-0.5, 0.5)
 
-f <- bf(pct_participant ~
-            activation*(consonant_ratio + vowel_ratio + onset + overlap_stress + pthn + frequency) +
-            (1 + activation | group/input),
+f <- bf(pct_participant ~ activation*(consonant_ratio + vowel_ratio + onset + pthn) +
+            (1 + activation | input),
         family = zero_one_inflated_beta("logit"))
 
 prior <- c(
@@ -180,7 +187,7 @@ trace_top <- trace %>%
     select(group, input, response, activation, correct)
 
 # experimental results ----
-responses <- readRDS("Data/accuracy.rds") %>% 
+responses <- readRDS("Data/responses.rds") %>% 
     filter(valid_response, group %in% c("ENG-CAT", "ENG-SPA")) %>% 
     rename(response = input_text, input = word) %>% 
     count(group, input, response, correct) %>% 
@@ -193,37 +200,35 @@ responses <- readRDS("Data/accuracy.rds") %>%
     select(group, input, response, correct, activation) %>% 
     filter(input %in% trace_top$input)
 
-# merge everything
-d <- list(TRACE = trace_top, Participants = responses) %>% 
+# merge everything and show example
+merged <- list(TRACE = trace_top, Participants = responses) %>% 
     bind_rows(.id = "source") %>% 
     mutate(
         # to reorder variable within panels
         input_label = paste0(input, " (", group, ")"),
-        response_reordered = reorder_within(response, activation, input_label)
-    ) 
+        response_reordered = reorder_within(response, activation, input_label),
+    )
 
-ggplot(d, aes(response_reordered, activation, fill = correct)) +
-    facet_wrap(input_label~source, scales = "free_y", ncol = 2) +
+
+
+merged %>% 
+    filter(input=="jaqueta") %>% 
+    mutate(correct = ifelse(correct, "Correct", "Incorrect")) %>% 
+    ggplot(aes(response_reordered, activation, fill = correct)) +
+    facet_wrap(~source, scales = "free_y", ncol = 2) +
     geom_col(colour = "white") +
-    labs(x = "Top 10 candidates", y = "Max. TRACE activation") +
+    labs(x = "Top 10 candidates", y = "Maximum TRACE activation", colour= "Correct?",
+         title = "Participants responses and TRACE activated candidates",
+         subtitle = "Input: Catalan word JAQUETA /ʒəˈkɛ.tə/\nCorrect response is JACKET (dMaKIt, in TRACE notation)") +
     coord_flip() +
     scale_x_reordered() +
-    # scale_y_continuous(limits = c(0, 1)) +
-    theme_bw() +
+# scale_y_continuous(limits = c(0, 1)) +
+theme_custom() +
     theme(
-        legend.position = "none"
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
     ) +
-    ggsave("Figures/trace.png", height = 11, width = 14)
+    ggsave("Figures/trace_example_jacket.png")
 
 
-# participant responses ----
-responses <- readRDS("Data/accuracy.rds") %>% 
-    left_join(trace_selected) %>% 
-    drop_na(trace) %>% 
-    select(participant, trial_id, group, word, word2, trace, correct, input_text, trace_selected) %>% 
-    mutate(same_response = word==input_text) %>% 
-    drop_na(trace_selected)
-
-
-
-trace %>% 
