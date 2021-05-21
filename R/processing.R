@@ -21,8 +21,8 @@ spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "Españ
 
 # import trial data ----
 # import Clearpond data
-clearpond_english <- read.csv("Data/clearpond_english.csv") %>% clean_names() %>% as_tibble() %>% select(-c(x, s_pthn))
-clearpond_spanish <- read.csv("Data/clearpond_spanish.csv")[, -1] %>% clean_names() %>% as_tibble()
+clearpond_english <- read.csv("Data/clearpond/clearpond_english.csv") %>% clean_names() %>% as_tibble() %>% select(-c(x, s_pthn))
+clearpond_spanish <- read.csv("Data/clearpond/clearpond_spanish.csv")[, -1] %>% clean_names() %>% as_tibble()
 clearpond <- bind_rows(
     list(
         `ENG-CAT` = clearpond_english,
@@ -47,9 +47,9 @@ trials <- c("ENG-SPA" = "English-Spanish",
     bind_rows(.id = "group") %>% 
     clean_names() %>% 
     select(trial_id, group, word1, word2, consonant_ratio, vowel_ratio, onset, overlap_stress) %>% 
-    left_join(clearpond) %>% 
-    distinct(trial_id, group, word1, word2, .keep_all = TRUE) %>% 
+    left_join(clearpond) %>%
     left_join(trace) %>% 
+    distinct(trial_id, group, word1, word2, .keep_all = TRUE) %>% 
     relocate(trace, .after = word2)
 
 # process data ----
@@ -62,7 +62,7 @@ processed <- list.files("Data/Raw", full.names = TRUE) %>%
     map(fread, na.string = "") %>%  # import participant files
     map(mutate, participant = as.character(participant)) %>% 
     set_names(filenames) %>% # label each dataset with the participant's ID
-    bind_rows() %>% # merge datasets
+    bind_rows(.id = "filename") %>% # merge datasets
     as_tibble() %>%
     clean_names() %>% 
     # select relevant variables and rename if necessary
@@ -172,8 +172,7 @@ participants <- read_xlsx("Data/02_coded.xlsx", na = "") %>%
         .groups = "drop"
     ) %>% 
     left_join(
-        distinct(processed, participant, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision),
-        by = "participant"
+        distinct(processed, participant, group, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision)
     ) %>% 
     # participant is valid if has completed >= 80% trials (valid)
     mutate(
@@ -200,7 +199,7 @@ accuracy <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>%
         participant %in% valid_participants, # participant is valid
         valid_response, # response is valid 
         word %!in% practice_trials # not a practice trial
-    ) %>%
+    ) %>% 
     left_join(trials) %>% 
     mutate(
         frequency = log10(frequency)+3,
@@ -208,7 +207,7 @@ accuracy <- read_xlsx("Data/02_coded.xlsx", na = "NA") %>%
         overlap_stress = ifelse(overlap_stress==1, "Overlap", "No overlap")
     ) %>% 
     relocate(group, trial_id) %>% 
-    arrange(group, trial_id)
+    arrange(group, trial_id) 
 
 fwrite(accuracy, "Data/04_accuracy.csv", sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 saveRDS(accuracy, file = "Data/accuracy.rds")

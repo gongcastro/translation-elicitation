@@ -262,4 +262,25 @@ import_trials <- function(path = "Stimuli/trials.xlsx", subtlex = NULL){
     return(trials)
 }
 
+# proportion adjusted from boundary values (Gelman, Hill & Vehtari, 2020)
+prop_adj <- function(x, n){
+    e <- (x+2)/(n+4)
+    return(e)
+}
 
+# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+prop_adj_se <- function(x, n) {
+    e <- (x+2)/(n+4)
+    se <- sqrt(e*(1-e)/(n+4))
+    return(se)
+}
+
+# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+prop_adj_ci <- function(x, n, .width = 0.95) {
+    e <- (x+2)/(n+4)
+    se <- sqrt(e*(1-e)/(n+4))
+    ci <-  e + qnorm(c((1-.width)/2, (1-(1-.width)/2)))*se
+    ci[1] <- ifelse(ci[1]<0, 0, ci[1]) # truncate at 0
+    ci[2] <- ifelse(ci[2]>1, 1, ci[2]) # truncate at 1
+    return(ci)
+}
