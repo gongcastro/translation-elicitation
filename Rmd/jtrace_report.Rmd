@@ -1,0 +1,277 @@
+---
+title: "jTRACE notbook"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message = TRUE,
+    warning = TRUE, 
+    cache.extra = knitr::rand_seed,
+    out.width = "100%",
+    results = "asis",
+    dev.args = list(png = list(type = "cairo"))
+)
+options(knitr.kable.NA = '-')
+```
+
+
+```{r prepare, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# load packages
+library(tidyverse)
+library(googlesheets4)
+library(gt)
+
+# import data
+phonemes <- range_read(
+    "1iAK2zF84MqFwdLj-_CpWVC1O2xxmYDztc0Qe_2Sy0ww",
+    sheet = "(Gonzalo coding)"
+) %>% 
+    mutate_at(
+        vars(pow, voc, diff, acu, cons, voi, burst),
+        as.numeric
+    )
+
+lexicon <- sheet_names("1pZE58wHYGFxaIC90hSr-202Qv9go6-VZLixl_lF1QKY")[-1] %>% 
+    map(
+        function(x){
+            range_read(
+                ss = "1pZE58wHYGFxaIC90hSr-202Qv9go6-VZLixl_lF1QKY",
+                sheet = x
+            ) %>% 
+                select(trial_id, ipa1, ipa2, word1, word2, jTRACE1, jTRACE2)
+        }
+    ) %>%
+    set_names(sheet_names("1pZE58wHYGFxaIC90hSr-202Qv9go6-VZLixl_lF1QKY")[-1])
+
+```
+
+
+# Phonemes {.tabset .tab-pills}
+
+## Phoneme inventory {.tabset .tab-pills}
+
+### Consonants
+
+```{r phonemes_consonants, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+phonemes %>% 
+    filter(type=="Consonant") %>% 
+    select(id, ipa, sampa, trace, english, spanish, catalan, voice, place, manner) %>% 
+    gt() %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    fmt_markdown(everything()) %>% 
+    cols_label(
+        id = "ID",
+        sampa = "SAMPA",
+        trace = "jTRACE",
+        english = "English",
+        spanish = "Spanish",
+        catalan = "Catalan",
+        voice = "Voice",
+        place = "Place",
+        manner = "Manner"
+    ) %>% 
+    tab_style(
+		style = list(
+			cell_fill(color = "#00FA9A")
+		),
+		locations = cells_body(
+			columns = c("english"),
+			rows = english
+		)
+	) %>% 
+    tab_style(
+		style = list(
+			cell_fill(color = "#00FA9A")
+		),
+		locations = cells_body(
+			columns = c("spanish"),
+			rows = spanish
+		)
+	) %>% 
+    tab_style(
+		style = list(
+			cell_fill(color = "#00FA9A")
+		),
+		locations = cells_body(
+			columns = c("catalan"),
+			rows = catalan
+		)
+	) %>% 
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+### Vowels
+
+```{r phonemes_vowels, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+phonemes %>% 
+    filter(type=="Vowel") %>% 
+    select(id, ipa, sampa, trace, english, spanish, catalan, height, backness, roundness) %>% 
+    gt() %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    fmt_markdown(2:7) %>% 
+    cols_label(
+        id = "ID",
+        sampa = "SAMPA",
+        trace = "jTRACE",
+        height = "Height",
+        backness = "Backness",
+        roundness = "Roundness"
+    ) %>% 
+       tab_style(
+		style = list(
+			cell_fill(color = "#00FA9A")
+		),
+		locations = cells_body(
+			columns = c("spanish"),
+			rows = spanish
+		)
+	) %>% 
+    tab_style(
+		style = list(
+			cell_fill(color = "#00FA9A")
+		),
+		locations = cells_body(
+			columns = c("catalan"),
+			rows = catalan
+		)
+	) %>% 
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+
+### {-}
+
+
+## Features {.tabset .tab-pills}
+
+
+### Consonants
+
+```{r features_consonants, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+phonemes %>% 
+    filter(type=="Consonant") %>% 
+    select(id, ipa, trace, description, pow, cons, voc, diff, acu, voi, burst) %>% 
+    gt() %>% 
+    cols_label(
+        id = "ID",
+        ipa = "IPA",
+        trace = "jTRACE",
+        description = "Description",
+        pow = "Power",
+        voc = "Vocalic",
+        diff = "Diffuseness",
+        acu = "Acuteness",
+        cons = "Consonantal",
+        voi = "Voicing",
+        burst = "Burst"
+    ) %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    fmt_markdown(2:4) %>%
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+
+### Vowels
+
+```{r features_vowels, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+phonemes %>% 
+    filter(type=="Vowel") %>% 
+    select(id, ipa, trace, description, pow, cons, voc, diff, acu, voi, burst) %>% 
+    gt() %>% 
+    cols_label(
+        id = "ID",
+        ipa = "IPA",
+        trace = "jTRACE",
+        description = "Description",
+        pow = "Power",
+        voc = "Vocalic",
+        diff = "Diffuseness",
+        acu = "Acuteness",
+        cons = "Consonantal",
+        voi = "Voicing",
+        burst = "Burst"
+    ) %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    fmt_markdown(2:4) %>%
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+### Feature correlations
+
+```{r features_correlations, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+phonemes %>% 
+    select(pow, voc, diff, acu, cons, voi, burst) %>% 
+    mutate_all(replace_na, replace = 0) %>%
+    as.matrix() %>% 
+    heatmap(
+        labRow = phonemes$trace,
+        labCol = c("Power", "Vocalic", "Difusseness", "Acuteness", "Consonantal", "Voice", "Burst"),
+        Colv = NA,
+        na.rm = FALSE
+    )
+```
+
+### {-}
+
+## {-}
+
+# Lexicon {.tabset .tab-pills}
+
+## English-Spanish
+
+```{r lexicon_engspa, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+lexicon$`English-Spanish` %>% 
+    gt() %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+## English-Catalan
+
+```{r lexicon_engcat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+lexicon$`English-Catalan` %>% 
+    gt() %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+
+## Spanish-Catalan
+
+```{r lexicon_spacat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+lexicon$`Spanish-Catalan` %>% 
+    gt() %>% 
+    fmt_missing(everything(), missing_text = "-") %>% 
+    tab_options(
+        container.overflow.y = TRUE,
+        container.height = 500
+    )
+```
+
+
+## {-}
+
+# Parameters
+
+# Design

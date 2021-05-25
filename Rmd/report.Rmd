@@ -41,6 +41,7 @@ library(tidytext)
 library(brms)
 library(tidybayes)
 library(patchwork)
+library(janitor)
 library(mice)
 library(here)
 
@@ -56,6 +57,7 @@ jtrace <- readRDS(here("Data", "jtrace.rds"))
 # import models
 fit_jtrace <- readRDS(here("Results", "fit_jtrace.rds"))
 fit_responses <- readRDS(here("Results", "fit_responses.rds"))
+loo <- readRDS(here("Results", "loo.rds"))
 
 ```
 
@@ -192,7 +194,6 @@ participants_valid %>%
   coord_flip() +
   theme_custom() +
   theme(
-    legend.position = "none",
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
   )
 
@@ -203,7 +204,7 @@ participants_valid %>%
 
 ### Stimuli {.tabset .tab-pill}
 
-Participants in the ENG-SPA listened to `r nrow(trials[trials$group=="ENG-SPA",])` Spanish words, and participants in the ENG-CAT and the SPA-CAT groups listened to `nrow(trials[trials$group=="ENG-CAT",]) trials`. Five trials in each condition were practice trials and were excluded from analyses.
+Participants in the ENG-SPA listened to `r nrow(trials[trials$group=="ENG-SPA",])` Spanish words, and participants in the ENG-CAT and the SPA-CAT groups listened to `r nrow(trials[trials$group=="ENG-CAT",])` trials. Five trials in each condition were practice trials and were excluded from analyses.
 
 ```{r trials_coded, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE,  include=FALSE}
 trials_coded <- trials %>% 
@@ -297,16 +298,24 @@ We fitted a Bayesian multilevel regression model using the R package `brms` [@bu
 * Consonant similarity (`consonant_ratio`, 0-1): edit distance between the sequence of consonants of the presented word and the target word. Computed using custom code.
 * Shared phonological onset (`onset`, 0 or 1): do the presented word and the target word share phonological onset? Manually coded.
 
-We also added participants (`participants`) and words (`word`) as grouping variables (aka., random effects), therefore adjusting the model to each participant and word. We specified random intercepts for both grouping variables, and random slopes for the fixed effects within the `participant` grouping variable.
+We also added participants (`participants`) and as a grouping variable (aka., random effects), therefore adding participant-level adjustments to the model. We specified random intercepts slopes for all fixed effects within the `participant` grouping variable.
 
-We model was implemented using the following formula:
+We performed multiple imputation via predictive mean matching using the `mice` function of the `mice` package [@van2011mice] to impute missing values in the response variable or the predictors. 
+
+The model was implemented using the following formula:
 
 ```
-correct ~ pthn + frequency + consonant_ratio + vowel_ratio + onset + overlap_stress + (1 + pthn + frequency + consonant_ratio + vowel_ratio + onset + overlap_stress | participant) + (1 | trial_id)
+~ pthn + consonant_ratio + vowel_ratio + onset + (1 + pthn + consonant_ratio + vowel_ratio + onset | participant)
 ```
 
-The estimation of the model was performed using Bayesian inference via Hamiltonian Monte-Carlo in Stan [@carpenter2017stan], with 4 chains, 2,000 intertions each. The output of this model is the approximated posterior distribution of all the parameters estimated, therefore indicating the probability of each combination of values of the parameters, conditional to the observed data. 
+The estimation of the model was performed using Bayesian inference via Hamiltonian Monte-Carlo in Stan [@carpenter2017stan], with 4 chains, 2,000 iterations each (1,000 warmups). The output of this model is the approximated posterior distribution of all the parameters estimated, therefore indicating the probability of each combination of values of the parameters, conditional to the observed data. 
 
+We compared this (extended model) to other models dropping one predictor at a time using Leave-one-out cross-validation (LOO-CV), using the `loo` and `loo_compare` functions of the `brms` package. We compared our extended model against the following models:
+
+* fit_2: `~ pthn + consonant_ratio + vowel_ratio + (1 + pthn + consonant_ratio + vowel_ratio | participant)`
+* fit_3: `~ pthn + consonant_ratio + (1 + pthn + consonant_ratio | participant)`
+* fit_4: `~ pthn + (1 + pthn | participant)`
+* fit_5: `~ 1 + (1  | participant)`
 
 #### Stan code
 
@@ -434,78 +443,6 @@ cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
 
 ## Results {.tabset .tab-pill}
 
-### Accuracy by item
-
-```{r accuracy_item, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-responses_item <- responses %>%
-  group_by(group, word) %>%
-  summarise(
-    correct_sum = sum(correct, na.rm = TRUE),
-    correct_n = sum(!is.na(correct), na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  mutate(
-    correct_prop = prop_adj(correct_sum, correct_n),
-    correct_se = prop_adj_se(correct_sum, correct_n),
-    word_label = reorder_within(word, by = correct_prop, within = group)
-  )
-
-ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
-  facet_wrap(~group, scales = "free_y") +
-  geom_hline(yintercept = 0.5, colour = "black") +
-  geom_errorbar() +
-  geom_point(size = 0.5) +
-  labs(y = "Correct responses", x = "Word", colour = "Group") +
-  coord_flip() +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
-  theme(
-    legend.position = "none",
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text.x = element_text(size = 9),
-    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "accuracy_item.png"))
-
-```
-
-### Accuracy by participant
-
-```{r responses_participant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-responses_participant <- responses %>%
-  group_by(group, participant) %>%
-  summarise(
-    correct_sum = sum(correct, na.rm = TRUE),
-    correct_n = sum(!is.na(correct), na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  mutate(
-    correct_prop = prop_adj(correct_sum, correct_n),
-    correct_se = prop_adj_se(correct_sum, correct_n),
-    participant_label = reorder_within(participant, by = correct_prop, within = group)
-  )
-
-ggplot(responses_participant, aes(reorder(participant_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
-  facet_wrap(~group, scales = "free_y") +
-  geom_hline(yintercept = 0.5) +
-  geom_errorbar(width = 0.5) +
-  geom_point(size = 1) +
-  labs(y = "Correct responses", x = "Participant", colour = "Group") +
-  coord_flip() +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
-  theme(
-    legend.position = "none",
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text.x = element_text(size = 9),
-    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "accuracy_participant.png"))
-
-```
-
 ### Model outputs {.tabset .tab-pill}
 
 ```{r responses_coded, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -587,6 +524,49 @@ ggplot(post, aes(.value, fill = .variable)) +
   ggsave(here("Figures", "responses_fixed.png"))
 ```
 
+
+#### Model comparison
+
+Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
+
+```{r model_comparison, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+map(loo$loos, "estimates") %>% 
+  map(function(x){
+    as.data.frame(x) %>% 
+      rownames_to_column("ic")
+  }
+  ) %>% 
+  bind_rows(.id = "model") %>% 
+  clean_names() %>% 
+  filter(ic %in% c("elpd_loo", "looic")) %>% 
+  pivot_wider(names_from = ic, values_from = c("estimate", "se")) %>% 
+  left_join(rownames_to_column(as.data.frame(loo$comparison, "model"))) %>% 
+  mutate(formula = c(
+    "... + onset + (0 + onset | participant)",
+    "... + vowel_ratio + (0 + vowel_ratio | participant)",
+    "... + consonant_ratio + (0 + consonant_ratio | participant)",
+    "... + pthn + (0 + pthn | participant)",
+    "~ 1 + (1  | participant)"
+  )) %>% 
+  arrange(desc(model)) %>% 
+  select(formula, estimate_elpd_loo, se_elpd_loo, estimate_looic, se_looic, elpd_diff, se_diff) %>%
+  rename(model = formula) %>% 
+  gt() %>% 
+  fmt_number(2:7) %>% 
+  cols_merge(c("estimate_elpd_loo", "se_elpd_loo"), pattern = "{1} ({2})") %>% 
+  cols_merge(c("estimate_looic", "se_looic"), pattern = "{1} ({2})") %>% 
+  cols_merge(c("elpd_diff", "se_diff"), pattern = "{1} ({2})") %>% 
+  cols_label(
+    model = md("**Model**"),
+    estimate_elpd_loo = md("**ELPD<sub>LOO</sub> (SE)**"),
+    estimate_looic = md("**LOO-IC (SE)**"),
+    elpd_diff = md("**ELPD<sub>diff</sub> (SE)**")
+    
+  )
+
+```
+
 #### Random effects
 
 ```{r post_re, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -612,7 +592,6 @@ ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = 
     axis.ticks = element_blank()
   )
 ```
-
 
 #### Marginal effects {.tabset .tab-pills}
 
@@ -661,7 +640,6 @@ ggplot(m, aes(pthn, .value,
 ```
 
 
-
 ##### By consonant similarity
 
 ```{r emmeans_consonant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -705,6 +683,7 @@ ggplot(m, aes(consonant_ratio, .value,
 
 ```
 
+
 ##### By vowel similarity
 
 ```{r emmeans_vowel, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -746,9 +725,84 @@ ggplot(m, aes(vowel_ratio, .value,
   ) +
   ggsave(here("Figures", "responses_vowel.png"))
 ```
+
+
 ##### {-}
 
 #### {-}
+
+### Accuracy by item
+
+```{r accuracy_item, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+responses_item <- responses %>%
+  group_by(group, word) %>%
+  summarise(
+    correct_sum = sum(correct, na.rm = TRUE),
+    correct_n = sum(!is.na(correct), na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  mutate(
+    correct_prop = prop_adj(correct_sum, correct_n),
+    correct_se = prop_adj_se(correct_sum, correct_n),
+    word_label = reorder_within(word, by = correct_prop, within = group)
+  )
+
+ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
+  facet_wrap(~group, scales = "free_y") +
+  geom_hline(yintercept = 0.5, colour = "black") +
+  geom_errorbar() +
+  geom_point(size = 0.5) +
+  labs(y = "Correct responses", x = "Word", colour = "Group") +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  theme_custom() +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 9),
+    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  ggsave(here("Figures", "accuracy_item.png"))
+
+```
+
+### Accuracy by participant
+
+```{r responses_participant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+responses_participant <- responses %>%
+  group_by(group, participant) %>%
+  summarise(
+    correct_sum = sum(correct, na.rm = TRUE),
+    correct_n = sum(!is.na(correct), na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  mutate(
+    correct_prop = prop_adj(correct_sum, correct_n),
+    correct_se = prop_adj_se(correct_sum, correct_n),
+    participant_label = reorder_within(participant, by = correct_prop, within = group)
+  )
+
+ggplot(responses_participant, aes(reorder(participant_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
+  facet_wrap(~group, scales = "free_y") +
+  geom_hline(yintercept = 0.5) +
+  geom_errorbar(width = 0.5) +
+  geom_point(size = 1) +
+  labs(y = "Correct responses", x = "Participant", colour = "Group") +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  theme_custom() +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 9),
+    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  ggsave(here("Figures", "accuracy_participant.png"))
+
+```
+
 
 ### {-}
 
@@ -758,7 +812,7 @@ ggplot(m, aes(vowel_ratio, .value,
 
 ### TRACE activation vs. responses
 
-```{r jtrace_all_plot, echo=FALSE, warning=FALSE}
+```{r jtrace_all_plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ggplot(jtrace, aes(x = activation, y = pct_participant)) +
   geom_smooth(colour = wes_palettes$Darjeeling1[1],
               fill = wes_palettes$Darjeeling1[1],
