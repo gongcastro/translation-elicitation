@@ -56,7 +56,7 @@ jtrace <- readRDS(here("Data", "jtrace.rds"))
 
 # import models
 fit_jtrace <- readRDS(here("Results", "fit_jtrace.rds"))
-fit_responses <- readRDS(here("Results", "fit_responses.rds"))
+fit_responses <- readRDS(here("Results", "fit_responses_3.rds"))
 loo <- readRDS(here("Results", "loo.rds"))
 
 ```
@@ -212,7 +212,7 @@ trials_coded <- trials %>%
     test_language = ifelse(group=="ENG-SPA", "Spanish", "Catalan"),
     zipf = log10(frequency)+3,
     pthn_log = log(pthn),
-    overlap_stress = ifelse(overlap_stress==1, "Same", "Different")
+    lv_log = log(lv)
   )
 ```
 
@@ -250,11 +250,25 @@ trials_coded %>%
 
 ```{r trials_similarity, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 trials_coded %>% 
+  ggplot(aes(group, lv, fill = group, colour = group)) +
+  geom_violin() +
+  geom_point(shape = 1, stroke = 1, position = position_jitter(width = 0.1), colour = "black", alpha = 0.25) +
+  geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
+  labs(x = "Group", y = "Phonological Leveshtein distance\n(corrected for string length)", fill = "Test language") +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  theme_custom() +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  
+  trials_coded %>% 
   select(trial_id, group, ends_with("_ratio")) %>% 
   pivot_longer(ends_with("_ratio"), names_to = "type", values_to = "ratio") %>% 
   mutate(type = str_to_sentence(str_remove(type, "_ratio"))) %>% 
   ggplot(aes(group, ratio, fill = group, colour = group)) +
-  facet_wrap(~type) +
+  facet_wrap(~type, ncol = 1) +
   geom_violin() +
   geom_point(shape = 1, stroke = 1, position = position_jitter(width = 0.1), colour = "black", alpha = 0.25) +
   geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
@@ -263,8 +277,12 @@ trials_coded %>%
   theme_custom() +
   theme(
     legend.position = "none",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
-  )
+  ) +
+  
+  plot_layout(ncol = 2)
 
 ```
 
@@ -291,31 +309,29 @@ trials_coded %>%
 
 #### Model details
 
-We fitted a Bayesian multilevel regression model using the R package `brms` [@burkner2017brms], with correct responses (`correct`, 0 is incorrect response, 1 if correct response) as the response variable with a Bernoulli distribution and a logit link function. We modelled the probability of an average participant providing a correct response, conditional to a set of predictors (aka. fixed effects):
+We fitted a Bayesian multilevel regression model using the R package `brms` [@burkner2017brms], with correct responses (`correct`, 0 is incorrect response, 1 if correct response) as the response variable with a Bernoulli distribution and a logit link function. We modelled the probability of an average participant providing a correct response, conditional to a set of predictors (aka. fixed effects) and their interactions:
 
-* PTHN (`pthn`, 0-Inf): number of phonological neighbours with higher frequency of the target word. Extracted from the CLEARPOND database.
-* Vowel similarity (`vowel_ratio`, 0-1): edit distance between the sequence of vowels of the presented word  and the target word. Computed using custom code.
-* Consonant similarity (`consonant_ratio`, 0-1): edit distance between the sequence of consonants of the presented word and the target word. Computed using custom code.
-* Shared phonological onset (`onset`, 0 or 1): do the presented word and the target word share phonological onset? Manually coded.
+* PTHN (`pthn`, 0-Inf): number of phonological neighbours with higher frequency of the target word. Extracted from the CLEARPOND database. Standardised before entering the regression model.
+* Phonological similarity (`lv`, 0-1): Inverse Levenshtein distance between the IPA transcription of the presented word and its correct translation in the target language, calculated using the `stringdist` function of the `stringdist` package [@loo2014stringdist]. Standardised before entering the regression model.
+* Shared phonological onset (`onset`, Same/Different): Whether the presented and the target word share phonological onset, as judged by experimenters, and sum coded as $Different = -0.5$ and $Same = +0.5$. 
 
-We also added participants (`participants`) and as a grouping variable (aka., random effects), therefore adding participant-level adjustments to the model. We specified random intercepts slopes for all fixed effects within the `participant` grouping variable.
+We added participants (`participants`) and as a grouping variable (aka., random effects), therefore adding participant-level adjustments to the model. We specified random intercepts slopes for all fixed effects within the `participant` grouping variable.
 
 We performed multiple imputation via predictive mean matching using the `mice` function of the `mice` package [@van2011mice] to impute missing values in the response variable or the predictors. 
 
-The model was implemented using the following formula:
+The model was implemented using the following formula (`fit_3`):
 
 ```
-~ pthn + consonant_ratio + vowel_ratio + onset + (1 + pthn + consonant_ratio + vowel_ratio + onset | participant)
+~ pthn*lv*onset + (1 + pthn*lv*onset | participant)
 ```
 
 The estimation of the model was performed using Bayesian inference via Hamiltonian Monte-Carlo in Stan [@carpenter2017stan], with 4 chains, 2,000 iterations each (1,000 warmups). The output of this model is the approximated posterior distribution of all the parameters estimated, therefore indicating the probability of each combination of values of the parameters, conditional to the observed data. 
 
 We compared this (extended model) to other models dropping one predictor at a time using Leave-one-out cross-validation (LOO-CV), using the `loo` and `loo_compare` functions of the `brms` package. We compared our extended model against the following models:
 
-* fit_2: `~ pthn + consonant_ratio + vowel_ratio + (1 + pthn + consonant_ratio + vowel_ratio | participant)`
-* fit_3: `~ pthn + consonant_ratio + (1 + pthn + consonant_ratio | participant)`
-* fit_4: `~ pthn + (1 + pthn | participant)`
-* fit_5: `~ 1 + (1  | participant)`
+* fit_0: `~ 1 + (1  | participant)`
+* fit_1: `~ pthn + (1 + pthn | participant)`
+* fit_2: `~ pthn*lv + (1 + pthn*lv | participant)`
 
 #### Stan code
 
@@ -324,118 +340,109 @@ Stan code generated by `brms`:
 ```{stan stan_model, echo=TRUE, output.var="model"}
 // generated with brms 2.15.0
 functions {
-/* compute correlated group-level effects
-* Args: 
-*   z: matrix of unscaled group-level effects
-*   SD: vector of standard deviation parameters
-*   L: cholesky factor correlation matrix
-* Returns: 
-*   matrix of scaled group-level effects
-*/ 
-matrix scale_r_cor(matrix z, vector SD, matrix L) {
-// r is stored in another dimension order than z
-return transpose(diag_pre_multiply(SD, L) * z);
-}
+ /* compute correlated group-level effects
+  * Args: 
+  *   z: matrix of unscaled group-level effects
+  *   SD: vector of standard deviation parameters
+  *   L: cholesky factor correlation matrix
+  * Returns: 
+  *   matrix of scaled group-level effects
+  */ 
+  matrix scale_r_cor(matrix z, vector SD, matrix L) {
+    // r is stored in another dimension order than z
+    return transpose(diag_pre_multiply(SD, L) * z);
+  }
 }
 data {
-int<lower=1> N;  // total number of observations
-int Y[N];  // response variable
-int<lower=1> K;  // number of population-level effects
-matrix[N, K] X;  // population-level design matrix
-// data for group-level effects of ID 1
-int<lower=1> N_1;  // number of grouping levels
-int<lower=1> M_1;  // number of coefficients per level
-int<lower=1> J_1[N];  // grouping indicator per observation
-// group-level predictor values
-vector[N] Z_1_1;
-vector[N] Z_1_2;
-vector[N] Z_1_3;
-vector[N] Z_1_4;
-vector[N] Z_1_5;
-vector[N] Z_1_6;
-vector[N] Z_1_7;
-int<lower=1> NC_1;  // number of group-level correlations
-// data for group-level effects of ID 2
-int<lower=1> N_2;  // number of grouping levels
-int<lower=1> M_2;  // number of coefficients per level
-int<lower=1> J_2[N];  // grouping indicator per observation
-// group-level predictor values
-vector[N] Z_2_1;
-int prior_only;  // should the likelihood be ignored?
+  int<lower=1> N;  // total number of observations
+  int Y[N];  // response variable
+  int<lower=1> K;  // number of population-level effects
+  matrix[N, K] X;  // population-level design matrix
+  // data for group-level effects of ID 1
+  int<lower=1> N_1;  // number of grouping levels
+  int<lower=1> M_1;  // number of coefficients per level
+  int<lower=1> J_1[N];  // grouping indicator per observation
+  // group-level predictor values
+  vector[N] Z_1_1;
+  vector[N] Z_1_2;
+  vector[N] Z_1_3;
+  vector[N] Z_1_4;
+  vector[N] Z_1_5;
+  vector[N] Z_1_6;
+  vector[N] Z_1_7;
+  vector[N] Z_1_8;
+  int<lower=1> NC_1;  // number of group-level correlations
+  int prior_only;  // should the likelihood be ignored?
 }
 transformed data {
-int Kc = K - 1;
-matrix[N, Kc] Xc;  // centered version of X without an intercept
-vector[Kc] means_X;  // column means of X before centering
-for (i in 2:K) {
-means_X[i - 1] = mean(X[, i]);
-Xc[, i - 1] = X[, i] - means_X[i - 1];
-}
+  int Kc = K - 1;
+  matrix[N, Kc] Xc;  // centered version of X without an intercept
+  vector[Kc] means_X;  // column means of X before centering
+  for (i in 2:K) {
+    means_X[i - 1] = mean(X[, i]);
+    Xc[, i - 1] = X[, i] - means_X[i - 1];
+  }
 }
 parameters {
-vector[Kc] b;  // population-level effects
-real Intercept;  // temporary intercept for centered predictors
-matrix[M_1, N_1] z_1;  // standardized group-level effects
-cholesky_factor_corr[M_1] L_1;  // cholesky factor of correlation matrix
-vector<lower=0>[M_2] sd_2;  // group-level standard deviations
-vector[N_2] z_2[M_2];  // standardized group-level effects
+  vector[Kc] b;  // population-level effects
+  real Intercept;  // temporary intercept for centered predictors
+  vector<lower=0>[M_1] sd_1;  // group-level standard deviations
+  matrix[M_1, N_1] z_1;  // standardized group-level effects
+  cholesky_factor_corr[M_1] L_1;  // cholesky factor of correlation matrix
 }
 transformed parameters {
-vector<lower=0>[M_1] sd_1;  // group-level standard deviations
-matrix[N_1, M_1] r_1;  // actual group-level effects
-// using vectors speeds up indexing in loops
-vector[N_1] r_1_1;
-vector[N_1] r_1_2;
-vector[N_1] r_1_3;
-vector[N_1] r_1_4;
-vector[N_1] r_1_5;
-vector[N_1] r_1_6;
-vector[N_1] r_1_7;
-vector[N_2] r_2_1;  // actual group-level effects
-sd_1 = rep_vector(1, rows(sd_1));
-// compute actual group-level effects
-r_1 = scale_r_cor(z_1, sd_1, L_1);
-r_1_1 = r_1[, 1];
-r_1_2 = r_1[, 2];
-r_1_3 = r_1[, 3];
-r_1_4 = r_1[, 4];
-r_1_5 = r_1[, 5];
-r_1_6 = r_1[, 6];
-r_1_7 = r_1[, 7];
-r_2_1 = (sd_2[1] * (z_2[1]));
+  matrix[N_1, M_1] r_1;  // actual group-level effects
+  // using vectors speeds up indexing in loops
+  vector[N_1] r_1_1;
+  vector[N_1] r_1_2;
+  vector[N_1] r_1_3;
+  vector[N_1] r_1_4;
+  vector[N_1] r_1_5;
+  vector[N_1] r_1_6;
+  vector[N_1] r_1_7;
+  vector[N_1] r_1_8;
+  // compute actual group-level effects
+  r_1 = scale_r_cor(z_1, sd_1, L_1);
+  r_1_1 = r_1[, 1];
+  r_1_2 = r_1[, 2];
+  r_1_3 = r_1[, 3];
+  r_1_4 = r_1[, 4];
+  r_1_5 = r_1[, 5];
+  r_1_6 = r_1[, 6];
+  r_1_7 = r_1[, 7];
+  r_1_8 = r_1[, 8];
 }
 model {
-// likelihood including constants
-if (!prior_only) {
-// initialize linear predictor term
-vector[N] mu = Intercept + rep_vector(0.0, N);
-for (n in 1:N) {
-// add more terms to the linear predictor
-mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n] + r_1_5[J_1[n]] * Z_1_5[n] + r_1_6[J_1[n]] * Z_1_6[n] + r_1_7[J_1[n]] * Z_1_7[n] + r_2_1[J_2[n]] * Z_2_1[n];
-}
-target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
-}
-// priors including constants
-target += normal_lpdf(b | 0, 1);
-target += normal_lpdf(Intercept | 0, 1);
-target += std_normal_lpdf(to_vector(z_1));
-target += lkj_corr_cholesky_lpdf(L_1 | 5);
-target += cauchy_lpdf(sd_2 | 0, 3)
-- 1 * cauchy_lccdf(0 | 0, 3);
-target += std_normal_lpdf(z_2[1]);
+  // likelihood including constants
+  if (!prior_only) {
+    // initialize linear predictor term
+    vector[N] mu = Intercept + rep_vector(0.0, N);
+    for (n in 1:N) {
+      // add more terms to the linear predictor
+      mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n] + r_1_5[J_1[n]] * Z_1_5[n] + r_1_6[J_1[n]] * Z_1_6[n] + r_1_7[J_1[n]] * Z_1_7[n] + r_1_8[J_1[n]] * Z_1_8[n];
+    }
+    target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
+  }
+  // priors including constants
+  target += normal_lpdf(b | 0, 3);
+  target += normal_lpdf(Intercept | 0, 3);
+  target += cauchy_lpdf(sd_1 | 0, 3)
+    - 8 * cauchy_lccdf(0 | 0, 3);
+  target += std_normal_lpdf(to_vector(z_1));
+  target += lkj_corr_cholesky_lpdf(L_1 | 5);
 }
 generated quantities {
-// actual population-level intercept
-real b_Intercept = Intercept - dot_product(means_X, b);
-// compute group-level correlations
-corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
-vector<lower=-1,upper=1>[NC_1] cor_1;
-// extract upper diagonal of correlation matrix
-for (k in 1:M_1) {
-for (j in 1:(k - 1)) {
-cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
-}
-}
+  // actual population-level intercept
+  real b_Intercept = Intercept - dot_product(means_X, b);
+  // compute group-level correlations
+  corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
+  vector<lower=-1,upper=1>[NC_1] cor_1;
+  // extract upper diagonal of correlation matrix
+  for (k in 1:M_1) {
+    for (j in 1:(k - 1)) {
+      cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
+    }
+  }
 }
 ```
 
@@ -451,7 +458,7 @@ responses_coded <- responses %>%
   mutate_at(vars(onset, overlap_stress, group), as.factor) %>% 
   # center predictors
   mutate_at(
-    vars(consonant_ratio, vowel_ratio, pthn, frequency),
+    vars(lv, consonant_ratio, vowel_ratio, pthn, frequency),
     function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
   # impute missing data
   mice(m = 5, print = FALSE, method = "pmm") %>% 
@@ -488,11 +495,11 @@ summary(fit_responses)$fixed %>%
   ) %>% 
   tab_footnote(
     footnote = "Transformed using the inverse logit to get the average probability of correct response",
-    locations = cells_body(columns = "term", rows = term=="(Intercept)")
+    locations = cells_body(columns = "term", rows = term=="Intercept")
   ) %>% 
   tab_footnote(
     footnote = "Transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable.",
-    locations = cells_body(columns = "term", rows = term %in% c("pthn", "consonant_ratio", "vowel_ratio", "onset1"))
+    locations = cells_body(columns = "term", rows = term %in% c("pthn", "lv", "onset1", "pthn:lv", "pthn:onset1", "lv:onset1", "pthn:lv:onset1"))
   ) %>% 
   tab_footnote(
     footnote = "ESS: Effective sample size",
@@ -505,7 +512,7 @@ summary(fit_responses)$fixed %>%
 ```
 
 
-```{r post_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r post_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Points and error bars in indicate the posterior means, and 50% and 95% CrI. The intercept has been transformed using the inverse logit to get the average probability of correct response. The resto of the coefficients has been transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable."}
 post <- gather_draws(fit_responses, `b_.*`, regex = TRUE) %>% 
   mutate(.value = ifelse(.variable=="b_Intercept", inv_logit_scaled(.value), .value/4))
 
@@ -517,7 +524,9 @@ ggplot(post, aes(.value, fill = .variable)) +
   theme_custom() +
   theme(
     legend.position = "none",
-    axis.text = element_text(size = 7),
+    plot.caption.position = "plot",
+    plot.caption = element_text(hjust = 0),
+    axis.text = element_text(size= 7),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
   ) +
@@ -530,7 +539,6 @@ ggplot(post, aes(.value, fill = .variable)) +
 Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
 
 ```{r model_comparison, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
 map(loo$loos, "estimates") %>% 
   map(function(x){
     as.data.frame(x) %>% 
@@ -543,11 +551,10 @@ map(loo$loos, "estimates") %>%
   pivot_wider(names_from = ic, values_from = c("estimate", "se")) %>% 
   left_join(rownames_to_column(as.data.frame(loo$comparison, "model"))) %>% 
   mutate(formula = c(
-    "... + onset + (0 + onset | participant)",
-    "... + vowel_ratio + (0 + vowel_ratio | participant)",
-    "... + consonant_ratio + (0 + consonant_ratio | participant)",
-    "... + pthn + (0 + pthn | participant)",
-    "~ 1 + (1  | participant)"
+    "...+onset+pthn:onset+lv:onset+pthn:lv:onset+(0+onset+pthn:onset+lv:onset+pthn:lv:onset|participant)",
+    "...+lv+pthn:lv+(0+lv+pthn:lv|participant)",
+    "...+pthn+(0+pthn|participant)",
+    "~1+(1 |participant)"
   )) %>% 
   arrange(desc(model)) %>% 
   select(formula, estimate_elpd_loo, se_elpd_loo, estimate_looic, se_looic, elpd_diff, se_diff) %>%
@@ -577,7 +584,7 @@ post_re <- gather_draws(fit_responses, r_participant[participant, .param]) %>%
   arrange(group, participant, .param)
 
 ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = .upper, colour = group)) +
-  facet_grid(group~.param, scales = "free_y") +
+  facet_grid(group~.param, scales = "free") +
   geom_errorbarh(height = 0.5, alpha = 0.75) +
   geom_point(size = 0.1, shape = 4) +
   geom_vline(xintercept = 0) +
@@ -599,35 +606,23 @@ ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = 
 
 ```{r emmeans_pthn, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 nd <- expand_grid(
-  pthn = seq(
-    min(responses_coded$pthn, na.rm = TRUE),
-    max(responses_coded$pthn, na.rm = TRUE),
-    by = 0.1
-  ),
+  pthn = seq(min(responses_coded$pthn, na.rm = TRUE), max(responses_coded$pthn, na.rm = TRUE), by = 0.1),
   onset = unique(responses_coded$onset),
-  overlap_stress = unique(responses_coded$overlap_stress),
-  vowel_ratio = c(-1, 1),
-  consonant_ratio = c(-1, 1)
-) %>% 
-  mutate(frequency = 0)
+  lv = c(-1, 1)
+)
 
 m <- add_fitted_draws(nd, fit_responses, n = 20, re_formula = NA) %>% 
-  mutate_at(vars(ends_with("_ratio")), function(x) paste0(x, " SD")) %>% 
-  mutate(
-    overlap_stress = paste0("Stress: ", overlap_stress),
-    onset = paste0("Onset: ", onset)
-  )
+  mutate_at(vars(lv), function(x) paste0(x, " SD")) %>% 
+  mutate(onset = paste0("Onset: ", onset))
 
 
-ggplot(m, aes(pthn, .value, 
-              colour = interaction(consonant_ratio, vowel_ratio, sep = "/"),
-              fill = interaction(consonant_ratio, vowel_ratio, sep = "/"))) +
+ggplot(m, aes(pthn, .value, colour = lv, fill = lv)) +
   facet_wrap(~onset) +
   # stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
   stat_summary(fun = mean, geom = "line", size = 1) +
   labs(x = "Phonological neighbourhood density\n(higher frequency neighbours)",
-       y = "P(Correct)", colour = "Consonant/Vowel similarity",
-       fill = "Consonant similarity/Vowel similarity") +
+       y = "P(Correct)", colour = "Phonological similarity",
+       fill = "Phonological similarity") +
   guides(colour = guide_legend(ncol = 2)) +
   theme_custom() +
   scale_y_continuous(labels = scales::percent) +
@@ -640,37 +635,29 @@ ggplot(m, aes(pthn, .value,
 ```
 
 
-##### By consonant similarity
+##### By phonological similarity similarity
 
 ```{r emmeans_consonant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 nd <- expand_grid(
   pthn = c(-1, 1),
   onset = unique(responses_coded$onset),
-  overlap_stress = unique(responses_coded$overlap_stress),
-  vowel_ratio = c(-1, 1),
-  consonant_ratio = seq(
-    min(responses_coded$consonant_ratio, na.rm = TRUE),
-    max(responses_coded$consonant_ratio, na.rm = TRUE),
+  lv = seq(
+    min(responses_coded$lv, na.rm = TRUE),
+    max(responses_coded$lv, na.rm = TRUE),
     by = 0.1
   )
-) %>% 
-  mutate(frequency = 0)
+)
 
 m <- add_fitted_draws(nd, fit_responses, n = 20, re_formula = NA) %>% 
-  mutate_at(vars(vowel_ratio, pthn), function(x) paste0(x, " SD")) %>% 
-  mutate(
-    overlap_stress = paste0("Stress: ", overlap_stress),
-    onset = paste0("Onset: ", onset)
-  )
+  mutate_at(vars(pthn), function(x) paste0(x, " SD")) %>% 
+  mutate(onset = paste0("Onset: ", onset))
 
-ggplot(m, aes(consonant_ratio, .value, 
-              colour = interaction(pthn, vowel_ratio, sep = "/"),
-              fill = interaction(pthn, vowel_ratio, sep = "/"))) +
+ggplot(m, aes(lv, .value, colour = pthn, fill = pthn)) +
   facet_wrap(~onset) +
   # stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
   stat_summary(fun = mean, geom = "line", size = 1) +
   labs(x = "Consonant similarity (SD)",
-       y = "P(Correct)", colour = "PTHN/Vowel similarity",
+       y = "P(Correct)", colour = "PTHN",
        fill = "PTHN/Vowel similarity") +
   guides(colour = guide_legend(ncol = 2)) +
   theme_custom() +
@@ -681,49 +668,6 @@ ggplot(m, aes(consonant_ratio, .value,
   ) +
   ggsave(here("Figures", "responses_consonant.png"))
 
-```
-
-
-##### By vowel similarity
-
-```{r emmeans_vowel, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-nd <- expand_grid(
-  pthn = c(-1, 1),
-  onset = unique(responses_coded$onset),
-  overlap_stress = unique(responses_coded$overlap_stress),
-  vowel_ratio = seq(
-    min(responses_coded$vowel_ratio, na.rm = TRUE),
-    max(responses_coded$vowel_ratio, na.rm = TRUE),
-    by = 0.1
-  ),
-  consonant_ratio = c(-1, 1),
-) %>% 
-  mutate(frequency = 0)
-
-m <- add_fitted_draws(nd, fit_responses, n = 20, re_formula = NA) %>% 
-  mutate_at(vars(consonant_ratio, pthn), function(x) paste0(x, " SD")) %>% 
-  mutate(
-    overlap_stress = paste0("Stress: ", overlap_stress),
-    onset = paste0("Onset: ", onset)
-  )
-
-ggplot(m, aes(vowel_ratio, .value, 
-              colour = interaction(pthn, consonant_ratio, sep = "/"),
-              fill = interaction(pthn, consonant_ratio, sep = "/"))) +
-  facet_wrap(~onset) +
-  # stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
-  stat_summary(fun = mean, geom = "line", size = 1) +
-  labs(x = "Vowel similarity (SD)",
-       y = "P(Correct)", colour = "PTHN/Consonant similarity",
-       fill = "PTHN/Consonant similarity") +
-  guides(colour = guide_legend(ncol = 2)) +
-  theme_custom() +
-  scale_y_continuous(labels = scales::percent) +
-  theme(
-    legend.position = "top",
-    panel.grid = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "responses_vowel.png"))
 ```
 
 

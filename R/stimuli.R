@@ -4,12 +4,13 @@
 
 # load packages
 library(tidyverse)
-library(data.table)
-library(readxl)
-library(janitor)
+library(readxl) # to import  Excel spreadsheets
+library(janitor) # to clean column names
+library(stringdist) # to compute Levenshtein distance
+library(here) # to locate files
 
 # load/create functions
-source("R/utils.R")
+source(here("R", "utils.R"))
 
 # set parameters
 individual_plots <- FALSE
@@ -17,9 +18,11 @@ individual_plots <- FALSE
 # clearpond ----
 # relative frequencies and phonological neighbours
 clearpond <- map(
-  list(`ENG-CAT` = "Data/clearpond/clearpond_english.csv",
-    `ENG-SPA` = "Data/clearpond/clearpond_english.csv",
-    `SPA-CAT` = "Data/clearpond/clearpond_spanish.csv"),
+  list(
+    `ENG-CAT` = here("Data", "clearpond", "clearpond_english.csv"),
+    `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"),
+    `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")
+  ),
   function(x){
     read.csv(x) %>% 
       clean_names() %>% 
@@ -33,23 +36,39 @@ clearpond <- map(
 
 # trace ----
 # jTRACE transcriptions
-trace <- read_xlsx("Stimuli/trace.xlsx") %>% 
+trace <- read_xlsx(here("Stimuli", "trace.xlsx")) %>% 
   distinct(ort_eng, .keep_all = TRUE) %>% 
   rename(word2 = ort_eng, phon_trace = trace_eng)
+
+# levenshtein distance ----
+lv <- map(
+  c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
+  function(x) read_xlsx(here("Stimuli", "trials.xlsx"), sheet = x)
+) %>% 
+  bind_rows(.id = "group") %>% 
+  clean_names() %>% 
+  select(trial_id, group, ipa1, ipa2) %>% 
+  mutate(
+    n_char = ifelse(nchar(ipa1) > nchar(ipa2), nchar(ipa1), nchar(ipa2)),
+    lv = stringsim(ipa1, ipa2, method = "lv")
+  )
+
 
 # trials ----
 trials <- map(
   c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
-  function(x) read_xlsx("Stimuli/trials.xlsx", sheet = x)
+  function(x) read_xlsx(here("Stimuli", "trials.xlsx"), sheet = x)
 ) %>% 
   bind_rows(.id = "group") %>% 
   clean_names() %>% 
-  select(trial_id, group, word1, word2, consonant_ratio, vowel_ratio, onset, overlap_stress) %>% 
-  left_join(clearpond) %>% 
-  left_join(trace)
+  left_join(clearpond) %>%
+  left_join(lv) %>% 
+  left_join(trace) %>% 
+  select(trial_id, group, word1, word2, phon_trace, frequency, pthn, lv, consonant_ratio, vowel_ratio, onset, overlap_stress)
+  
 
 # export ----
-saveRDS(trials, "Data/trials.rds")
-write.csv(trials, "Data/trials.csv", row.names = FALSE)
+saveRDS(trials, here("Data", "trials.rds"))
+write.csv(trials, here("Data", "trials.csv"), row.names = FALSE)
 
 
