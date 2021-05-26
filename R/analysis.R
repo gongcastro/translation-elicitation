@@ -29,17 +29,17 @@ responses <- readRDS(here("Data", "responses.rds")) %>%
     complete() %>% 
     as_tibble() %>% 
     arrange(trial_id, group) %>% 
-    mutate_at(vars(onset, overlap_stress, group), as.factor)
+    mutate_at(vars(onset, overlap_stress, group), as.factor) %>% 
+    drop_na(correct, lv, participant, pthn, frequency_zipf)
 
 contrasts(responses$group) <- c(-0.5, -0.5, 1)
 contrasts(responses$onset) <- c(-0.5, 0.5)
 
 # fit models ----
 # formula
-f_0 <- bf(correct ~ 1 + (1 | participant), family = bernoulli(link = "logit"))
-f_1 <- bf(correct ~ pthn + (1 + pthn | participant), family = bernoulli(link = "logit"))
-f_2 <- bf(correct ~ pthn*lv + (1 + pthn*lv | participant), family = bernoulli(link = "logit"))
-f_3 <- bf(correct ~ pthn*lv*onset + (1 + pthn*lv*onset | participant), family = bernoulli(link = "logit"))
+f_0 <- bf(correct ~ 1 + frequency + (1 | participant), family = bernoulli(link = "logit"))
+f_1 <- bf(correct ~ 1+ frequency + pthn + (1 + pthn | participant), family = bernoulli(link = "logit"))
+f_2 <- bf(correct ~ 1 + frequency + pthn*lv + (1 + pthn*lv | participant), family = bernoulli(link = "logit"))
 
 # prior
 priors <- c(
@@ -50,20 +50,17 @@ priors <- c(
 )
 
 # fit models
-fit_0 <- brm(f_1, data = responses, prior = priors[c(1, 3),], backend = "cmdstanr",
+fit_0 <- brm(f_0, data = responses, prior = priors[c(1, 3),], backend = "cmdstanr",
              file = here("Results", "fit_responses_0.rds"))
 fit_1 <- brm(f_1, data = responses, prior = priors, backend = "cmdstanr",
              file = here("Results", "fit_responses_1.rds"))
 fit_2 <- brm(f_2, data = responses, prior = priors, backend = "cmdstanr",
              file = here("Results", "fit_responses_2.rds"))
-fit_3 <- brm(f_3, data = responses, prior = priors, backend = "cmdstanr",
-             file = here("Results", "fit_responses_3.rds"))
-
 
 # model comparison
 # model fit is the best
-loos <- list(fit_0 = loo(fit_0), fit_1 = loo(fit_1), fit_2 = loo(fit_2), fit_3 = loo(fit_3))
-loos_comp <- loo_compare(loos$fit_0, loos$fit_1, loos$fit_2, loos$fit_3)
+loos <- list(fit_0 = loo(fit_0), fit_1 = loo(fit_1), fit_2 = loo(fit_2))
+loos_comp <- loo_compare(loos$fit_0, loos$fit_1, loos$fit_2)
 saveRDS(list(loos = loos, comparison = loos_comp), here("Results", "loo.rds"))
 
 # posterior ----
