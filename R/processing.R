@@ -9,6 +9,7 @@ library(janitor) # for cleaning variable names
 library(lubridate) # for working with dates
 library(data.table) # for importing data
 library(here) # for locating files
+library(readr)
 
 # create/load functions
 source(here("R", "utils.R")) # helper functions
@@ -156,6 +157,32 @@ participants <- read_xlsx(here("Data", "02_coded.xlsx"), na = "") %>%
 
 valid_participants <- filter(participants, valid_participant) %>% pull(participant)
 
+
+#### Check - are participants answering in English? ------------------------------------
+
+UK_participants <- read_xlsx(here("Data", "02_coded.xlsx"), na = "") %>% 
+  filter(country == "UK") %>%
+  select(participant, group, word, input_text)
+  
+# Database of English words, Source: https://github.com/dwyl/english-words
+urlfile="https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
+Englishdict <- read.delim(url(urlfile), header = FALSE)
+# Note: This is used for flagging possible problematic entries, not hard and fast rule
+# Some answers may not be in the Englishdict list because of 1) typos, 2) compound words / phrases
+
+answer_non_English <- anti_join(UK_participants, Englishdict, by = c("input_text" = "V1")) %>%
+  filter(!is.na(input_text)) %>%
+  group_by(participant, group) %>%
+  summarise(invalid_lang_resp = n(), .groups = "drop") %>% # count number of answer that don't qualify as English words
+  mutate(valid_lang = ifelse(invalid_lang_resp > 20, FALSE, TRUE))
+
+# merge with participant list
+participants <- left_join(participants, answer_non_English, by = c("participant", "group"))
+
+invalid_lang <- filter(answer_non_English, valid_lang == FALSE) %>% pull(participant) 
+# list of participants who did not answer in task language
+
+
 fwrite(participants, here("Data", "03_participants.csv"), sep = ",", dec = ".")
 saveRDS(participants, file = here("Data", "participants.rds"))
 
@@ -169,6 +196,7 @@ responses <- read_xlsx(here("Data", "02_coded.xlsx"), na = "NA") %>%
     filter(
         participant %in% valid_participants, # participant is valid
         valid_response, # response is valid 
+        participant %!in% invalid_lang, # participants gave answers in task-requested language
         word %!in% practice_trials # not a practice trial
     ) %>% 
     left_join(trials) %>% 
