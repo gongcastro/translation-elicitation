@@ -8,7 +8,16 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(tidyverse)
 library(ggplot2)
+library(janitor) # for cleaning colnames
+library(stringdist)
+library(brms) # for fitting Bayesian models
+library(tidybayes) # for processing Bayesian models
+library(here)
 
+# set parameters
+set.seed(888) # for reproducibility
+options(mc.cores = 4, chains = 4, iter = 500, seed = 888)
+source(here("R", "utils.R"))
 ```
 
 
@@ -39,14 +48,14 @@ for (i in 1:length(fnames)){
   temp <- as.data.frame(temp)
   temp <- cbind(newColName = rownames(temp), temp) # change index column (which has output items) into column 1 for easier organisation
   rownames(temp) <- 1:nrow(temp)
-  names(temp)[1] <- "output" # (rename col) output item
-  names(temp)[2] <- "activation" # (rename col) max activation value
+  names(temp)[1] <- "trace_eng" # (rename col) output item
+  names(temp)[2] <- "trace_activation" # (rename col) max activation value
 
   temp <- temp %>%
-    filter(!output == "cycle") %>% # remove row corresponding to cycle number
+    filter(!trace_eng == "cycle") %>% # remove row corresponding to cycle number
     mutate(input = fnames[i]) %>% # specify input word
-    arrange(desc(activation)) %>%
-    filter(!activation <= 0) # remove low activation (maybe even apply a higher threshold? TBD)
+    arrange(desc(trace_activation)) %>%
+    filter(!trace_activation <= 0) # remove low activation (maybe even apply a higher threshold? TBD)
   
   trace_output <- bind_rows(trace_output, temp)
 }
@@ -61,17 +70,93 @@ trace_output <- trace_output %>%
 
 ```{r match word}
 
+# LEXICON / OUTPUT
 # xlsx file with 1 column for TRACE transcriptions and 1 column for orthography (English words) 
-df_transcription <- read_excel("trace_transcription.xlsx") %>%
+df_lexicon <- read_excel("trace_transcription.xlsx", sheet = "lexicon") %>%
   select(trace_eng, ort_eng) %>%
   unique()
 
 # Match the jTRACE output transcriptions with their orthography
-trace_output <- left_join(trace_output, df_transcription, by = c("output" = "trace_eng")) %>%
+trace_output_phon <- left_join(trace_output, df_lexicon, by = c("trace_eng")) %>%
   rename(output_word = ort_eng)
+
+# INPUT -------------------------------------
+# jTRACE transcriptions of input
+df_trial_phon <- read_excel("trace_transcription.xlsx", sheet = "trials") %>%
+  select(ort_presented, trace_presented, language) %>%
+  mutate(language = tolower(language)) %>%
+  unique()
+
+trace_output_phon <- left_join(trace_output_phon, df_trial_phon, by = c("input" = "ort_presented", "language"))
 
 
 ```
+
+
+```{r load clearpond}
+
+df_clearpond <- read_excel("trace_transcription.xlsx", sheet = "clearpond") %>%
+  select(Word, Freq_per_million, PTHN) %>%
+  clean_names() %>%
+  rename(frequency = freq_per_million) %>%
+  unique() %>%
+  mutate(word = tolower(word))
+
+
+trace_output_stats <- left_join(trace_output_phon, df_clearpond, by = c("output_word" = "word")) %>%
+  mutate(n_char = ifelse(nchar(trace_eng) > nchar(trace_presented), nchar(trace_eng), nchar(trace_presented)),
+    lv = stringsim(trace_eng, trace_presented, method = "lv"))
+
+```
+
+#### Model predictions for jTRACE output
+
+```{r run models jtrace}
+
+responses <- trace_output_stats %>% 
+    # transform relative frequency to Zipf score
+    mutate(frequency_zipf = relative_to_zipf(frequency)) %>% 
+    # center predictors
+    mutate_at(
+        vars(lv, pthn, frequency),
+        function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
+    complete() %>% 
+    as_tibble() %>% 
+    drop_na(lv, pthn, frequency_zipf)
+
+# fit models ----
+# formula
+f_0 <- bf(trace_activation ~ 1 + frequency, family = bernoulli(link = "logit"))
+f_1 <- bf(trace_activation ~ 1+ frequency + pthn, family = bernoulli(link = "logit"))
+f_2 <- bf(trace_activation ~ 1 + frequency + pthn*lv, family = bernoulli(link = "logit"))
+
+# prior
+priors <- c(
+    prior(normal(0, 3), class = "Intercept"),
+    prior(normal(0, 3), clas = "b"),
+    prior(cauchy(0, 3), class= "sd"),
+    prior(lkj(5), class = "cor")
+)
+
+
+# fit models
+fit_0 <- brm(f_0, data = responses, prior = priors[c(1, 3),], backend = "cmdstanr",
+             file = here("Results", "fit_responses_jtrace_0.rds"))
+fit_1 <- brm(f_1, data = responses, prior = priors, backend = "cmdstanr",
+             file = here("Results", "fit_responses_jtrace_1.rds"))
+fit_2 <- brm(f_2, data = responses, prior = priors, backend = "cmdstanr",
+             file = here("Results", "fit_responses_jtrace_2.rds"))
+
+# model comparison
+# model fit is the best
+loos <- list(fit_0 = loo(fit_0), fit_1 = loo(fit_1), fit_2 = loo(fit_2))
+loos_comp <- loo_compare(loos$fit_0, loos$fit_1, loos$fit_2)
+
+
+```
+
+
+## Comparing against Translation Task
 
 
 ```{r load translation task}
@@ -94,7 +179,7 @@ df_answer <- TranslationTask %>%
 
 ### Predicting participant response by jTRACE
 
-```{r plot, warning = FALSE}
+```{r match data, warning = FALSE}
 
 # Predicting participant response by jTRACE
 
@@ -104,13 +189,13 @@ df_match <- full_join(trace_output, df_answer, by = c("input" = "word", "output_
 # answers
 print("Presented words and the answer that was given by the most number of participants for that trial")
 
-# If "output" is <NA>, the word is not in the currently-used jTRACE lexicon
+# If "trace_activation" is <NA>, the word is not in the currently-used jTRACE lexicon
 df_match %>%
   filter(language == "spanish") %>% 
   arrange(input, desc(pct_participant)) %>%
   group_by(input) %>%
   slice(1) %>%
-  select(input, output_word, pct_participant, output, activation) %>%
+  select(input, output_word, pct_participant, trace_activation) %>%
   arrange(desc(pct_participant))
 
 df_match %>%
@@ -118,7 +203,7 @@ df_match %>%
   arrange(input, desc(pct_participant)) %>%
   group_by(input) %>%
   slice(1) %>%
-  select(input, output_word, pct_participant, output, activation) %>%
+  select(input, output_word, pct_participant, trace_activation) %>%
   arrange(desc(pct_participant))
 
 
@@ -126,24 +211,29 @@ df_match %>%
 df_match$pct_participant[is.na(df_match$pct_participant)] <- 0
 
 # if no data for a given output word is available in trace output, it means that activation is outside of Top 100 words and/or below 0
-df_match$activation[is.na(df_match$activation)] <- 0
-
+df_match$trace_activation[is.na(df_match$trace_activation)] <- 0
 
 # However, this is also constrained by the size of TRACE's lexicon, so subset only the words that do appear in the lexicon
 df_match_trace <- semi_join(df_match, df_transcription, by = c("output_word" = "ort_eng"))
 
+```
+
+### Plot relationship
+
+```{r plot, warning = FALSE}
+
 # plot
-ggplot(df_match_trace, aes(x = activation, y = pct_participant)) +
+ggplot(df_match_trace, aes(x = trace_activation, y = pct_participant)) +
   geom_smooth() +
   geom_point() +
   ggtitle("jTRACE activation against % participants who gave word as response")
 
 # correlation test
-cor.test(df_match_trace$activation, df_match_trace$pct_participant)
+cor.test(df_match_trace$trace_activation, df_match_trace$pct_participant)
 
 
 # plot by word
-ggplot(df_match_trace, aes(x = activation, y = pct_participant)) +
+ggplot(df_match_trace, aes(x = trace_activation, y = pct_participant)) +
   geom_smooth() +
   geom_point() +
   xlab("jTRACE activation value for the word") +
