@@ -1,0 +1,65 @@
+---
+title: "Methods"
+date: "Updated: `r format(Sys.Date(), '%d/%m%/%Y')`"
+output:
+    pdf_document:
+        latex_engine: xelatex
+bibliography: "references.bib"
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+knitr::opts_chunk$set(
+	out.width = "100%",
+	message = FALSE,
+	warning = FALSE
+)
+
+```
+
+```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+library(tidyverse)
+library(papaja)
+library(gt)
+library(knitr)
+library(lubridate)
+library(here)
+
+participants <- readRDS(here("Data", "participants.rds"))
+stimuli <- readRDS(here("Data", "stimuli.rds"))
+responses <- readRDS(here("Data", "responses.rds"))
+
+```
+
+## Participants
+
+Data collection took place from `r format(min(participants$date), "%dth %B, %Y")` to  `r format(max(participants$date), "%dth %B, %Y")`. We collected data from `r nrow(participants)` participants ($M_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`-`r printnum(max(participants$age, na.rm = TRUE))`). `r filter(participants, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(participants, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(participants, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(participants, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We excluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as *¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)*. However, the proportion of Spanish participants that reported visual impairment was implausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses daily and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`).
+
+
+## Procedure
+
+The experiment was implemented online using Psychopy/Pavlovia [@peirce2019]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). First, participants were informed about the aims of the study and gave informed consent for participating. Second, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. Participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Participants in the Catalan list were presented with `r count(stimuli, group)$n[1]` trials, and participants in the Spanish list were presented with `r count(stimuli, group)$n[2]` trials.
+
+Each trial started with a yellow fixation dot presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a ">" symbol. Typed letters were displayed in the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the RETURN key to start and new trial. We excluded trials where participants did not type an existing word in the correspondent language, or did not type anything at all. Trials where the response was mistyped by only one character were counted as correct, as long as the respond did not correspond to a distinct word. Participants contributed a total of `r distinct(responses, participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` valid trials (`r filter(responses, test_language=="Catalan") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Catalan, `r filter(responses, test_language=="Spanish") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Spanish). The task took approximately 15 minutes to be completed.
+
+```{r design, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+include_graphics(here("Figures", "design.png"))
+
+```
+
+
+## Stimuli
+
+Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infància of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@boersma2018].
+
+Lexical frequencies in Catalan and Spanish were extracted from SUBTLEX-CAT [@boada2013] and SUBTLEX-ESP [@cuetos2011], respectively, and are expressed as Zipf scores [@van-heuven2012; @zipf1949].The average lexical frequency (counts per million) of the words was `r printnum(mean(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)` (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`). The average lexical frequency of the Catalan words was `r printnum(mean(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)` (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`), and the average lexical frequency of the Spanish words was `r printnum(mean(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)` (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`). 
+
+
+## Data analysis
+
+We divided participants in three groups: English natives tested in Catalan (ENG-CAT), English natives tested in Spanish (ENG-SPA), and Spanish natives tested in Catalan (SPA-CAT). We analysed the accuracy of responses to each item by calculating the proportion of correct responses across participants, resulting in one data point per item and group. We compared how our similarity score fitted the data in comparison with other measures:total shared phonemes, shared phonemic onset, and orthographical Damerau-Levenshtein distance. We fit several Bayesian linear models [@sorensen2015], each including one of the aforementioned variables as predictor, and the proportion of correct responses as output. Continuous predictors were standardised and categorical predictors were sum-coded [@schad2020]. Missing predictor scores were imputed before fitting the models using multiple imputation [@vanbuuren2013]. To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (LOO, @vehtari2016). More information about the models and model comparison can be found in Appendix X.
+
+All analyses were performed in R environment [@rcoreteam2019]. We used the `tidyverse` family of R packages to process data and to generate figures, the `mice` R package [@vanbuuren2013] for multiple imputation of missing data, and the `brms` R package [@burkner2017] to fit and compare models, which uses the Stan probabilistic programming language language [@carpenter2016].
+

@@ -1,0 +1,37 @@
+---
+title: "Outline"
+date: "Updated: `r format(Sys.Date(), '%d/%m%/%Y')`"
+output:
+    pdf_document:
+        latex_engine: xelatex
+bibliography: "references.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## The impact of cognateness in bilingual lexical acess
+
+### Comprehension
+
+### Production
+
+### Translation
+
+* [@dijkstra2010how]
+
+
+### Phonological neighbourhoods and parallel activation
+
+
+
+
+### Limitations of current measures of cognateness
+
+* Levenshtein distance
+* Coltheart N
+
+## The present study
+
