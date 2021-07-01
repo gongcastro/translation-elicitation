@@ -1,3 +1,4 @@
+<<<<<<< HEAD:R/01_processing.R
 # preprocessing
 
 # set up ----
@@ -182,7 +183,4 @@ responses <- read_xlsx(here("Data", "02_coded.xlsx"), na = "NA") %>%
 
 fwrite(responses, here("Data", "04_responses.csv"), sep = ",", dec = ".", row.names = FALSE) # this data is to be manually coded
 saveRDS(responses, file = here("Data", "responses.rds"))
-
-
-
 

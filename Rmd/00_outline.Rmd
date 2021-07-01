@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## The impact of cognateness in bilingual lexical acess
+## The cognate facilitation effect
 
 ### Comprehension
 
@@ -20,10 +20,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Translation
 
-* [@dijkstra2010how]
 
+### Phonological neighbourhoods
 
-### Phonological neighbourhoods and parallel activation
+### Can non-native word-forms
 
 
 
