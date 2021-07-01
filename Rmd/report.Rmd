@@ -1,12 +1,14 @@
 ---
 title: "Translation Elicitation"
 output:
+  md_document:
+    variant: markdown_github
   html_document:
     df_print: paged
     toc: true
     toc_depth: 4
     toc_float: true
-bibliography: 
+bibliography: "references.bib"
 ---
 
 ```{r setup, include=FALSE}
@@ -57,7 +59,7 @@ jtrace <- readRDS(here("Data", "jtrace.rds"))
 
 # import models
 fit_jtrace <- readRDS(here("Results", "fit_jtrace.rds"))
-fit_responses <- readRDS(here("Results", "fit_responses_2.rds"))
+fit_responses <- readRDS(here("Results", "fit_responses_4.rds"))
 loo <- readRDS(here("Results", "loo.rds"))
 
 ```
@@ -557,9 +559,11 @@ map(loo$loos, "estimates") %>%
   pivot_wider(names_from = ic, values_from = c("estimate", "se")) %>% 
   left_join(rownames_to_column(as.data.frame(loo$comparison, "model"))) %>% 
   mutate(formula = c(
-    "~ 1 + frequency + pthn*lv + (1 + pthn*lv | participant)",
+    "~ 1 + frequency + (1 | participant)",
     "~ 1 + frequency + pthn + (1 + pthn | participant)",
-    "~ 1 + frequency + (1 | participant)"
+    "~ 1 + frequency + pthn*vowel_ratio + (1 + pthn*vowel_ratio | participant)",
+    "~ 1 + frequency + pthn*consonant_ratio + (1 + pthn*consonant_ratio  | participant)",
+    "~ 1 + frequency + pthn*(consonant_ratio + consonant_ratio) + (1 + pthn*(consonant_ratio + consonant_ratio) | participant)"
   )) %>% 
   arrange(desc(model)) %>% 
   select(formula, estimate_elpd_loo, se_elpd_loo, estimate_looic, se_looic, elpd_diff, se_diff) %>%
@@ -612,19 +616,21 @@ ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = 
 
 # by pthn
 nd <- expand_grid(
-  pthn = seq(min(responses_coded$pthn, na.rm = TRUE), max(responses_coded$pthn, na.rm = TRUE), by = 0.1),
+  pthn = seq(min(responses_coded$pthn, na.rm = TRUE),
+             max(responses_coded$pthn, na.rm = TRUE), by = 0.1),
   frequency = 0,
-  lv = c(-1, 1)
+  consonant_ratio = c(-1, 1),
+  vowel_ratio = c(-1, 1)
 )
 
 m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
-  mutate_at(vars(lv), function(x) paste0(x, " SD"))
+  mutate_at(vars(consonant_ratio, vowel_ratio), function(x) paste0(x, " SD"))
 
-ggplot(m, aes(pthn, .value, colour = lv, fill = lv)) +
+ggplot(m, aes(pthn, .value, colour = interaction(consonant_ratio, vowel_ratio, sep = "/"), fill = interaction(consonant_ratio, vowel_ratio, sep = "/"))) +
   stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
   stat_summary(fun = mean, geom = "line", size = 1) +
   labs(x = "Phon. neigh. dens. (SD)", y = "P(Correct)",
-       colour = "Phon. similarity", fill = "Phon. similarity") +
+       colour = "Consonant/Vowel similarity", fill = "Consonant/Vowel similarity") +
   scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
   guides(colour = guide_legend(ncol = 2)) +
   theme_custom() +
@@ -638,26 +644,27 @@ ggsave(here("Figures", "responses_pthn.png"))
 ```
 
 
-```{r emmeans_lv, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=6}
-# by lv
+```{r emmeans_consonant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=6}
+# by consonant_ratio
 nd <- expand_grid(
   pthn = c(-1, 1),
   frequency = 0,
-  lv = seq(
-    min(responses_coded$lv, na.rm = TRUE),
-    max(responses_coded$lv, na.rm = TRUE),
+  consonant_ratio = seq(
+    min(responses_coded$consonant_ratio, na.rm = TRUE),
+    max(responses_coded$consonant_ratio, na.rm = TRUE),
     by = 0.1
-  )
+  ),
+  vowel_ratio = c(-1, 1)
 )
 
 m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
-  mutate_at(vars(pthn), function(x) paste0(x, " SD"))
+  mutate_at(vars(pthn, vowel_ratio), function(x) paste0(x, " SD"))
 
-ggplot(m, aes(lv, .value, colour = pthn, fill = pthn)) +
+ggplot(m, aes(consonant_ratio, .value, colour = interaction(vowel_ratio, pthn, sep = "/"), fill = interaction(vowel_ratio, pthn, sep = "/"))) +
   stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
   stat_summary(fun = mean, geom = "line", size = 1) +
-  labs(x = "Phon. similarity (SD)", y = "P(Correct)", colour = "Phon. neigh. dens.",
-       fill = "Phon. neigh. dens.") +
+  labs(x = "Consonant similarity", y = "P(Correct)", colour = "PTHN/Vowel similarity",
+       fill = "PTHN/Vowel similarity") +
   scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
   guides(colour = guide_legend(ncol = 2)) +
   theme_custom() +
@@ -665,7 +672,39 @@ ggplot(m, aes(lv, .value, colour = pthn, fill = pthn)) +
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
   ) +
-  ggsave(here("Figures", "responses_lv.png"), height = 4, width = 4.5)
+  ggsave(here("Figures", "responses_consonant.png"), height = 4, width = 4.5)
+
+```
+
+```{r emmeans_vowel, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=6}
+# by vowel_ratio
+nd <- expand_grid(
+  pthn = c(-1, 1),
+  frequency = 0,
+  vowel_ratio = seq(
+    min(responses_coded$vowel_ratio, na.rm = TRUE),
+    max(responses_coded$vowel_ratio, na.rm = TRUE),
+    by = 0.1
+  ),
+  consonant_ratio = c(-1, 1)
+)
+
+m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
+  mutate_at(vars(pthn, consonant_ratio), function(x) paste0(x, " SD"))
+
+ggplot(m, aes(vowel_ratio, .value, colour = interaction(consonant_ratio, pthn, sep = "/"), fill = interaction(consonant_ratio, pthn, sep = "/"))) +
+  stat_lineribbon(.width = 0.95, alpha = 0.25, size = 0) +
+  stat_summary(fun = mean, geom = "line", size = 1) +
+  labs(x = "Vowel similarity", y = "P(Correct)", colour = "PTHN/Consonant similarity",
+       fill = "PTHN/Consonant similarity") +
+  scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
+  guides(colour = guide_legend(ncol = 2)) +
+  theme_custom() +
+  theme(
+    legend.position = "top",
+    panel.grid = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  ggsave(here("Figures", "responses_vowel.png"), height = 4, width = 4.5)
 
 ```
 
