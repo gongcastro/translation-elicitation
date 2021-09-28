@@ -65,7 +65,7 @@ stimuli <- map(
   left_join(lv) %>% 
   left_join(trace) %>% 
   mutate(frequency_zipf = log10(frequency)+3) %>% 
-  select(trial_id, group, word1, word2, phon_trace, frequency, frequency_zipf, pthn, lv,
+  select(trial_id, group, word1, word2, ipa1, ipa2, phon_trace, frequency, frequency_zipf, pthn, lv,
          consonant_ratio, vowel_ratio, onset, overlap_stress)
   
 

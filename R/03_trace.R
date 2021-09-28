@@ -2,6 +2,7 @@
 
 # set up ----
 library(tidyverse)
+library(jtracer)
 library(readxl) # for importing Excel spreadsheets
 library(patchwork) # for arranging plots
 library(stringdist) # for Levenshtein distance
@@ -22,7 +23,8 @@ trials <- readRDS(here("Data", "stimuli.rds")) %>%
         test_language = ifelse(group=="ENG-SPA", "Spanish", "Catalan"),
         zipf = log10(frequency)+3,
         pthn_log = log(pthn),
-        overlap_stress = ifelse(overlap_stress==1, "Same", "Different")
+        overlap_stress = ifelse(overlap_stress==1, "Same", "Different"),
+        jtrace = ipa
     )
 # import participant responses
 responses <- readRDS(here("Data", "responses.rds"))

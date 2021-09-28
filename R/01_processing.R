@@ -1,4 +1,3 @@
-<<<<<<< HEAD:R/01_processing.R
 # preprocessing
 
 # set up ----
