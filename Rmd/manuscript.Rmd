@@ -40,8 +40,8 @@ draft             : no
 documentclass     : "apa6"
 classoption       : "man"
 output            :
-  papaja::apa6_pdf:
-    latex_engine: "xelatex"
+  word_document:
+    reference_docx: "manuscript_template.docx"
 ---
 
 ```{r setup, include = FALSE}
@@ -68,6 +68,7 @@ tar_load(participants)
 tar_load(stimuli)
 tar_load(responses)
 tar_load(model_fits)
+tar_load(model_loos)
 
 ```
 
@@ -88,7 +89,7 @@ Each trial started with a yellow fixation dot presented during one second on the
 
 ## Stimuli
 
-Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infancia of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@boersma2018]. The average duration of the audios was `r printnum(mean(stimuli$duration), digits = 2)` (*SD* = `r printnum(sd(stimuli$duration), digits = 2)`, *Min* = `r printnum(min(stimuli$duration), digits = 2)`, *Max* = `r printnum(max(stimuli$duration), digits = 2)`). The average duration of the Catalan audios was `r printnum(mean(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`), and the average duration of the Spanish audios was `r printnum(mean(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`). The average lexical frequency of the words was `r printnum(mean(stimuli$frequency_zipf), digits = 2)` (*SD* = `r printnum(sd(stimuli$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli$frequency_zipf), digits = 2)`). The average lexical frequency of the Catalan audios was `r printnum(mean(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`), and the average lexical frequency of the Spanish audios was `r printnum(mean(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`). Lexical frequencies in Catalan and Spanish were extracted from SUBTLEX-CAT [@boada2013] and SUBTLEX-ESP [@cuetos2011], respectively, and are expressed as Zipf scores [@van-heuven2012; @zipf1949].
+Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infancia of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@boersma2018]. The average duration of the audios was `r printnum(mean(stimuli$duration), digits = 2)` (*SD* = `r printnum(sd(stimuli$duration), digits = 2)`, *Min* = `r printnum(min(stimuli$duration), digits = 2)`, *Max* = `r printnum(max(stimuli$duration), digits = 2)`). The average lexical frequency of the words was `r printnum(mean(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)` (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`). The average lexical frequency of the Catalan audios was `r printnum(mean(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`), and the average lexical frequency of the Spanish audios was `r printnum(mean(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`). Lexical frequencies in Catalan and Spanish were extracted from SUBTLEX-CAT [@boada2013] and SUBTLEX-ESP [@cuetos2011], respectively, and are expressed as Zipf scores [@van-heuven2012; @zipf1949].
 
 
 
@@ -106,130 +107,20 @@ All analyses were performed in R environment [@rcoreteam2019]. We used the `tidy
 
 ## Posterior draws
 
-```{r posterior_draws}
-
-posterior %>%
-  ggplot(aes(.value, .variable)) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  stat_slab(fill = "black") + 
-  stat_interval(.width = c(0.95, 0.89, 0.67, 0.5), position = position_nudge(y = -0.15)) +
-  labs(x = "Estimate", y = "Coefficient", colour = "Credible interval",
-       title = "Posterior distribution of coefficients of fixed effects") +
-  scale_colour_brewer(palette = "Blues") +
-  theme_classic() +
-  theme(panel.grid.major.y = element_line(colour = "grey"),
-        legend.position = "top",
-        legend.key = element_rect(fill = "transparent")) +
-  ggsave(here("Figures", "coefs.png"))
-
-```
-
-
 ## Posterior predictions
-
-```{r posterior_predictions}
-
-predictions %>%
-  ggplot(aes(similarity_phon, .value, colour = same_onset, fill = same_onset)) +
-  facet_grid(consecutive_longest~pthn)+
-  stat_summary(fun = mean, geom = "line", size = 1) +
-  geom_vline(xintercept = 0, colour= "grey") +
-  geom_hline(yintercept = 0.5, colour= "grey") +
-  labs(x = "Phonological similarity", y = "Probability of correct translation",
-       fill = "Credible interval", colour = "Onset",
-       title = "Effect of phonological similarity on probability of correct translation",
-       subtitle = "Model predictions are displayed for different quartiles of PTHN") +
-  scale_fill_brewer(palette = "Set1") +
-  scale_colour_brewer(palette = "Set1") +
-  theme_classic() +
-  theme(legend.position = "top") +
-  ggsave(here("Figures", "predictions.png"), height = 4)
-
-```
 
 ## Random effects
 
 ### Item effects
 
-```{r item_effects}
-
-item_effects %>%
-  pivot_wider(names_from = estimate, values_from = value) %>% 
-  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
-                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
-  ggplot(aes(estimate, fill = param)) +
-  facet_wrap(~param, scales = "free") +
-  geom_histogram(bins = 20) +
-  geom_rug(alpha = 0.1) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(x = "Estimate", y = "Density", fill = "Parameter") +
-  scale_fill_brewer(palette = "Set1") +
-  theme_classic() +
-  theme(legend.position = "none",
-        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
-        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
-
-```
-
-
-
 ### Group effects
 
-
-```{r goup_effects_table}
-
-group_effects %>%
-  pivot_wider(names_from = estimate, values_from = value) %>% 
-  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
-                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
-  mutate_if(is.numeric, round, 2) %>% 
-  mutate(hdi = paste0("[", lower, ", ", upper, "]")) %>% 
-  select(param, group, error, hdi) %>% 
-  group_by(param) %>% 
-  gt() %>% 
-  cols_label(group = "Group", error = "SE", hdi = "95% HDI") 
-
+```{r group_effects_table}
 ```
 
-```{r group_effects}
 
-group_effects %>%
-  pivot_wider(names_from = estimate, values_from = value) %>% 
-  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
-                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
-  ggplot(aes(group, estimate)) +
-  facet_wrap(~param) +
-  geom_hline(yintercept = 0) +
-  geom_errorbar(aes(ymin = lower, ymax = upper, colour =  group), width = 0, size = 5) +
-  geom_errorbar(aes(ymin = estimate-error, ymax = estimate+error), width = 0, size = 1, alpha = 0.5) +
-  geom_point(size = 3) +
-  labs(x = "Group", y = "Estimate", fill = "Group") +
-  scale_fill_brewer(palette = "Set1") +
-  theme_classic() +
-  theme(legend.position = "none",
-        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
-        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
-
-
-```
 ### Correlations
 
-```{r correlations}
-
-corrs %>% 
-  filter(str_detect(variable, "trial_id")) %>%
-  mutate(variable = str_remove(variable, "cor_group:trial_id__"),
-         variable = str_replace(variable, "__" , " - ")) %>% 
-  ggplot(aes(value, variable, xmin = lower, xmax = upper)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
-  geom_errorbarh(show.legend = FALSE, height = 0) +
-  geom_point(size = 2, show.legend = FALSE) +
-  labs(x = "Estimate", y = "Correlation") +
-  theme_classic() +
-  theme(axis.title.y = element_blank())
-
-
-```
 
 # Discussion
 

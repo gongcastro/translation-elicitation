@@ -6,7 +6,6 @@
 .secrets
 *.Pitch
 *.PitchTier
-*.pdf
 *.csv
 *.pptx
 *.docx
@@ -18,3 +17,4 @@ Data/*.rds
 Results/*.rds
 _targets/objects/*
 _targets/*
+Rmd/nul
