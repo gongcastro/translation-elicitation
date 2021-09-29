@@ -14,7 +14,8 @@ theme_github <- function(){
             strip.background = element_rect(fill = "#161B22"),
             plot.background = element_rect(fill = "#0D1117"),
             panel.background = element_rect(fill = "#0D1117"),
-            panel.border = element_rect(fill = "transparent", colour = "#0D1117")
+            panel.border = element_rect(fill = "transparent", colour = "#0D1117"),
+            panel.grid = element_blank()
         )
 }
 
