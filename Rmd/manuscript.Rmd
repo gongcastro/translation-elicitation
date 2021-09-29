@@ -1,0 +1,246 @@
+---
+title             : "The role of cognateness in non-native spoken word recognition"
+shorttitle        : "Cognateness and non-native word recognition"
+
+author: 
+  - name          : "Gonzalo Garcia-Castro"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Ramon Trial Fargas, 25-27, 08005 Barcelona"
+    email         : "gonzalo.garciadecastro@upf.edu"
+  - name          : "Serene Siow"
+    affiliation   : "2"
+  - name          : "Nuria Sebastian-Galles"
+    affiliation   : "1"
+  - name          : "Kim Plunkett"
+    affiliation   : "2"
+
+
+authornote: |
+  GG and SS contributed equally and share first authorship.
+
+abstract: |
+  There is compelling evidence that bilinguals access their lexicon in a language non-selective way. For example, bilinguals produce and translated cognates (words whose translation in the other language is form-similar) faster than non-cognates, suggesting that the phonology of both languages interact during word production and comprehension (Costa et al., 2000; Christoffels et al., 2006). Previous literature on this effect has often relied on measures of overall form-similarity to categorise words into cognates andnon-cognates, such as the Levenshtein distance. These measures partially ignore potential sources of variability during lexical access like vowel vs. consonant overlap, overlap in stressed syllables, onset overlap or the distance in features between both translations. In this study, we explored the impact of some of these variables on non-native word translation task: Spanish and English participants listened to non-native words (Catalan or Spanish) and were prompted to type their translation in their native language. Critically, participants where unfamiliar with the testing language, ensuring that they were not able to translate words based on previous knowledge on their meaning, leaving phonological information as the only cue participants were able to exploit to translate words to their native language correctly. We analysed the probability of correct translations, adjusting for the amount of vowel overlap, consonant overlap, overlap at stress position, overlap at onset, and distance in features between replaced phonemes, including the average frequency of phonological neighbours of the target words are a covariate.
+  
+  <!-- https://tinyurl.com/ybremelq -->
+  
+keywords          : "cognate, word recognition, translation, non-native, spoken word recognition"
+wordcount         : "X"
+
+bibliography      : ["r-references.bib", "references.bib"]
+
+floatsintext      : no
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+linenumbers       : yes
+mask              : no
+draft             : no
+
+documentclass     : "apa6"
+classoption       : "man"
+output            :
+  papaja::apa6_pdf:
+    latex_engine: "xelatex"
+---
+
+```{r setup, include = FALSE}
+library(papaja)
+```
+
+```{r analysis-preferences, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+
+```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+library(tidyverse)
+library(data.table)
+library(tidybayes)
+library(gt)
+library(lubridate)
+library(here)
+
+tar_load(participants)
+tar_load(stimuli)
+tar_load(responses)
+tar_load(model_fits)
+
+```
+
+
+# Methods
+
+## Participants
+
+Data collection took place from `r format(min(participants$date), "%dth %B, %Y")` to  `r format(max(participants$date), "%dth %B, %Y")`. We collected data from `r nrow(participants)` participants ($M_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(sd(participants$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(min(participants$age, na.rm = TRUE))`-`r printnum(max(participants$age, na.rm = TRUE))`). `r filter(participants, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(participants, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(participants, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(participants, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We excluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was unplausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`).
+
+
+## Procedure
+
+The experiment was implemented online using Psychopy/Pavlovia [@peirce2019]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). First, participants were informed about the aims of the study and gave informed consent for participating. Second, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. Participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Participants in the Catalan list were presented with `r count(stimuli, group)$n[1]` trials, and participants in the Spanish list were presented with `r count(stimuli, group)$n[2]` trials.
+
+Each trial started with a yellow fixation dot presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a ">" symbol. Typed letters were displayed in the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the RETURN key to start and new trial. We excluded trials where participants did not type an existing word in the correspondent language, or did not type anything at all. Trials where the response was mistyped by only one character were counted as correct, as long as the respond did not correspond to a distinct word. Participants contributed a total of `r distinct(responses, participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` valid trials (`r filter(responses, test_language=="Catalan") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Catalan, `r filter(responses, test_language=="Spanish") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Spanish). The task took approximately 15 minutes to be completed.
+
+
+## Stimuli
+
+Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infancia of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@boersma2018]. The average duration of the audios was `r printnum(mean(stimuli$duration), digits = 2)` (*SD* = `r printnum(sd(stimuli$duration), digits = 2)`, *Min* = `r printnum(min(stimuli$duration), digits = 2)`, *Max* = `r printnum(max(stimuli$duration), digits = 2)`). The average duration of the Catalan audios was `r printnum(mean(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Catalan",]$duration), digits = 2)`), and the average duration of the Spanish audios was `r printnum(mean(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Spanish",]$duration), digits = 2)`). The average lexical frequency of the words was `r printnum(mean(stimuli$frequency_zipf), digits = 2)` (*SD* = `r printnum(sd(stimuli$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli$frequency_zipf), digits = 2)`). The average lexical frequency of the Catalan audios was `r printnum(mean(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Catalan",]$frequency_zipf), digits = 2)`), and the average lexical frequency of the Spanish audios was `r printnum(mean(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$language=="Spanish",]$frequency_zipf), digits = 2)`). Lexical frequencies in Catalan and Spanish were extracted from SUBTLEX-CAT [@boada2013] and SUBTLEX-ESP [@cuetos2011], respectively, and are expressed as Zipf scores [@van-heuven2012; @zipf1949].
+
+
+
+## Data analysis
+
+We divided participants in three groups: English natives tested in Catalan (ENG-CAT), English natives tested in Spanish (ENG-SPA), and Spanish natives tested in Catalan (SPA-CAT). We analysed the accuracy of responses to each item by calculating the proportion of correct responses across participants, resulting in one data point per item and group. We compared how our similarity score fitted the data in comparison with other measures:total shared phonemes, shared phonemic onset, and orthographical Damerau-Levenshtein distance. We fit several Bayesian linear models [@sorensen2015], each including one of the aforementioned variables as predictor, and the proportion of correct responses as output. Continuous predictors were standardised and categorical predictors were sum-coded [@schad2020]. Missing predictor scores were imputed before fitting the models using multiple imputation [@vanbuuren2013]. To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (LOO, @vehtari2016). More information about the models and model comparison can be found in Appendix X.
+
+All analyses were performed in R environment [@rcoreteam2019]. We used the `tidyverse` family of R packages to process data and to generate figures, the `mice` R package [@vanbuuren2013] for multiple imputation of missing data, and the `brms` R package [@burkner2017] to fit and compare models, which uses the Stan probabilistic programming language language [@carpenter2016].
+
+
+# Results
+
+## Posterior draws
+
+```{r posterior_draws}
+
+posterior %>%
+  ggplot(aes(.value, .variable)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  stat_slab(fill = "black") + 
+  stat_interval(.width = c(0.95, 0.89, 0.67, 0.5), position = position_nudge(y = -0.15)) +
+  labs(x = "Estimate", y = "Coefficient", colour = "Credible interval",
+       title = "Posterior distribution of coefficients of fixed effects") +
+  scale_colour_brewer(palette = "Blues") +
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey"),
+        legend.position = "top",
+        legend.key = element_rect(fill = "transparent")) +
+  ggsave(here("Figures", "coefs.png"))
+
+```
+
+
+## Posterior predictions
+
+```{r posterior_predictions}
+
+predictions %>%
+  ggplot(aes(similarity_phon, .value, colour = same_onset, fill = same_onset)) +
+  facet_grid(consecutive_longest~pthn)+
+  stat_summary(fun = mean, geom = "line", size = 1) +
+  geom_vline(xintercept = 0, colour= "grey") +
+  geom_hline(yintercept = 0.5, colour= "grey") +
+  labs(x = "Phonological similarity", y = "Probability of correct translation",
+       fill = "Credible interval", colour = "Onset",
+       title = "Effect of phonological similarity on probability of correct translation",
+       subtitle = "Model predictions are displayed for different quartiles of PTHN") +
+  scale_fill_brewer(palette = "Set1") +
+  scale_colour_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "top") +
+  ggsave(here("Figures", "predictions.png"), height = 4)
+
+```
+
+## Random effects
+
+### Item effects
+
+```{r item_effects}
+
+item_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(estimate, fill = param)) +
+  facet_wrap(~param, scales = "free") +
+  geom_histogram(bins = 20) +
+  geom_rug(alpha = 0.1) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Estimate", y = "Density", fill = "Parameter") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+
+```
+
+
+
+### Group effects
+
+
+```{r goup_effects_table}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  mutate(hdi = paste0("[", lower, ", ", upper, "]")) %>% 
+  select(param, group, error, hdi) %>% 
+  group_by(param) %>% 
+  gt() %>% 
+  cols_label(group = "Group", error = "SE", hdi = "95% HDI") 
+
+```
+
+```{r group_effects}
+
+group_effects %>%
+  pivot_wider(names_from = estimate, values_from = value) %>% 
+  mutate(param = factor(param, levels = c("intercept", "sameonset1","sameonset2", "consecutivelongest", "similarityphon"),
+                        labels = c("Intercept", "Different onset vs. Same onset", "Same onset: Vowel vs. Consonant", "Consecutive longest", "Phonological similarity"))) %>% 
+  ggplot(aes(group, estimate)) +
+  facet_wrap(~param) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = lower, ymax = upper, colour =  group), width = 0, size = 5) +
+  geom_errorbar(aes(ymin = estimate-error, ymax = estimate+error), width = 0, size = 1, alpha = 0.5) +
+  geom_point(size = 3) +
+  labs(x = "Group", y = "Estimate", fill = "Group") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_classic() +
+  theme(legend.position = "none",
+        panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
+        panel.grid.minor.y = element_line(colour = "grey", linetype = "dotted"))
+
+
+```
+### Correlations
+
+```{r correlations}
+
+corrs %>% 
+  filter(str_detect(variable, "trial_id")) %>%
+  mutate(variable = str_remove(variable, "cor_group:trial_id__"),
+         variable = str_replace(variable, "__" , " - ")) %>% 
+  ggplot(aes(value, variable, xmin = lower, xmax = upper)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  geom_errorbarh(show.legend = FALSE, height = 0) +
+  geom_point(size = 2, show.legend = FALSE) +
+  labs(x = "Estimate", y = "Correlation") +
+  theme_classic() +
+  theme(axis.title.y = element_blank())
+
+
+```
+
+# Discussion
+
+
+\newpage
+
+# References
+```{r create_r-references}
+r_refs(file = "r-references.bib")
+```
+
+\begingroup
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
+
+<div id="refs" custom-style="Bibliography"></div>
+\endgroup

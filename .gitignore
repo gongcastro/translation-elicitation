@@ -11,8 +11,11 @@
 *.csv
 *.pptx
 *.docx
+*.rds
 Stimuli/*
 Media/*
 Figures/*
 Data/*.rds
-Results/*
+Results/*.rds
+_targets/objects/*
+_targets/*

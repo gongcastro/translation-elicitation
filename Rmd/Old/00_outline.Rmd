@@ -1,0 +1,58 @@
+---
+title: "Outline"
+date: "Updated: `r format(Sys.Date(), '%d/%m%/%Y')`"
+output:
+    pdf_document:
+        latex_engine: xelatex
+bibliography: "references.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## The cognate facilitation effect
+
+Previous studies have observed a cognate facilitation effect in bilinguals: comprehension, production, and translation of cognates (form similar translation equivalents) is faster than that of non-cognates.
+
+## Measuring form similarity is non-trivial
+
+There are multiple ways of measuring the similarity between two words across multiple modalities (e.g., orthographic, phonological, signed), but all fail, to different extent, to capture the listeners' subjective experience when assessing the similarity between two presented words.
+
+This is partly due to the fact that perceived similarity is a function of variables not considered in the objective measure, or that human listeners weight such variables differently than the objective measure.
+
+
+For example, one could count the number of characters/letters shared by two words, and use the result as a measure of form similarity between both. However, this measure would quite frequently likely underestimate the similarity perceived by participants (), 
+
+one could measure the orthographic similarity between two written word forms using the Levenshtein distance, a classic metric of edit distance that counts the number of additions, deletions, and substitutions one of the words has to go through to be identical to the other word.
+
+* Although this effect has been reported across different modalities (e.g., orthographic, auditory, signed), th
+* What mechanisms underlie this effect, and how the lexical representation of cognates and non-cognates might differ is still a hotly debated topic: the phonology
+
+* Comprehension of speech in an unfamiliar language is not necessarily impossible. Words that share a large phonological similarity with their translation in the native language are easier to translate.
+
+
+## The cognate facilitation effect
+
+### Comprehension
+
+### Production
+
+### Translation
+
+
+### Phonological neighbourhoods
+
+### Can non-native word-forms
+
+
+
+
+### Limitations of current measures of cognateness
+
+* Levenshtein distance
+* Coltheart N
+
+## The present study
+

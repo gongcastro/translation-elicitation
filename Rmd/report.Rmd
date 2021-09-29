@@ -11,7 +11,7 @@ output:
 bibliography: "references.bib"
 ---
 
-```{r setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
   message = TRUE,
@@ -48,19 +48,15 @@ library(janitor)
 library(mice)
 library(here)
 
-# set params
-source(here("R", "utils.R"))
-
 # import data
-stimuli <- readRDS(here("Data", "stimuli.rds"))
-participants <- readRDS(here("Data", "participants.rds"))
-responses <- readRDS(here("Data", "responses.rds"))
-jtrace <- readRDS(here("Data", "jtrace.rds"))
+tar_load_globals()
+tar_load(stimuli)
+tar_load(participants)
+tar_load(responses)
+tar_load(model_fits)
+tar_load(model_loos)
 
-# import models
-fit_jtrace <- readRDS(here("Results", "fit_jtrace.rds"))
-fit_responses <- readRDS(here("Results", "fit_responses_4.rds"))
-loo <- readRDS(here("Results", "loo.rds"))
+theme_set(theme_github())
 
 ```
 
@@ -785,201 +781,8 @@ ggplot(responses_participant, aes(reorder(participant_label, correct_prop), corr
 
 ### {-}
 
-# TRACE simulations
-
-## TRACE vs. human data {.tabset .tab-pill}
-
-### TRACE activation vs. responses
-
-```{r jtrace_all_plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-ggplot(jtrace, aes(x = activation, y = pct_participant)) +
-  geom_smooth(colour = wes_palettes$Darjeeling1[1],
-              fill = wes_palettes$Darjeeling1[1],
-              alpha = 0.5) +
-  geom_point(shape = 1, stroke = 1, alpha = 0.5) +
-  labs(
-    x = "jTRACE activation value for the word",
-    y = "Participants who responded with the word"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_custom() +
-  theme(
-    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
-    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "trace_average.png"))
-
-```
-
-
-### By items
-
-```{r jtrace_word_plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-# plot by word
-jtrace %>% 
-  mutate(input_language = paste0(input, " (", language, ")")) %>% 
-  ggplot(aes(x = activation, y = pct_participant)) +
-  facet_wrap(~input_language) +
-  geom_smooth(colour = wes_palettes$Darjeeling1[1],
-              fill = wes_palettes$Darjeeling1[1],
-              alpha = 0.5) +
-  geom_point(shape = 1, stroke = 1, alpha = 0.5) +
-  labs(
-    x = "jTRACE activation value for the word",
-    y = "% participants who responded with the word",
-    title = "jTRACE activation against % participants who gave word as response"
-  ) +
-  theme_custom() +
-  theme(
-    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
-    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
-  )
-
-```
-
-
-### {-}
-
-## Regression model {.tabset .tab-pill}
-
-### Fixed coefficients
-
-```{r jtrace_fixed_table, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-summary(fit_jtrace$fit)$fixed %>% 
-  as.data.frame() %>%
-  rownames_to_column("term") %>% 
-  mutate(
-    Estimate = ifelse(term=="Intercept", inv_logit_scaled(Estimate), Estimate/4),
-    `l-95% CI` = ifelse(term=="Intercept", inv_logit_scaled(`l-95% CI`), `l-95% CI`/4),
-    `u-95% CI` = ifelse(term=="Intercept", inv_logit_scaled(`u-95% CI`), `u-95% CI`/4),
-    Est.Error = ifelse(term=="Intercept", inv_logit_scaled(Est.Error), Est.Error/4)
-  ) %>% 
-  gt() %>% 
-  fmt_number(2:6, decimals = 2) %>% 
-  fmt_number(7:8, decimals = 0) %>% 
-  cols_merge(vars("l-95% CI", "u-95% CI"), pattern = "[{1}, {2}]") %>% 
-  cols_label(
-    term = md("**Predictor**"),
-    Estimate = md("**Mean**"),
-    Est.Error = md("**SEM**"),
-    "l-95% CI" = md("**95\\% CrI**"),
-    Rhat = md("**Rhat**"),
-    Bulk_ESS = md("**Bulk ESS**"),
-    Tail_ESS = md("**Tail ESS**")
-  ) %>% 
-  tab_footnote(
-    footnote = "Transformed using the inverse logit to get the average probability of correct response",
-    locations = cells_body(columns = "term", rows = term=="Intercept")
-  ) %>% 
-  tab_footnote(
-    footnote = "Transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable.",
-    locations = cells_body(columns = "term", rows = term %in% c("pthn", "frequency", "lv", "pthn:lv") | str_detect(term, "activation"))
-  ) %>% 
-  tab_footnote(
-    footnote = "ESS: Effective sample size",
-    locations = cells_column_labels(columns = c("Bulk_ESS", "Tail_ESS"))
-  )
-```
-
-```{r jtrace_fixed_plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="100%"}
-fit_jtrace$fixed %>%
-  mutate(.value = ifelse(.variable=="b_Intercept", inv_logit_scaled(.value), .value/4)) %>% 
-  ggplot(aes(.value, fill = .variable)) +
-  facet_wrap(~.variable, scales = "free") +
-  geom_vline(xintercept = 0, colour = "black") +
-  stat_halfeye() +
-  labs(x = "Value", y = "Posterior probability density", fill = "Variable") +
-  theme_custom() +
-  theme(
-    legend.position = "none",
-    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
-    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
-    axis.text = element_text(size = 9)
-  )
-```
-
-
-### {-}
-
-## Candidate pool
-
-
-```{r jtrace_candidates, echo=FALSE, fig.height=30, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-stimuli_trace <- stimuli %>% 
-  as_tibble() %>% 
-  select(group, input = word1, target = word2, phon_trace)
-
-# process TRACE data ----
-trace <- map(
-  list.files(here("Data", "jtrace"), full.names = TRUE),
-  function(x){
-    read_xlsx(x) %>% 
-      pivot_longer(-cycle, names_to = "response", values_to = "activation")
-  }
-) %>%
-  set_names(list.files(here("Data", "jtrace"))) %>% 
-  bind_rows(.id = "target") %>% 
-  separate(target, c("input", "language"), sep = "_") %>% 
-  mutate(language = str_remove(language, ".xlsx"),
-         language = str_to_sentence(language))
-
-# get top candidates
-trace_top <- trace %>% 
-  group_by(input, language, response) %>% 
-  summarise(
-    activation = max(activation, na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  group_by(input, language) %>% 
-  slice_max(activation, n = 10) %>% 
-  ungroup() %>% 
-  mutate(group = ifelse(language=="Catalan", "ENG-CAT", "ENG-SPA")) %>% 
-  select(-language) %>% 
-  # add experimental trials
-  left_join(stimuli_trace) %>% 
-  mutate(correct = response==phon_trace) %>% 
-  select(group, input, response, activation, correct)
-
-# experimental results ----
-responses_jtrace <- responses %>% 
-  filter(valid_response, group %in% c("ENG-CAT", "ENG-SPA")) %>% 
-  rename(response = input_text, input = word) %>% 
-  count(group, input, response, correct) %>% 
-  group_by(group, input) %>%
-  mutate(total = sum(n), activation = n/total) %>% 
-  ungroup() %>% 
-  group_by(group, input) %>% 
-  slice_max(order_by = activation, n = 10) %>% 
-  ungroup() %>% 
-  select(group, input, response, correct, activation) %>% 
-  filter(input %in% trace_top$input)
-
-# merge everything
-d_jtrace <- list(TRACE = trace_top, Participants = responses_jtrace) %>% 
-  bind_rows(.id = "source") %>% 
-  mutate(
-    # to reorder variable within panels
-    input_label = paste0(input, " (", group, ")"),
-    response_reordered = reorder_within(response, activation, input_label)
-  ) 
-
-ggplot(d_jtrace, aes(response_reordered, activation, fill = correct)) +
-  facet_wrap(input_label~source, scales = "free_y", ncol = 3) +
-  geom_col(colour = "white") +
-  labs(x = "Top 10 candidates", y = "Max. TRACE activation") +
-  coord_flip() +
-  scale_x_reordered() +
-  # scale_y_continuous(limits = c(0, 1)) +
-  theme_bw() +
-  theme(
-    legend.position = "none"
-  )
-
-```
-
-
 ## {-}
+
+# {-}
 
 # References
