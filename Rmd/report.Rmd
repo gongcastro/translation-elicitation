@@ -95,7 +95,6 @@ Trials were considered valid if:
 ggplot(participants_coded, aes(group, fill = valid_participant)) +
   geom_bar() +
   labs(x = "Group", y = "# participants", fill = "Valid?") +
-  theme_custom() +
   theme(
     legend.title = element_blank(),
     legend.position = "top",
@@ -120,7 +119,6 @@ participants_coded %>%
   geom_boxplot(colour = "black", fill = "white", width = 0.05, outlier.color = NA) +
   labs(x = "Group", y = "Valid trials", fill = "Group", colour = "Group") +
   scale_y_continuous(limits = c(0.8, 1), labels = scales::percent) +
-  theme_custom() +
   theme(
     legend.title = element_blank(),
     legend.position = "top",
@@ -145,7 +143,6 @@ p_age <- ggplot(participants_valid, aes(as.factor(age), fill = group, colour = g
 (p_sex + p_age) &
   plot_layout() &
   plot_annotation() &
-  theme_custom() +
   theme(
     legend.position = "top",
     legend.title = element_blank(),
@@ -166,7 +163,6 @@ participants_valid %>%
   geom_col() +
   labs(x = "L2", y = "# participants", fill = "L2") +
   scale_x_reordered() +
-  theme_custom() +
   theme(
     legend.position = "none",
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted"),
@@ -193,7 +189,6 @@ participants_valid %>%
   labs(y = "# participants", x = "Self-reportd proficiency (0-5)", fill = "Language") +
   scale_x_continuous(limits = c(0, 5)) +
   coord_flip() +
-  theme_custom() +
   theme(
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
   )
@@ -224,7 +219,6 @@ stimuli_coded %>%
   ggplot(aes(zipf, fill = test_language)) +
   geom_histogram(bins = 25) +
   labs(x = "Lexical frequency (Zipf score)\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language") +
-  theme_custom() +
   theme(
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
   )
@@ -239,7 +233,6 @@ stimuli_coded %>%
   ggplot(aes(reorder(as.factor(pthn), -n), n, fill = test_language)) +
   geom_col(position = position_dodge()) +
   labs(x = "# Phonological neighbours with higher lexical frequency\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language") +
-  theme_custom() +
   theme(
     legend.position = "top",
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
@@ -257,7 +250,6 @@ stimuli_coded %>%
   geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
   labs(x = "Group", y = "Phonological Leveshtein distance\n(corrected for string length)", fill = "Test language") +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
   theme(
     legend.position = "none",
     axis.title.x = element_blank(),
@@ -275,7 +267,6 @@ stimuli_coded %>%
   geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
   labs(x = "Grouop", y = "Similarity", fill = "Test language") +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
   theme(
     legend.position = "none",
     axis.title.y = element_blank(),
@@ -295,7 +286,6 @@ stimuli_coded %>%
   ggplot(aes(group, fill = onset, colour = onset)) +
   geom_bar(position = position_dodge(width = 0.9)) +
   labs(x = "Group", y = "# trials", fill = "Phonological onset", colour = "Phonological onset") +
-  theme_custom() +
   theme(
     legend.position = "top",
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
@@ -312,7 +302,6 @@ stimuli_coded %>%
   geom_histogram() +
   labs(x = "Phonological Leveshtein distance\n(corrected for string length)", y = "# trials",
        fill = "Phonological onset", colour = "Phonological onset") +
-  theme_custom() +
   theme(
     legend.position = c(0.75, 0.25),
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
@@ -515,7 +504,8 @@ summary(model_fits$fit_4)$fixed %>%
   cols_align(
     align = c("center"),
     columns = 2:4
-  )
+  ) %>% 
+  as_raw_html()
 ```
 
 
@@ -527,7 +517,6 @@ ggplot(post, aes(.value, .variable, fill = .variable)) +
   geom_vline(xintercept = 0) +
   stat_halfeye() +
   labs(x = "Value", y = "Posterior probability density", fill = "Variable") +
-  theme_custom() +
   theme(
     legend.position = "none",
     plot.caption.position = "plot",
@@ -560,7 +549,8 @@ model_loos %>%
     se_elpd_loo = md("***SE***"),
     elpd_diff = md("**diff**"),
     se_diff = md("***SE* diff**")
-  )
+  ) %>% 
+  as_raw_html()
 
 ```
 
@@ -579,7 +569,6 @@ ggplot(post_re, aes(.value, sort(as.factor(participant)), xmin = .lower, xmax = 
   geom_point(size = 0.1, shape = 4) +
   geom_vline(xintercept = 0) +
   labs(x = "Participant-level adjustment", y = "Participant", colour = "Group") +
-  theme_custom() +
   theme(
     legend.position = "top",
     legend.title = element_blank(),
@@ -614,7 +603,6 @@ ggplot(m, aes(pthn, .value, colour = interaction(consonant_ratio, vowel_ratio, s
        colour = "Consonant/Vowel similarity", fill = "Consonant/Vowel similarity") +
   scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
   guides(colour = guide_legend(ncol = 2)) +
-  theme_custom() +
   theme(
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
@@ -647,7 +635,6 @@ ggplot(m, aes(consonant_ratio, .value, colour = interaction(vowel_ratio, pthn, s
        fill = "PTHN/Vowel similarity") +
   scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
   guides(colour = guide_legend(ncol = 2)) +
-  theme_custom() +
   theme(
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
@@ -678,7 +665,6 @@ ggplot(m, aes(vowel_ratio, .value, colour = interaction(consonant_ratio, pthn, s
        fill = "PTHN/Consonant similarity") +
   scale_y_continuous(labels = scales::percent, limits= c(0, 1)) +
   guides(colour = guide_legend(ncol = 2)) +
-  theme_custom() +
   theme(
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
@@ -712,7 +698,6 @@ ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin
   labs(y = "Correct responses", x = "Word", colour = "Group") +
   coord_flip() +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
   theme(
     legend.position = "none",
     axis.text.y = element_blank(),
@@ -747,7 +732,6 @@ ggplot(responses_participant, aes(reorder(participant_label, correct_prop), corr
   labs(y = "Correct responses", x = "Participant", colour = "Group") +
   coord_flip() +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  theme_custom() +
   theme(
     legend.position = "none",
     axis.text.y = element_blank(),
