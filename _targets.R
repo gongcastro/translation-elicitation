@@ -64,10 +64,10 @@ list(
     tar_target(
         model_loos,
         get_model_loos(model_fits)
-    )
+    ),
     
     # render report.Rmd
-    # tar_render(report, "Rmd/report.Rmd")
+    tar_render(report, "Rmd/report.Rmd")
 )
 
 

@@ -59,14 +59,15 @@ get_model_fits <- function(
         file = here("Results", "fit_responses_4.rds")
     )
     
-    fits <- list(fit_0 = fit_0, fit_1 = fit_1, fit_1 = fit_2, fit_1 = fit_3, fit_1 = fit_4)
+    fits <- list(fit_0 = fit_0, fit_1 = fit_1, fit_2 = fit_2, fit_3 = fit_3, fit_4 = fit_4)
     
     return(fits)
 }
 
+
 # compre models
 get_model_loos <- function(fits){
-    loos <- map(fits, loo)
-    loos_comp <- loo_compare(loos)
-    return(loos_comp)
+    loo <- loo_compare(map(fits, loo))
 }
+
+

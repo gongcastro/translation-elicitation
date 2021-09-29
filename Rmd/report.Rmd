@@ -21,11 +21,13 @@ knitr::opts_chunk$set(
   results = "asis",
   dev.args = list(png = list(type = "cairo"))
 )
-options(knitr.kable.NA = '-',
-        ggplot2.discrete.fill = wesanderson::wes_palettes$Darjeeling1,
-        ggplot2.discrete.colour = wesanderson::wes_palettes$Darjeeling1,
-        ggplot2.continuous.fill = wesanderson::wes_palettes$Darjeeling1,
-        ggplot2.continuous.colour = wesanderson::wes_palettes$Darjeeling1
+options(
+  knitr.kable.NA = '-',
+  knitr.duplicate.label = "allow",
+  ggplot2.discrete.fill = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.discrete.colour = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.continuous.fill = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.continuous.colour = wesanderson::wes_palettes$Darjeeling1
 )
 
 ```
@@ -475,7 +477,7 @@ responses_coded <- responses %>%
 #### Fixed coefficients
 
 ```{r coefs_fixed_table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-summary(fit_responses)$fixed %>% 
+summary(model_fits$fit_4)$fixed %>% 
   as.data.frame() %>%
   rownames_to_column("term") %>% 
   mutate(
@@ -518,7 +520,7 @@ summary(fit_responses)$fixed %>%
 
 
 ```{r post_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Points and error bars in indicate the posterior means, and 50% and 95% CrI. The intercept has been transformed using the inverse logit to get the average probability of correct response. The resto of the coefficients has been transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable."}
-post <- gather_draws(fit_responses, `b_.*`, regex = TRUE) %>% 
+post <- gather_draws(model_fits$fit_4, `b_.*`, regex = TRUE) %>% 
   mutate(.value = ifelse(.variable=="b_Intercept", inv_logit_scaled(.value), .value/4))
 
 ggplot(post, aes(.value, .variable, fill = .variable)) +
@@ -533,8 +535,7 @@ ggplot(post, aes(.value, .variable, fill = .variable)) +
     # axis.text = element_text(size = 7),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
     panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "responses_fixed.png"))
+  )
 ```
 
 
@@ -543,38 +544,22 @@ ggplot(post, aes(.value, .variable, fill = .variable)) +
 Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
 
 ```{r model_comparison, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-map(loo$loos, "estimates") %>% 
-  map(function(x){
-    as.data.frame(x) %>% 
-      rownames_to_column("ic")
-  }
-  ) %>% 
-  bind_rows(.id = "model") %>% 
-  clean_names() %>% 
-  filter(ic %in% c("elpd_loo", "looic")) %>% 
-  pivot_wider(names_from = ic, values_from = c("estimate", "se")) %>% 
-  left_join(rownames_to_column(as.data.frame(loo$comparison, "model"))) %>% 
-  mutate(formula = c(
-    "~ 1 + frequency + (1 | participant)",
-    "~ 1 + frequency + pthn + (1 + pthn | participant)",
-    "~ 1 + frequency + pthn*vowel_ratio + (1 + pthn*vowel_ratio | participant)",
-    "~ 1 + frequency + pthn*consonant_ratio + (1 + pthn*consonant_ratio  | participant)",
-    "~ 1 + frequency + pthn*(consonant_ratio + consonant_ratio) + (1 + pthn*(consonant_ratio + consonant_ratio) | participant)"
-  )) %>% 
+model_loos %>% 
+  as.data.frame() %>% 
+  rownames_to_column("model") %>% 
   arrange(desc(model)) %>% 
-  select(formula, estimate_elpd_loo, se_elpd_loo, estimate_looic, se_looic, elpd_diff, se_diff) %>%
-  rename(model = formula) %>% 
-  gt() %>% 
-  fmt_number(2:7) %>% 
-  cols_merge(c("estimate_elpd_loo", "se_elpd_loo"), pattern = "{1} ({2})") %>% 
-  cols_merge(c("estimate_looic", "se_looic"), pattern = "{1} ({2})") %>% 
-  cols_merge(c("elpd_diff", "se_diff"), pattern = "{1} ({2})") %>% 
+  select(model, matches("elpd_loo"), matches("diff")) %>%
+  mutate(model = str_replace(model, "fit_", "Model ")) %>% 
+  mutate_all(~ifelse(. == 0, NA, .)) %>% 
+  gt(rowname_col = "model") %>% 
+  fmt_missing(everything(), missing_text = "-") %>% 
+  fmt_number(2:5) %>% 
   cols_label(
     model = md("**Model**"),
-    estimate_elpd_loo = md("**ELPD<sub>LOO</sub> (SE)**"),
-    estimate_looic = md("**LOO-IC (SE)**"),
-    elpd_diff = md("**ELPD<sub>diff</sub> (SE)**")
-    
+    elpd_loo = md("**ELPD**"),
+    se_elpd_loo = md("***SE***"),
+    elpd_diff = md("**diff**"),
+    se_diff = md("***SE* diff**")
   )
 
 ```
@@ -582,7 +567,7 @@ map(loo$loos, "estimates") %>%
 #### Random effects
 
 ```{r post_re, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-post_re <- gather_draws(fit_responses, r_participant[participant, .param]) %>% 
+post_re <- gather_draws(model_fits$fit_4, r_participant[participant, .param]) %>% 
   mean_qi() %>% 
   ungroup() %>% 
   left_join(select(participants, participant, group)) %>% 
@@ -619,7 +604,7 @@ nd <- expand_grid(
   vowel_ratio = c(-1, 1)
 )
 
-m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
+m <- add_fitted_draws(nd, model_fits$fit_4, n = 50, re_formula = NA) %>% 
   mutate_at(vars(consonant_ratio, vowel_ratio), function(x) paste0(x, " SD"))
 
 ggplot(m, aes(pthn, .value, colour = interaction(consonant_ratio, vowel_ratio, sep = "/"), fill = interaction(consonant_ratio, vowel_ratio, sep = "/"))) +
@@ -634,7 +619,6 @@ ggplot(m, aes(pthn, .value, colour = interaction(consonant_ratio, vowel_ratio, s
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
   ) 
-ggsave(here("Figures", "responses_pthn.png"))
 
 
 ```
@@ -653,7 +637,7 @@ nd <- expand_grid(
   vowel_ratio = c(-1, 1)
 )
 
-m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
+m <- add_fitted_draws(nd, model_fits$fit_4, n = 50, re_formula = NA) %>% 
   mutate_at(vars(pthn, vowel_ratio), function(x) paste0(x, " SD"))
 
 ggplot(m, aes(consonant_ratio, .value, colour = interaction(vowel_ratio, pthn, sep = "/"), fill = interaction(vowel_ratio, pthn, sep = "/"))) +
@@ -667,8 +651,7 @@ ggplot(m, aes(consonant_ratio, .value, colour = interaction(vowel_ratio, pthn, s
   theme(
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "responses_consonant.png"), height = 4, width = 4.5)
+  )
 
 ```
 
@@ -685,7 +668,7 @@ nd <- expand_grid(
   consonant_ratio = c(-1, 1)
 )
 
-m <- add_fitted_draws(nd, fit_responses, n = 50, re_formula = NA) %>% 
+m <- add_fitted_draws(nd, model_fits$fit_4, n = 50, re_formula = NA) %>% 
   mutate_at(vars(pthn, consonant_ratio), function(x) paste0(x, " SD"))
 
 ggplot(m, aes(vowel_ratio, .value, colour = interaction(consonant_ratio, pthn, sep = "/"), fill = interaction(consonant_ratio, pthn, sep = "/"))) +
@@ -699,8 +682,7 @@ ggplot(m, aes(vowel_ratio, .value, colour = interaction(consonant_ratio, pthn, s
   theme(
     legend.position = "top",
     panel.grid = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "responses_vowel.png"), height = 4, width = 4.5)
+  )
 
 ```
 
@@ -737,8 +719,7 @@ ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin
     axis.ticks = element_blank(),
     axis.text.x = element_text(size = 9),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "accuracy_item.png"))
+  )
 
 ```
 
@@ -773,8 +754,7 @@ ggplot(responses_participant, aes(reorder(participant_label, correct_prop), corr
     axis.ticks = element_blank(),
     axis.text.x = element_text(size = 9),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
-  ) +
-  ggsave(here("Figures", "accuracy_participant.png"))
+  )
 
 ```
 
