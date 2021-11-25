@@ -3,5 +3,11 @@ source("renv/activate.R")
 library(targets)
 
 make <- function(){
-    job::job({{ targets::tar_make() }})
+    job::job(
+        title = "Translation Elicitation", {{ 
+            targets::tar_make() 
+        }}
+    )
 }
+
+message("Run make() to update the project")

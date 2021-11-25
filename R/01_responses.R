@@ -112,7 +112,7 @@ get_responses_clean <- function(
     #### merge with trial-level data -----------------------------------------------
     merged <- clean %>%
         left_join(stimuli) %>% 
-        select(participant, group, trial_id, test_language, country, word, target_word = word2, trace = phon_trace, input_text,
+        select(participant, group, trial_id, test_language, country, word, target_word = word2, input_text,
                lv, typing_offset, vowel_ratio, consonant_ratio, pthn, frequency)
     
     return(merged)
@@ -185,7 +185,7 @@ get_responses <- function(
         mutate(frequency_zipf = relative_to_zipf(frequency)) %>% 
         # center predictors
         mutate_at(
-            vars(lv, consonant_ratio, vowel_ratio, pthn, frequency),
+            vars(lv, consonant_ratio, vowel_ratio, pthn, frequency_zipf),
             function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
         # impute missing data
         mice(m = 5, print = FALSE, method = "pmm") %>% 

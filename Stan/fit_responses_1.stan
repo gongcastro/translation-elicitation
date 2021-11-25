@@ -66,7 +66,7 @@ model {
     target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
   }
   // priors including constants
-  target += normal_lpdf(b | 0, 3);
+  target += normal_lpdf(b | 0, 2);
   target += normal_lpdf(Intercept | 0, 3);
   target += cauchy_lpdf(sd_1 | 0, 3)
     - 2 * cauchy_lccdf(0 | 0, 3);

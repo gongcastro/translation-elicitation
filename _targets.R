@@ -11,20 +11,21 @@ tar_option_set(
     packages = c(
         "dplyr", "tidyr", "stringr", "ggplot2", "tibble", "forcats", "multilex", "keyring",
         "readxl", "janitor", "mice", "here", "lubridate", "purrr", "scales", "stringdist",
-        "brms", "tidybayes", "gt", "patchwork", "wesanderson", "papaja", "knitr", "data.table"
+        "brms", "tidybayes", "gt", "patchwork", "wesanderson", "papaja", "knitr", "data.table",
+        "audio", "tidytext"
     )
 )
 
 list(
     
-    # items
+    # stimuli
     tar_target(clearpond_path, list(`ENG-CAT` = here("Data", "clearpond", "clearpond_english.csv"), `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")),),
     tar_target(clearpond, get_clearpond(clearpond_path)),
-    tar_target(trace_path, here("Stimuli", "trace.xlsx")),
-    tar_target(trace, get_trace(trace_path)),
     tar_target(stimuli_path, here("Stimuli", "trials.xlsx")),
     tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
-    tar_target(stimuli, get_stimuli(stimuli_path = stimuli_path, clearpond = clearpond, trace = trace, levenshtein = levenshtein)),
+    tar_target(audios_path, here("Stimuli/Sounds")),
+    tar_target(durations, get_duration(stimuli_path = stimuli_path, audios_path = audios_path)),
+    tar_target(stimuli, get_stimuli(stimuli_path = stimuli_path, clearpond = clearpond, levenshtein = levenshtein, durations = durations)),
     tar_target(practice_trials, c(109, 147, 159, 167, 179, 1, 26, 70, 86, 96)),
     
     # responses
@@ -40,11 +41,23 @@ list(
     tar_target(
         model_formulas,
         formulas <- list(
-            f_0 = bf(correct ~ 1 + frequency + (1 | participant), family = bernoulli(link = "logit")),
-            f_1 = bf(correct ~ 1+ frequency + pthn + (1 + pthn | participant), family = bernoulli(link = "logit")),
-            f_2 = bf(correct ~ 1 + frequency + pthn*consonant_ratio + (1 + pthn*consonant_ratio | participant), family = bernoulli(link = "logit")),
-            f_3 = bf(correct ~ 1 + frequency + pthn*vowel_ratio + (1 + pthn*vowel_ratio | participant), family = bernoulli(link = "logit")),
-            f_4 = bf(correct ~ 1 + frequency + pthn + consonant_ratio + vowel_ratio + pthn:consonant_ratio + pthn:vowel_ratio + (1 + pthn + consonant_ratio + vowel_ratio + pthn:consonant_ratio + pthn:vowel_ratio | participant), family = bernoulli(link = "logit"))
+            f_0 = bf(correct ~ 1 + 
+                         (1 | participant),
+                     family = bernoulli(link = "logit")),
+            f_1 = bf(correct ~ 1 + 
+                         frequency_zipf + 
+                         (1 + frequency_zipf | participant),
+                     family = bernoulli(link = "logit")),
+            f_2 = bf(correct ~ 1 + 
+                         frequency_zipf +
+                         pthn + 
+                         (1 + frequency_zipf + pthn | participant),
+                     family = bernoulli(link = "logit")),
+            f_3 = bf(correct ~ 1 +
+                         frequency_zipf +
+                         pthn*lv +
+                         (1 + frequency_zipf + pthn*lv | participant),
+                     family = bernoulli(link = "logit"))
         )
     ),
     tar_target(
@@ -52,7 +65,7 @@ list(
         # prior
         c(
             prior(normal(0, 3), class = "Intercept"),
-            prior(normal(0, 3), clas = "b"),
+            prior(normal(0, 2), clas = "b"),
             prior(cauchy(0, 3), class = "sd", group = "participant"),
             prior(lkj(5), class = "cor")
         )
@@ -67,7 +80,7 @@ list(
     ),
     
     # render report.Rmd
-    tar_render(report, "Rmd/report.Rmd"),
+    # tar_render(report, "Rmd/report.Rmd"),
 
     # render manuscript.Rmd
     tar_render(manuscript, "Rmd/manuscript.Rmd")

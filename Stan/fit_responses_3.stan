@@ -27,6 +27,7 @@ data {
   vector[N] Z_1_2;
   vector[N] Z_1_3;
   vector[N] Z_1_4;
+  vector[N] Z_1_5;
   int<lower=1> NC_1;  // number of group-level correlations
   int prior_only;  // should the likelihood be ignored?
 }
@@ -53,12 +54,14 @@ transformed parameters {
   vector[N_1] r_1_2;
   vector[N_1] r_1_3;
   vector[N_1] r_1_4;
+  vector[N_1] r_1_5;
   // compute actual group-level effects
   r_1 = scale_r_cor(z_1, sd_1, L_1);
   r_1_1 = r_1[, 1];
   r_1_2 = r_1[, 2];
   r_1_3 = r_1[, 3];
   r_1_4 = r_1[, 4];
+  r_1_5 = r_1[, 5];
 }
 model {
   // likelihood including constants
@@ -67,15 +70,15 @@ model {
     vector[N] mu = Intercept + rep_vector(0.0, N);
     for (n in 1:N) {
       // add more terms to the linear predictor
-      mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n];
+      mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n] + r_1_5[J_1[n]] * Z_1_5[n];
     }
     target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
   }
   // priors including constants
-  target += normal_lpdf(b | 0, 3);
+  target += normal_lpdf(b | 0, 2);
   target += normal_lpdf(Intercept | 0, 3);
   target += cauchy_lpdf(sd_1 | 0, 3)
-    - 4 * cauchy_lccdf(0 | 0, 3);
+    - 5 * cauchy_lccdf(0 | 0, 3);
   target += std_normal_lpdf(to_vector(z_1));
   target += lkj_corr_cholesky_lpdf(L_1 | 5);
 }

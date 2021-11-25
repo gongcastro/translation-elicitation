@@ -1,0 +1,40 @@
+---
+---
+
+```{r accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95% confidence interval of each word. Accuracy is plotted separately for each group."}
+
+responses_item <- responses %>%
+  group_by(trial_id, group, word) %>%
+  summarise(
+    correct_sum = sum(correct, na.rm = TRUE),
+    correct_n = sum(!is.na(correct), na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  left_join(select(stimuli, group, trial_id, word2, ipa1, ipa2)) %>% 
+  mutate(
+    word = paste0(word, " (", ipa1, ") / ", word2, " (", ipa2, ")"),
+    correct_prop = prop_adj(correct_sum, correct_n),
+    correct_se = prop_adj_se(correct_sum, correct_n),
+    word_label = reorder_within(word, by = correct_prop, within = group)
+  ) 
+
+
+ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
+  facet_wrap(~group, scales = "free_y") +
+  geom_hline(yintercept = 0.5, colour = "black") +
+  geom_errorbar(width = 0) +
+  geom_point(size = 0.5) +
+  labs(y = "Proportion of correct responses", x = "Word", colour = "Group") +
+  coord_flip() +
+  scale_color_manual(values = c("#1E88E5", "#ff2976", "#FFC20A")) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  scale_x_discrete(labels = function(x) str_remove(x, "___ENG-CAT|___ENG-SPA|___SPA-CAT")) +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_text(size = 5, colour = "black"),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 9, colour = "black"),
+    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
+  )
+
+```

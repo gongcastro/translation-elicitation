@@ -1,125 +1,453 @@
 ---
-title             : "The role of cognateness in non-native spoken word recognition"
-shorttitle        : "Cognateness and non-native word recognition"
-
-author: 
-  - name          : "Gonzalo Garcia-Castro"
-    affiliation   : "1"
-    corresponding : yes    # Define only one corresponding author
-    address       : "Ramon Trial Fargas, 25-27, 08005 Barcelona"
-    email         : "gonzalo.garciadecastro@upf.edu"
-  - name          : "Serene Siow"
-    affiliation   : "2"
-  - name          : "Nuria Sebastian-Galles"
-    affiliation   : "1"
-  - name          : "Kim Plunkett"
-    affiliation   : "2"
-
-
-authornote: |
-  GG and SS contributed equally and share first authorship.
-
+title: "The role of cognateness in non-native spoken word recognition"
+author:
+- name: Gonzalo Garcia-Castro
+  affiliation: '1'
+  corresponding: yes
+  address: Ramon Trial Fargas, 25-27, 08005 Barcelona
+  email: gonzalo.garciadecastro@upf.edu
+- name: Serene Siow
+  affiliation: '2'
+- name: Nuria Sebastian-Galles
+  affiliation: '1'
+- name: Kim Plunkett
+  affiliation: '2'
+shorttitle: Cognateness and non-native word recognition
+output:
+  word_document:
+    reference_docx: manuscript_template.docx
 abstract: |
   There is compelling evidence that bilinguals access their lexicon in a language non-selective way. For example, bilinguals produce and translated cognates (words whose translation in the other language is form-similar) faster than non-cognates, suggesting that the phonology of both languages interact during word production and comprehension (Costa et al., 2000; Christoffels et al., 2006). Previous literature on this effect has often relied on measures of overall form-similarity to categorise words into cognates andnon-cognates, such as the Levenshtein distance. These measures partially ignore potential sources of variability during lexical access like vowel vs. consonant overlap, overlap in stressed syllables, onset overlap or the distance in features between both translations. In this study, we explored the impact of some of these variables on non-native word translation task: Spanish and English participants listened to non-native words (Catalan or Spanish) and were prompted to type their translation in their native language. Critically, participants where unfamiliar with the testing language, ensuring that they were not able to translate words based on previous knowledge on their meaning, leaving phonological information as the only cue participants were able to exploit to translate words to their native language correctly. We analysed the probability of correct translations, adjusting for the amount of vowel overlap, consonant overlap, overlap at stress position, overlap at onset, and distance in features between replaced phonemes, including the average frequency of phonological neighbours of the target words are a covariate.
-  
   <!-- https://tinyurl.com/ybremelq -->
-  
-keywords          : "cognate, word recognition, translation, non-native, spoken word recognition"
-wordcount         : "X"
-
-bibliography      : ["r-references.bib", "references.bib"]
-
-floatsintext      : no
-figurelist        : no
-tablelist         : no
-footnotelist      : no
-linenumbers       : yes
-mask              : no
-draft             : no
-
-documentclass     : "apa6"
-classoption       : "man"
-output            :
-  word_document:
-    reference_docx: "manuscript_template.docx"
+keywords: cognate, word recognition, translation, non-native, spoken word recognition
+wordcount: X
+bibliography:
+- r-references.bib
+- references.bib
+floatsintext: no
+figurelist: no
+tablelist: no
+footnotelist: no
+linenumbers: yes
+mask: no
+draft: no
+documentclass: apa6
+classoption: man
+authornote: |
+  GG and SS contributed equally and share first authorship.
 ---
 
-```{r setup, include = FALSE}
-library(papaja)
-```
+```{r setup, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
-```{r analysis-preferences, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# Seed for random number generation
 set.seed(42)
-knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  cache = FALSE, 
+  cache.vars = FALSE,
+  cache.rebuild = FALSE,
+  cache.lazy = FALSE,
+  results = "asis", 
+  dpi = 300
+)
+
+options(
+  knitr.kable.NA = '-',
+  knitr.duplicate.label = "allow",
+  ggplot2.discrete.fill = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.discrete.colour = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.continuous.fill = wesanderson::wes_palettes$Darjeeling1,
+  ggplot2.continuous.colour = wesanderson::wes_palettes$Darjeeling1
+)
+
 ```
 
 
 ```{r prepare, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
-library(tidyverse)
-library(data.table)
-library(tidybayes)
-library(gt)
-library(lubridate)
-library(here)
-
-tar_load(participants)
+tar_load_globals()
 tar_load(stimuli)
+tar_load(participants)
 tar_load(responses)
 tar_load(model_fits)
 tar_load(model_loos)
 
+theme_set(theme_ggdist())
+
+
+
 ```
+
+# Introduction
+
+
+## Non-native language comprehension is difficult, but cognateness helps
+
+
+Humans are able to recognise spoken words without much effort, even in adverse conditions such as compressed speech [@de1982relationship] or the loss of segmental information [@warren1970perceptual]. But even in the most ideal of the situations, the processes engaged in word recognition do not occur without uncertainty. The speech input activates multiple candidate lexical entries based on their similarity with the signal, and for word recognition to take place, the lexical system must select one of the candidates. There is extensive literature about how the number of candidates, their frequency, and their phonological and semantic similarity with the target word impacts the dynamics of word recognition. However, less is known about how these factors affect the recognition of words in a non-native language.
+
+
+Listening to speech in a non-native language is more costly than doing so in the native language, even if one is proficient in the non-native language. The source of this increased cognitive effort is likely to originate at multiple levels. For instance, some sounds in the speech signal do not correspond to any phoneme in the native language, segmenting the speech signal relies on previous familiarity with word forms or with the statistical regularities of the language, or word order might be different in both languages (e.g., subject-object-verb vs. subject-verb-object.). The listener, however, is rarely completely naïve to the language they are listening to. All languages share, to some extent, similarities, frequently due to their typological closeness, which can be exploited by listeners of a non-native language.
+
+
+Lexical similarity, for example, provides useful information to sequential language learners. Romance language like Spanish, Italian, French or Catalan, share many similarities at the lexical level in the form of cognates [@schepens2012distributions]. Cognates are cross-language synonyms whose form (e.g., phonology, orthography, signature) is similar. The cause of this similarity is frequently attributed to a shared etymological origin. This is the case of *puerta* and *porta* (*door* in Spanish and Catalan, respectively)^[Some form-similar cross-language synonyms are technically not cognates. For example, *sun* and *sol* (in Spanish), share their phonological onset, but their etymology points to different origins. We will use the word *cognateness* to include all form-similar cross-language synonyms for simplicity. It is highly implausible that etymology plays a direct role on language perception if it is not via form-similarity, since it is not necessary for participants in psycholinguistic experiments to be aware of the etymology of the words they encounter in the tasks to be subject to the effect of form-similarity.]. There is evidence that cognates are learnt more easily in L2 than non-cognates. @de2000hard presented 40 Dutch natives 60 pairs of translation equivalents. In each learning trial, two words were presented in a screen side-by-side: one in Dutch and one pseudoword. Pseudowords were generated in such way that were easily pronounceable and were phonotactically legal in Dutch. Word pairs varied in their form-similarity (number of shared letters, 40-70%). Participants were tested twice in the same task with one week of difference. Participants' performance was better for cognates across both testing sessions, suggesting that cognates were learnt and retained more easily than non-cognates. Converging evidence was provided by @lotto1998effects in Dutch natives learning Italian words: cognates were learnt more easily than non-cognates. 
+
+
+Cognates are not only learnt faster than non-cognates, but also translated faster. Early accounts of bilingual lexical access described two possible routes for translating a word from L1 to L2 or *vice versa*: (1) via direct links between L1-L2 links or (2) through word-concept links. Both translation routes are available during translation [@potter1984lexical; @kroll1988lexical]. These models assumed that the strength of the word-concept associations in both L1 and L2 is a function of their frequency of use, in order to account for the influence of  both the lexical frequency of the presented word and the target word in translation tasks on participant's performance. Under the assumption that bilinguals use L1 more often, @kroll1994category proposed the asymmetric hypothesis, predicting stronger word-concept associations between L1 representations compared to L2 representations. This would make L2-to-L1 translation more reliant to the direct translation route (L1-L2 association) than L1-to-L2 translation. This prediction has three consequences: (1) L2-to-L1 translation is expected to be faster than L1-to-L2 translation (as it does not rely on conceptual mediation during translation), and (2) since word-to-word connections (like the L1-L2 one) occurs at the lexical level (and not at the conceptual level), it should be sensitive to the form-similarity between both words, and therefore to cognateness, and (3) since low-proficiency bilinguals rely more on the direct route during translation, and this route is sensitive to cognateness, their performance during backward translation tasks should not only be better than during forward translation, but also enhanced by the cognate status of L1 and L2 representations.
+
+
+To test these predictions, @degroot1994forward and @de1992determinants asked 52 Dutch natives with high (yet non-native) English proficiency to translate words from either Dutch to English (forward translation, L1 to L2) or from English to Dutch (backward translation, L2 to L1). In each trial, participants were presented visually with a word in English or Dutch, and were asked to speak out loud its translation in the other language as soon as possible. The authors reported three main findings: (1) reaction times and accuracy were roughly equivalent in across both forward and backward conditions (although slightly faster in the former), (2) semantic variables, such as imageability, were positively associated with participants' performance more strongly in the forward translation conditional, although the effect size was small, (3) cognates were translated equally fast in both conditions, but non-cognates were translated faster during backward translation than during forward translation, and (4) when translating cognates participants' performance across both conditions was less sensitive to semantic variables than when translating non-cognates. These results prompted the authors to reject a hard version @kroll1994category's asymmetric hypothesis, and suggest that both conceptually mediated and direct translation routes are active during translation, but backward translation relies more strongly on direct links between L1 and L2 representations, which makes it more sensitive to cognateness than forward translation. When the authors tested a group of bilinguals with higher proficiency in English, their results pointed in the same direction.
+
+
+The idealised lexicon considered by the models describe above only considers word-word connections between translation equivalents. More recent studies have highlighted the role of the rich network of connections that given word establishes with other phonologically or conceptually related words. @collins1975spreading introduced this notion into their theory of semantic processing, and later @luce1998recognizing operationalised this dimension in their Neighbourhood Activation Model (NAM). In this model, lexical selection is mediated not only by the lexical frequency of the target word, and the number of activated candidates, but also by the frequency of the candidates. @luce1998recognizing designed a lexical decision task in which English native participants listened to a word across several conditions of noise-to-signal ratio. The authors then used a computerised lexicon to calculate the number of phonological neighbours around each of the presented words, based on phonetic similarity matrices, and the average lexical frequency of such neighbourhoods. Participants answered more faster and more accurately to high frequency words. Words from high density neighbourhoods were responded to more accurately, but more slowly. The average lexical frequency of the neighbourhood was associated to a decrease in accuracy. Low frequency words were responded to more accurately in low density neighbours than in high density neighbours. The authors concluded that, although both word lexical frequency and neighbourhood density can, in principle, facilitate spoken word recognition, this effect was modulated by the frequency of the neighbourhood: when phonological neighbours are more frequent, lexical selection is hindered [@goldinger1989priming; @luce1990similarity].
+
+
+The role of neighbourhood lexical frequency on bilingual spoken word recognition is unclear. Across several modalities, bilinguals' recognition of words in a language is affected by form-similarity and frequency of words in the other language. The parallel activation hypothesis accounts for this phenomenon, suggesting that lexical access is language-non selective. There is strong evidence supporting this claim in both comprehension, production, and translation, and across modalities. Much of this evidence stems from the fact that bilinguals' production times are faster when naming cognates (i.e., words whose translation in the other language is form-similar) than non-cognates. Both phonological and semantic links between translations underlie facilitatory effect of cognateness. The activation of form-similar words in the non-target language that do not share meaning with the target word, however, interferes with lexical selection. Disentangling the effect of semantic and phonological links during spoken word recognition is challenging when participants are bilingual.
+
+
+
+
+This has important implications to non-native word recognition: is word recognition facilitated by cognateness via translation? The answer is not straightforward. Disentangling the effect of form- and conceptual similarity in a bilingual sample is daunting, given that second language learners are able to exploit ...
+
+
+
+
+In the present study, we used a fully monolingual sample to disentangle the effect of neighbourhood frequency and phonological similarity. We asked participants to translate word in a language they had no significant experience with. This made sure that participants were unaware of any semantic relationship between the (non-native) words they heard and their translation, and could only rely on their phonological similarity to guess their translation. We tested the role of the amount of phonological similarity between the presented and the target words, the lexical frequency of the target word, and the average lexical frequency of the target word's phonological neighbourhood.
 
 
 # Methods
 
 ## Participants
 
-Data collection took place from `r format(min(participants$date), "%dth %B, %Y")` to  `r format(max(participants$date), "%dth %B, %Y")`. We collected data from `r nrow(participants)` participants ($M_{age}$ = `r printnum(mean(participants$age, na.rm = TRUE))`, $SD_{age}$ = `r printnum(sd(participants$age, na.rm = TRUE))`, $Range_{age}$ = `r printnum(min(participants$age, na.rm = TRUE))`-`r printnum(max(participants$age, na.rm = TRUE))`). `r filter(participants, country=="UK") %>% nrow()` participants were British English native speakers living in United Kingdom (`r filter(participants, country=="UK", sex =="Female") %>% nrow()` female), and `r filter(participants, country=="UK") %>% nrow()` participants were Spanish native speakers living in Spain (`r filter(participants, country=="Spain", sex =="Female") %>% nrow()` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We excluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r filter(participants, l2oral>4 | l2written>4) %>% nrow()`), b) were diagnosed with a language (*n* = `r filter(participants, impairment) %>% nrow()`)^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct This item was phrased as "Do you have normal or corrected-to-normal VISION? (Yes/No)" in English, and as "¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No)". However, the proportion of Spanish participants that reported visual impairment was implausibly large (*n* = `r nrow(filter(participants, country %in% "Spain", vision))`, `r printnum((1-nrow(filter(participants, country %in% "Spain", !vision))/nrow(filter(participants, country=="Spain")))*100)`%). This is possibly due to these participants using glasses dayly and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision.], or c) did not contribute more than 80% of valid trials (*n* = `r sum(participants$invalid_participant_trials, na.rm = TRUE)`).
-
+Data collection took place from `r format(min(participants$date, na.rm = TRUE), "%B %dth, %Y")` to `r format(max(participants$date, na.rm = TRUE), "%B %dth, %Y")`. We collected data from `r length(unique(participants$participant))` participants (*Mean* = `r printnum(mean(participants$age, na.rm = TRUE))` years, *SD* = `r printnum(sd(participants$age, na.rm = TRUE))`, *Min* = `r printnum(min(participants$age, na.rm = TRUE))`, *Max* = `r printnum(max(participants$age, na.rm = TRUE))`). `r length(unique(participants$participant[participants$group %in% c("ENG-CAT", "ENG-SPA")]))` participants were British English native speakers living in United Kingdom (`r length(unique(participants$participant[participants$group %in% c("ENG-CAT", "ENG-SPA") & participants$sex=="Female"]))`), and `r length(unique(participants$participant[participants$group %in% c("SPA-CAT")]))` participants were Spanish native speakers living in Spain (`r length(unique(participants$participant[participants$group %in% c("SPA-CAT") & participants$sex=="Female"]))` female). Participants in UK were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits). Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants were asked to complete the experiment in a quiet place with good internet connection. We excluded data from participants that a) self-rated their oral and/or written skills in a second or third language as higher than 4 in a 5-point scale (*n* = `r participants %>% filter(l2written > 4 | l2oral > 4) %>% nrow()`), b) were diagnosed with a language (*n* = `r participants %>% filter(impairment) %>% nrow()`) , or c) did not contribute more than 80% of valid trials (*n* = `r participants %>% filter(invalid_participant_trials) %>% nrow()`).
 
 ## Procedure
 
-The experiment was implemented online using Psychopy/Pavlovia [@peirce2019]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). Participants were informed about the aims of the study and gave informed consent for participating. Then, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. Participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Participants in the Catalan list were presented with `r count(stimuli, group)$n[1]` trials, and participants in the Spanish list were presented with `r count(stimuli, group)$n[2]` trials.
+The experiment was implemented online using Psychopy/Pavlovia [@peirce2019psychopy2]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from a browser (Chrome or Mozilla). Participants were informed about the aims of the study and gave informed consent for participating. This experiment was  Then, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Third, participants completed the experimental task. Participants were informed that they would listen to a series of pre-recorded words in Catalan or Spanish (English participants) or only Catalan (Spanish participants). They were instructed to listen to each word, guess its meaning in English (English participants) or Spanish (Spanish participants), and type their answer as soon as possible. English participants were randomly assigned to the list of Catalan or Spanish trials. Participants in the Catalan list were presented with `r nrow(stimuli[stimuli$group=="ENG-CAT",])` trials, and participants in the Spanish list were presented with `r nrow(stimuli[stimuli$group=="ENG-SPA",])` trials.
 
-Each trial started with a yellow fixation dot presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a ">" symbol. Typed letters were displayed in the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the RETURN key to start and new trial. We excluded trials where participants did not type an existing word in the correspondent language, or did not type anything at all. Trials where the response was mistyped by only one character were counted as correct, as long as the respond did not correspond to a distinct word. Participants contributed a total of `r distinct(responses, participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` valid trials (`r filter(responses, test_language=="Catalan") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Catalan, `r filter(responses, test_language=="Spanish") %>%  distinct(participant, trial_id) %>% nrow() %>% printnum(., big.mark = ",")` in Spanish). The task took approximately 15 minutes to be completed.
+Each trial started with a yellow fixation point presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a ">" symbol. Typed letters were displayed in the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the RETURN key to start and new trial. We excluded trials where participants did not type an existing word in the correspondent language, or did not type anything at all. Trials where the response was mistyped by only one character were counted as correct, as long as the respond did not correspond to a distinct word. Participants contributed a total of `r nrow(responses)` valid trials (`r nrow(responses[responses$group %in% c("ENG-CAT", "SPA-CAT"),])` in Catalan, `r nrow(responses[responses$group %in% c("ENG-SPA"),])` in Spanish). The task took approximately 15 minutes to be completed.
 
 
 ## Stimuli
 
-Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infancia of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@boersma2018]. The average duration of the audios was `r printnum(mean(stimuli$duration), digits = 2)` (*SD* = `r printnum(sd(stimuli$duration), digits = 2)`, *Min* = `r printnum(min(stimuli$duration), digits = 2)`, *Max* = `r printnum(max(stimuli$duration), digits = 2)`). The average lexical frequency of the words was `r printnum(mean(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)` (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli$frequency_zipf, na.rm = TRUE), digits = 2)`). The average lexical frequency of the Catalan audios was `r printnum(mean(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-CAT",]$frequency_zipf, na.rm = TRUE), digits = 2)`), and the average lexical frequency of the Spanish audios was `r printnum(mean(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)` seconds (*SD* = `r printnum(sd(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Min* = `r printnum(min(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`, *Max* = `r printnum(max(stimuli[stimuli$group=="ENG-SPA",]$frequency_zipf, na.rm = TRUE), digits = 2)`). Lexical frequencies in Catalan and Spanish were extracted from SUBTLEX-CAT [@boada2013] and SUBTLEX-ESP [@cuetos2011], respectively, and are expressed as Zipf scores [@van-heuven2012; @zipf1949].
+Participants listened to one audio file in each trial. This audio file corresponded to a word in Catalan (for Spanish speakers, and for English participants allocated in the Catalan condition) or Spanish (for English speakers allocated in the Spanish condition). The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infància of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@broersma2021praat]. The average duration of the audios was `r printnum(mean(stimuli$duration, na.rm = TRUE))` (*SD* = `r printnum(sd(stimuli$duration, na.rm = TRUE))`, *Min* = `r printnum(min(stimuli$duration, na.rm = TRUE))`, *Max* = `r printnum(max(stimuli$duration, na.rm = TRUE))`). The average duration of the Catalan audios was `r printnum(mean(stimuli$duration[stimuli$group %in% c("ENG-CAT")], na.rm = TRUE))` seconds (*SD* = `r printnum(sd(stimuli$duration[stimuli$group %in% c("ENG-CAT")], na.rm = TRUE))`, *Min* = `r printnum(min(stimuli$duration[stimuli$group %in% c("ENG-CAT")], na.rm = TRUE))`, *Max* = `r printnum(max(stimuli$duration[stimuli$group %in% c("ENG-CAT")], na.rm = TRUE))`), and the average duration of the Spanish audios was `r printnum(mean(stimuli$duration[stimuli$group %in% c("ENG-SPA")], na.rm = TRUE))` seconds (*SD* = `r printnum(sd(stimuli$duration[stimuli$group %in% c("ENG-SPA")], na.rm = TRUE))`, *Min* = `r printnum(min(stimuli$duration[stimuli$group %in% c("ENG-SPA")], na.rm = TRUE))`, *Max* = `r printnum(max(stimuli$duration[stimuli$group %in% c("ENG-SPA")], na.rm = TRUE))`). Table 1 summarises the lexical frequency, phonological neighbourhood density and phonological overlap of the words included in the Catalan and the Spanish lists.
 
+```{r stimuli_table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
+stimuli %>% 
+  select(group, trial_id, frequency, frequency_zipf, pthn, consonant_ratio, vowel_ratio) %>% 
+  group_by(group) %>% 
+  summarise_at(vars(frequency:vowel_ratio), list(mean = ~mean(., na.rm = TRUE),  sd = ~sd(., na.rm = TRUE))) %>% 
+  gt(rowname_col = "group") %>% 
+  fmt_number(frequency_mean:vowel_ratio_sd) %>% 
+  tab_spanner(md("**Frequency (per million)**"), c("frequency_mean", "frequency_sd")) %>% 
+  tab_spanner(md("**Frequency (Zipf score)**"), matches("frequency_zipf")) %>% 
+  tab_spanner(md("***PTHN***"), matches("pthn")) %>% 
+  tab_spanner(md("**Consonant similarity**"), matches("consonant")) %>% 
+  tab_spanner(md("**Vowel similarity**"), matches("vowel")) %>% 
+  cols_label(
+    frequency_mean = md("Mean"),
+    frequency_sd = md("*SD*"),
+    frequency_zipf_mean = md("Mean"),
+    frequency_zipf_sd = md("*SD*"),
+    pthn_mean = md("Mean"),
+    pthn_sd = md("*SD*"),
+    consonant_ratio_mean = md("Mean"),
+    consonant_ratio_sd = md("*SD*"),
+    vowel_ratio_mean = md("Mean"),
+    vowel_ratio_sd = md("*SD*")
+  )
+
+```
 
 ## Data analysis
 
-We divided participants in three groups: English natives tested in Catalan (ENG-CAT), English natives tested in Spanish (ENG-SPA), and Spanish natives tested in Catalan (SPA-CAT). We analysed the accuracy of responses to each item by calculating the proportion of correct responses across participants, resulting in one data point per item and group.
+We modelled the probability of participants guessing the correct translation of each input word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We first fitted a base model (Model 0) that only included the lexical frequency (`frequency`) of the target word as a fixed effect, with a random intercept per participant. Second, we extended the model to include `pthn` as a fixed effect, with a random slope by participant (Model 1). Third, we added the fixed effect `consonant_ratio` and the `pthn:consonant_ratio`, and random slopes for both effects by participant (Model 2). Third, we added the fixed effect `vowel_ratio` and the `pthn:vowel_ratio`, and random slopes for both effects by participant (Model 3). Finally, we fit a model that included the two-way interactions `pthn:consonant_ratio` and `pthn:vowel_ratio`, an their random slopes by participant (Model 4). Continuous predictors were standardised and categorical predictors were sum-coded [@schad2020capitalize]. Model 4 can be formally expressed as:
+
+$$
+\begin{align*}
+
+&\textbf{Likelihood}  \\
+y_{i} \sim& Bernoulli(p_{i}) && \text{[probability of correct translation]} \\ \\
+
+&\textbf{Parameters}  \\
+
+logit(p_{i}) = ~ &  \beta_{0[p,w]} ~ +  && \text{[linear model]}\\
+& \beta_{1[p]} ~ Frequency_{i} ~ + \\
+& \beta_{2[p]} ~ PTHN_i ~ + \\
+& \beta_{3[p]} ~ Similarity_i ~ + \\
+& \beta_{4[p]} ~ (PTHN_i \times Similarity_i) \\ \\
+
+\beta_{0-6[p,w]} \sim& ~  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p ~\text{in 1, ..., } P ~\text{and  word } w ~\text{in 1, ..., } W && \text{[participant- and word-level intercepts]} \\
+\beta_{1-6[p]} \sim& ~  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p ~\text{in 1, ..., } P
+&& \text{[participant-level coefficients]} \\ \\
+
+&\textbf{Prior}  \\
+
+\mu_{\beta_{p,w}} ~ \sim& ~ \mathcal{N}(0, 3) && \text{[participant-level coefficients]} \\
+\sigma_{\beta_{p}}, ~ \sigma_{\beta_{w}} \sim& ~ Cauchy(0, 3) && \text{[SD for population and participant]} \\
+\rho_{p}, ~ \rho_{w} \sim& ~LKJ(5) && \text{[correlation between participant-level coefficients]} \\
 
 
-We fit several Bayesian linear models [@sorensen2015], each including one of the aforementioned variables as predictor, and the proportion of correct responses as output. Continuous predictors were standardised and categorical predictors were sum-coded [@schad2020]. Missing predictor scores were imputed before fitting the models using multiple imputation [@vanbuuren2013]. To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (LOO, @vehtari2016). More information about the models and model comparison can be found in Appendix X.
+\end{align*}
+$$
 
-All analyses were performed in R environment [@rcoreteam2019]. We used the `tidyverse` family of R packages to process data and to generate figures, the `mice` R package [@vanbuuren2013] for multiple imputation of missing data, and the `brms` R package [@burkner2017] to fit and compare models, which uses the Stan probabilistic programming language language [@carpenter2016].
+
+To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (*LOO*) [@vehtari2017practical]. More information about the models and model comparison can be found in Appendix 2. All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages to process data and to generate figures, and the brms R package [@burkner2017brms] using the cmdstanr backend to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
 
 
 # Results
 
-## Posterior draws
+All models showed good out-of-sample predictive validity, as suggested by the fact that the expected log-probability density was many times larger than its associated standard error. Model 4, which included all main effects and the two-way interactions between PTHN and vowel similarity, and PTHN and consonant similarity, showed the best performance (see Table 2). 
 
-## Posterior predictions
 
-## Random effects
 
-### Item effects
 
-### Group effects
+```{r model_values, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-```{r group_effects_table}
+coefs <- fixef(model_fits$fit_3) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("variable") %>% 
+  clean_names() %>% 
+  mutate_at(vars(estimate:q97_5), ~ifelse(variable=="Intercept", inv_logit_scaled(.), ./4)) %>% 
+  group_split(variable) %>% 
+  set_names(make_clean_names(map(., "variable"))) %>% 
+  map(select, -variable) %>% 
+  map(unlist)
+
 ```
 
 
-### Correlations
+
+
+```{r comparison, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=4}
+
+loos_table <- model_loos %>% 
+  as.data.frame() %>% 
+  rownames_to_column("model") %>% 
+  arrange(desc(elpd_loo)) %>% 
+  select(model, matches("elpd_loo"), matches("looic"), matches("diff")) %>%
+  mutate(model = str_replace(model, "fit_", "Model ")) %>% 
+  mutate_all(~ifelse(. == 0, NA, .)) %>% 
+  gt(rowname_col = "model") %>% 
+  fmt_missing(everything(), missing_text = "-") %>% 
+  fmt_number(2:7) %>% 
+  cols_label(
+    model = md("**Model**"),
+    looic = md("***LOO<sub>IC</sub>***"),
+    se_looic = md("***SE*<sub>IC</sub>**"),
+    elpd_loo = md("***LOO<sub>ELPD</sub>***"),
+    se_elpd_loo = md("***SE***"),
+    elpd_diff = md("***LOO<sub>diff</sub>***"),
+    se_diff = md("***SE<sub>diff</sub>***")
+  )
+
+gtsave(loos_table, here("Figures", "loos.png"))
+
+
+```
+
+We now report the mean of the posterior distribution of each coefficient in Model 3, along with its associated measures of uncertainty. For interpretability, we transformed the estimates of the intercept using the inverse logit function so that the values are expressed in probability of correct response instead of log-odds, and we transformed the coefficients of the rest of predictors divided by four. Dividing a coefficient expressed in log-odds by four returns an approximate of the derivative of the logistic function indicating the maximum steepness of the logistic curve. This way, the coefficients are expressed as increases/decreases in probability of correct translation [@gelman2020regression].
+
+```{r posterior_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Estimated posterior distributions of coefficients in Model 3. A) Population-level effects. Distributions indicate the estimated posterior likelihood density of each coefficient. Credible intervals (CrI), represented with increasingly lighter segmentents in the distribution indicate the range of values that contain the true value with 95%, 80%, and 50%, given the data we have collected. Points represent the mean of the distribution. The intercept has been transformed using the inverse logit to get the average probability of correct response. The rest of the coefficients have been transformed using the divide-by-four rule to get the maximum change in probability of correct response associated with a unit increase in each predictor variable. B) Participant-level coefficient variability. Our model estimated participant-level coefficients to account for the dependency between responses from the same participant. Distributions in this panel indicate the estimated variability across coefficients from different participants, expressed as standard deviations (SD). C) Correlation between participant-level effects. Our model allowed participant-level coefficients to co-vary. This panel represents the Pearson correlations between each pair of coefficients, expressed as the mean of the posterior distribution of each correlation. Coefficients are represented in the X- and Y-axis in the same order as indicated in the Y-axis of panels A and C.", fig.height=5, fig.width=6}
+
+
+post <- gather_draws(model_fits$fit_3, `b_.*`, `sd_.*`, regex = TRUE)
+
+
+# fixed effects
+str_repl <- c(
+  "Intercept" = "Intercept",
+  "frequency_zipf" = "Frequency (+1 SD)",
+  "pthn:lv" = "PTHN \u00d7 Levenshtein", 
+  "lv" = "Levenshtein (+1 SD)",
+  "pthn" = "PTHN (+1 SD)"
+)
+
+post_fix <- post %>% 
+  filter(str_detect(.variable, "b_")) %>% 
+  mutate(.variable_name = str_remove(.variable, "b_") %>% 
+           str_replace_all(str_repl) %>% 
+           factor(levels = c("Intercept", "Frequency (+1 SD)", "PTHN (+1 SD)", "Levenshtein (+1 SD)", "PTHN \u00d7 Levenshtein")),
+         .value = ifelse(str_detect(.variable, "Intercept"), inv_logit_scaled(.value), .value/4)) %>% 
+  arrange(.variable) %>% 
+  ggplot(aes(.value, fct_rev(.variable_name))) +
+  geom_vline(xintercept = 0) +
+  stat_slab(aes(fill = stat(cut_cdf_qi(cdf, .width = c(.5, .8, .95), labels = scales::percent_format())))) +
+  stat_pointinterval(.width = 0, point_size = 1) +
+  # geom_text(
+  #   data = filter(rhats, str_detect(.variable, "b_")), 
+  #   aes(x = -0.1, y = .variable_name, label = paste0("Rhat = ", printnum(.value, digits = 3))),
+  #   size = 3, position = position_nudge(y = 0.1)
+  # ) +
+  # geom_text(
+  #   data = filter(n_effs, str_detect(.variable, "b_")), 
+  #   aes(x = -0.1, y = .variable_name, label = paste0("N eff. ratio = ", printnum(.value, digits = 2))),
+  #   size = 3, position = position_nudge(y = 0.25)
+  # ) +
+  scale_fill_manual(values = c("#1A85FF", "#9ccaff", "#d2e5fc"), na.translate = FALSE) +
+  scale_x_continuous(labels = percent) +
+  labs(x = "P(Correct)", y = "Posterior probability density", fill = "CrI") +
+  theme(
+    legend.position = c(1, 0.1),
+    legend.background = element_rect(fill = NA),
+    legend.justification = "right",
+    legend.direction = "horizontal",
+    plot.caption.position = "plot",
+    # axis.text = element_text(size = 7),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(colour = "black"),
+    axis.text.y = element_text(colour = "black", vjust = 0),
+    panel.grid.major.y = element_line(colour = "grey", size = 0.25)
+  ) 
+
+post_sd <- post %>% 
+  filter(str_detect(.variable, "sd_"),) %>% 
+  mutate(
+    .variable_name = str_remove(.variable, "sd_participant__") %>% 
+      str_replace_all(str_repl) %>% 
+      factor(levels = c("Intercept", "Frequency (+1 SD)", "PTHN (+1 SD)", "Levenshtein (+1 SD)", "PTHN \u00d7 Levenshtein"))
+  ) %>%   
+  ggplot(aes(.value, fct_rev(.variable_name))) +
+  stat_slab(aes(fill = stat(cut_cdf_qi(cdf, .width = c(.5, .8, .95), labels = scales::percent_format())))) +
+  stat_pointinterval(.width = 0, point_size = 1) +
+  #   geom_text(
+  #   data = filter(rhats, str_detect(.variable, "b_")), 
+  #   aes(x = -0.1, y = .variable_name, label = paste0("Rhat = ", printnum(.value, digits = 3))),
+  #   size = 3, position = position_nudge(y = 0.1)
+  # ) +
+  # geom_text(
+  #   data = filter(n_effs, str_detect(.variable, "b_")), 
+  #   aes(x = -0.1, y = .variable_name, label = paste0("N eff. ratio = ", printnum(.value, digits = 2))),
+  #   size = 3, position = position_nudge(y = 0.25)
+  # ) +
+  scale_fill_manual(values = c("#ff2976", "#f2a7c2", "#fcd9e6"), na.translate = FALSE) +
+  scale_x_continuous(labels = percent) +
+  labs(x = "SDs in P(Correct)", y = "Posterior probability density", fill = "CrI") +
+  theme(
+    legend.position = c(1, 0.1),
+    legend.background = element_rect(fill = NA),
+    legend.justification = "right",
+    legend.direction = "horizontal",
+    plot.caption.position = "plot",
+    plot.caption = element_text(hjust = 0),
+    # axis.text = element_text(size = 7),
+    panel.grid.major.y = element_line(colour = "grey", size = 0.25),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(colour = "black"),
+    axis.text.y = element_text(colour = "black")
+  ) 
+
+
+
+corr_mat <- cov2cor(vcov(model_fits$fit_3)) 
+corr_mat[lower.tri(corr_mat)] <- NA
+
+post_cors <- corr_mat %>% 
+  as.data.frame() %>% 
+  rownames_to_column("term1") %>% 
+  pivot_longer(-term1, names_to = "term2", values_to = ".value") %>% 
+  drop_na(.value) %>% 
+  mutate(term1 = factor(term1, levels = names(str_repl), ordered = TRUE),
+         term2 = factor(term2, levels = names(str_repl), ordered = TRUE)) %>% 
+  mutate_at(vars(term1, term2), str_replace_all, str_repl) %>% 
+  mutate(
+    .value_label = case_when(
+      term1==term2 ~ NA_character_,
+      TRUE ~ printnum(.value, gt1 = FALSE)
+    ),
+    .value = case_when(
+      term1==term2 ~ NA_real_,
+      TRUE ~ .value
+    )
+  ) %>% 
+  ggplot(aes(fct_inorder(term1), fct_rev(fct_inorder(term2)), fill = .value)) +
+  geom_tile(na.rm = TRUE) +
+  geom_text(aes(label = .value_label), size = 3, na.rm = TRUE) +
+  labs(x = "Term 1", y = "Term 2", fill = "Posterior correlation") +
+  scale_fill_gradient(low = "#FFC20A", high = "white", na.value = "white") +
+  coord_equal() +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    plot.background = element_rect(fill = NA)
+  )
+
+post_fix / (post_sd + post_cors + plot_layout(widths = c(0.6, 0.4))) +
+  plot_layout(guides = "keep") & 
+  plot_annotation(tag_levels = "A") &
+  theme(
+    title = element_text(size = 8, face = "bold"),
+    plot.title.position = "plot", 
+    plot.title = element_text(hjust = 0.5)
+  )
+
+
+
+```
+
+Overall, participants were `r percent(coefs$intercept["estimate"], accuracy = 0.01)`, (*SE* = `r percent(coefs$intercept["est_error"], accuracy = 0.01)`, 95% *CrI* = [`r percent(coefs$intercept["q2_5"], accuracy = 0.01)`, `r percent(coefs$intercept["q97_5"], accuracy = 0.01)`]) likely to produce correct translations. Every standard deviation increment in the translation's lexical frequency (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE))`) increased the probability of a correct responses in `r percent(coefs$frequency_zipf["estimate"], accuracy = 0.01)` (*SE* = `r percent(coefs$frequency_zipf["est_error"], accuracy = 0.01)`, 95% *CrI* = [`r percent(coefs$frequency_zipf["q2_5"], accuracy = 0.01)`, `r percent(coefs$frequency_zipf["q97_5"], accuracy = 0.01)`]). The number of the translation's more frequent phonological neighbours, on the other hand, decreased the probability of a correct responses in `r percent(coefs$pthn["estimate"], accuracy = 0.01)` (*SE* = `r percent(coefs$pthn["est_error"], accuracy = 0.01)`, 95% *CrI* = [`r percent(coefs$pthn["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn["q97_5"], accuracy = 0.01)`]) for every increase in 1 *SD* (`r printnum(sd(stimuli$pthn, na.rm = TRUE))`). The effect of phonological similarity was conditional to the phonological density of the translation. Phonological similarity barely increased the probability of a correct responses (`r percent(coefs$lv["estimate"], accuracy = 0.01)`, *SE* = `r percent(coefs$lv["est_error"])`, 95% *CrI* = [`r percent(coefs$lv["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv["q97_5"])`]) by itself. However, for every *SD* increase in PTHN, phonological similarity increased in `r percent(coefs$pthn_lv["estimate"])`, (*SE* = `r percent(coefs$pthn_lv["est_error"], accuracy = 0.01)`, 95% *CrI* = [`r percent(coefs$pthn_lv["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn_lv["q97_5"], accuracy = 0.01)`]) such probability.
+
+
+```{r marginal_effects, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=5, fig.height=5, fig.cap="Expected mean posterior predictions. The X-axis and the Y-axis represent the Levenshtein distance (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 200 observations from our model: 100 simulations for words with low PTHN (-1 SD) and 100 simulations for high PTHN (+1 SD) words. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink in the case of low PTHN words, and blue in the case of high PTHN words. We also plotted the mean of the high PTHN (black solid line) and low PTHN (black dashed line) simulations to indicate the expected mean value of the posterior predictions of the model. The dispersion of the lines indicates the uncertainty of our predictions."}
+
+# by vowel_ratio
+nd <- expand.grid(
+  pthn = c(-1, 1),
+  frequency_zipf = 0,
+  lv = seq(
+    min(responses$lv, na.rm = TRUE),
+    max(responses$lv, na.rm = TRUE),
+    by = 0.1
+  )
+)
+
+m <- add_epred_draws(nd, model_fits$fit_3, ndraws = 100, re_formula = NA) %>% 
+  mutate_at(vars(pthn, frequency_zipf), function(x) paste0(x, " SD")) %>% 
+  mutate(
+    pthn = case_when(
+      pthn=="-1 SD" ~ "Low PTHN",
+      pthn=="0 SD" ~ "Mean PTHN",
+      pthn=="1 SD" ~ "High PTHN"
+    ),
+    frequency_zipf = case_when(
+      frequency_zipf=="-1 SD" ~ "Low frequency",
+      frequency_zipf=="0 SD" ~ "Mean frequency",
+      frequency_zipf=="1 SD" ~ "High frequency"
+    )
+  ) 
+
+
+nd_obs <- model_fits$fit_3$data %>% 
+  as_tibble() %>% 
+  mutate(pthn = cut_interval(pthn, 3, labels = c("Low PTHN", "Mean PTHN", "High PTHN"))) 
+
+ggplot(m, aes(lv, .epred, colour = pthn, fill = pthn)) +
+  # geom_jitter(data = filter(nd_obs, correct), aes(y = 1), alpha = 0.1,
+  #             size = 0.25, height = 0.05, width = 0.1, show.legend = FALSE) +
+  # geom_jitter(data = filter(nd_obs, !correct), aes(y = 0), alpha = 0.25, 
+  #             size = 0.25, height = 0.05, width = 0.1, show.legend = FALSE) +
+  geom_hline(yintercept = 0.5, colour = "grey") +
+  geom_line(aes(group = interaction(pthn, .draw)), alpha = 0.25, size = 1) +
+  stat_summary(aes(linetype = pthn), fun = mean, geom = "line", colour = "black", size = 0.75, show.legend = FALSE) +
+  labs(x = "Levenshtein (phonological similarity)", y = "P(Correct)", colour = "PTHN", fill = "PTHN", linetype = "PTHN") +
+  scale_color_manual(values = c("#1E88E5", "#ff2976")) +
+  scale_y_continuous(labels = function(x) percent(round(x, 2)), limits = c(0, 0.6), breaks = seq(0, 1, 0.1)) +
+  guides(colour = guide_legend(ncol = 2)) +
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    axis.text.x = element_text(colour = "black"),
+    axis.text.y = element_text(colour = "black"),
+    panel.grid = element_line(colour = "grey")
+  )
+
+```
+
+
 
 
 # Discussion
@@ -128,9 +456,6 @@ All analyses were performed in R environment [@rcoreteam2019]. We used the `tidy
 \newpage
 
 # References
-```{r create_r-references}
-r_refs(file = "r-references.bib")
-```
 
 \begingroup
 \setlength{\parindent}{-0.5in}
@@ -138,3 +463,49 @@ r_refs(file = "r-references.bib")
 
 <div id="refs" custom-style="Bibliography"></div>
 \endgroup
+
+\newpage
+
+# Appendix
+
+
+```{r accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95% confidence interval of each word. Accuracy is plotted separately for each group.", fig.height=10, fig.width=9}
+
+responses_item <- responses %>%
+  group_by(trial_id, group, word) %>%
+  summarise(
+    correct_sum = sum(correct, na.rm = TRUE),
+    correct_n = sum(!is.na(correct), na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  left_join(select(stimuli, group, trial_id, word2, ipa1, ipa2)) %>% 
+  mutate(
+    word = paste0(word, " (", ipa1, ") / ", word2, " (", ipa2, ")"),
+    correct_prop = prop_adj(correct_sum, correct_n),
+    correct_se = prop_adj_se(correct_sum, correct_n),
+    word_label = reorder_within(word, by = correct_prop, within = group)
+  ) 
+
+
+ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin = correct_prop-correct_se, ymax = correct_prop+correct_se, colour = group)) +
+  facet_wrap(~group, scales = "free_y") +
+  geom_hline(yintercept = 0.5, colour = "black") +
+  geom_errorbar(width = 0) +
+  geom_point(size = 0.5) +
+  labs(y = "Proportion of correct responses", x = "Word", colour = "Group") +
+  coord_flip() +
+  scale_color_manual(values = c("#1E88E5", "#ff2976", "#FFC20A")) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  scale_x_discrete(labels = function(x) str_remove(x, "___ENG-CAT|___ENG-SPA|___SPA-CAT")) +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_text(size = 6, colour = "black"),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 7, colour = "black"),
+    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
+  )
+
+```
+
+
+
