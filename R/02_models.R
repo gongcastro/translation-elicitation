@@ -19,6 +19,7 @@ get_model_fits <- function(
         prior = model_prior[c(1, 3),],
         save_pars = save_pars(all = TRUE),
         backend = "cmdstanr",
+        seed = 888,
         save_model = here("Stan", "fit_responses_0.stan"),
         file = here("Results", "fit_responses_0.rds"), 
         control = list(adapt_delta = 0.95)
@@ -29,6 +30,7 @@ get_model_fits <- function(
         prior = model_prior,
         save_pars = save_pars(all = TRUE),
         backend = "cmdstanr",
+        seed = 888,
         save_model = here("Stan", "fit_responses_1.stan"),
         file = here("Results", "fit_responses_1.rds"), 
         control = list(adapt_delta = 0.95)
@@ -39,6 +41,7 @@ get_model_fits <- function(
         prior = model_prior,
         save_pars = save_pars(all = TRUE),
         backend = "cmdstanr",
+        seed = 888,
         save_model = here("Stan", "fit_responses_2.stan"),
         file = here("Results", "fit_responses_2.rds"), 
         control = list(adapt_delta = 0.95)
@@ -49,6 +52,8 @@ get_model_fits <- function(
         prior = model_prior,
         save_pars = save_pars(all = TRUE),
         backend = "cmdstanr",
+        sample_prior = "yes",
+        seed = 888,
         save_model = here("Stan", "fit_responses_3.stan"),
         file = here("Results", "fit_responses_3.rds"), 
         control = list(adapt_delta = 0.95)
@@ -71,7 +76,44 @@ get_model_loos <- function(fits){
         saveRDS(loo, path)
     }
     return(loo)
-    
+}
+
+# get model posterior draws (fixed effects)
+get_model_draws_fixed <- function(fit){
+    post <- gather_draws(fit, `b_.*`, `sd_.*`, regex = TRUE)
+    return(post)
+}
+
+
+# get model posterior expected predictions (fixed effects)
+get_model_epreds_fixed <- function(fit, ndraws = 100){
+    nd <- expand.grid(
+        pthn = c(-1, 1),
+        frequency_zipf = 0,
+        lv = seq(
+            min(fit$data$lv, na.rm = TRUE),
+            max(fit$data$lv, na.rm = TRUE),
+            by = 0.1
+        )
+    )
+    m <- add_epred_draws(nd, fit, ndraws = 100, re_formula = NA)
+    return(m)
+}
+
+# get model posterior expected predictions (random effects)
+get_model_epreds_random <- function(fit, ndraws = 10){
+    nd_re <- expand.grid(
+        participant = unique(fit$data$participant),
+        pthn = c(-1, 1),
+        frequency_zipf = 0,
+        lv = seq(
+            min(fit$data$lv, na.rm = TRUE),
+            max(fit$data$lv, na.rm = TRUE),
+            by = 0.1
+        )
+    )
+    m_re <- add_epred_draws(nd_re, fit, ndraws = 10) 
+    return(m_re)
 }
 
 

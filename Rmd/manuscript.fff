@@ -1,0 +1,26 @@
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\includegraphics[width=0.8\linewidth]{C:/Users/gonza/Documents/translation-elicitation/Figures/design} \caption{ }\label{fig:procedurefigure}
+\end{figure*}
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{manuscript_files/figure-latex/posteriorfix-1.pdf}
+\caption{\label{fig:posteriorfix}Estimated posterior distributions of coefficients in Model 3. A) Population-level effects. Distributions indicate the estimated posterior likelihood density of each coefficient. Credible intervals \(CrI\), represented with increasingly lighter segmentents in the distribution indicate the range of values that contain the true value with 95\%, 80\%, and 50\%, given the data we have collected. Points represent the mean of the distribution. The intercept has been transformed using the inverse logit to get the average probability of correct response. The rest of the coefficients have been transformed using the divide-by-four rule to get the maximum change in probability of correct response associated with a unit increase in each predictor variable. B) Participant-level coefficient variability. Our model estimated participant-level coefficients to account for the dependency between responses from the same participant. Distributions in this panel indicate the estimated variability across coefficients from different participants, expressed as standard deviations \(SD\). C) Correlation between participant-level effects. Our model allowed participant-level coefficients to co-vary. This panel represents the Pearson correlations between each pair of coefficients, expressed as the mean of the posterior distribution of each correlation. Coefficients are represented in the X-axis and Y-axis in the same order as indicated in the Y-axis of panels A and C.}
+\end{figure*}
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{manuscript_files/figure-latex/marginaleffects-1.pdf}
+\caption{\label{fig:marginaleffects}Expected mean posterior predictions. A) Population-level expected mean posterior predictions. The X-axis and the Y-axis represent the Levenshtein distance (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 200 observations from our model: 100 simulations for words with low PTHN (-1 SD) and 100 simulations for high PTHN (+1 SD) words. We did this across the range of values of the Levenshtein scores. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink in the case of low PTHN words, and blue in the case of high PTHN words. We also plotted the mean of the high PTHN (black solid line) and low PTHN (black dashed line) simulations to indicate the expected mean value of the posterior predictions of the model. The dispersion of the lines indicates the uncertainty of our predictions. B) Participant-level expected mean posterior predictions. We conducted the same procedure for each individual participant, simulating 100 observations for high-PTHN and 100 for low-PTHN from our model acrosss the range of Levenshtein scores. We averaged the resulting predictions for each participant and then plotted each participant's predictions in separate panels to show how the effect of PTHN and phonological similarity changed at the individual level.}
+\end{figure*}
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{manuscript_files/figure-latex/accuracy-1.pdf}
+\caption{\label{fig:accuracy}Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95\% confidence interval of each word. Accuracy is plotted separately for each group.}
+\end{figure*}

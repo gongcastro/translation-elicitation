@@ -64,10 +64,10 @@ list(
         model_prior,
         # prior
         c(
-            prior(normal(0, 3), class = "Intercept"),
-            prior(normal(0, 2), clas = "b"),
-            prior(cauchy(0, 3), class = "sd", group = "participant"),
-            prior(lkj(5), class = "cor")
+            prior(normal(0, 0.1), class = "Intercept"),
+            prior(normal(0, 0.1), clas = "b"),
+            prior(cauchy(0, 0.1), class = "sd", group = "participant"),
+            prior(lkj(8), class = "cor")
         )
     ),
     tar_target(
@@ -77,6 +77,18 @@ list(
     tar_target(
         model_loos,
         get_model_loos(model_fits)
+    ),
+    tar_target(
+        posterior_draws_fixed,
+        get_model_draws_fixed(model_fits$fit_3)
+    ),
+    tar_target(
+        posterior_epreds_fixed,
+        get_model_epreds_fixed(model_fits$fit_3)
+    ),
+    tar_target(
+        posterior_epreds_random,
+        get_model_epreds_random(model_fits$fit_3)
     ),
     
     # render report.Rmd

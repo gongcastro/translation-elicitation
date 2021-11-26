@@ -35,9 +35,9 @@ model {
     target += bernoulli_logit_lpmf(Y | mu);
   }
   // priors including constants
-  target += normal_lpdf(Intercept | 0, 3);
-  target += cauchy_lpdf(sd_1 | 0, 3)
-    - 1 * cauchy_lccdf(0 | 0, 3);
+  target += normal_lpdf(Intercept | 0, 0.1);
+  target += cauchy_lpdf(sd_1 | 0, 0.1)
+    - 1 * cauchy_lccdf(0 | 0, 0.1);
   target += std_normal_lpdf(z_1[1]);
 }
 generated quantities {

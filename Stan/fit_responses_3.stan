@@ -75,12 +75,12 @@ model {
     target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
   }
   // priors including constants
-  target += normal_lpdf(b | 0, 2);
-  target += normal_lpdf(Intercept | 0, 3);
-  target += cauchy_lpdf(sd_1 | 0, 3)
-    - 5 * cauchy_lccdf(0 | 0, 3);
+  target += normal_lpdf(b | 0, 0.1);
+  target += normal_lpdf(Intercept | 0, 0.1);
+  target += cauchy_lpdf(sd_1 | 0, 0.1)
+    - 5 * cauchy_lccdf(0 | 0, 0.1);
   target += std_normal_lpdf(to_vector(z_1));
-  target += lkj_corr_cholesky_lpdf(L_1 | 5);
+  target += lkj_corr_cholesky_lpdf(L_1 | 8);
 }
 generated quantities {
   // actual population-level intercept
@@ -88,10 +88,19 @@ generated quantities {
   // compute group-level correlations
   corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
   vector<lower=-1,upper=1>[NC_1] cor_1;
+  // additionally sample draws from priors
+  real prior_b = normal_rng(0,0.1);
+  real prior_Intercept = normal_rng(0,0.1);
+  real prior_sd_1 = cauchy_rng(0,0.1);
+  real prior_cor_1 = lkj_corr_rng(M_1,8)[1, 2];
   // extract upper diagonal of correlation matrix
   for (k in 1:M_1) {
     for (j in 1:(k - 1)) {
       cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
     }
+  }
+  // use rejection sampling for truncated priors
+  while (prior_sd_1 < 0) {
+    prior_sd_1 = cauchy_rng(0,0.1);
   }
 }
