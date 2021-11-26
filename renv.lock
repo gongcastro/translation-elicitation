@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.0.4",
+    "Version": "4.0.5",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -99,11 +99,11 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "PraatR",
       "RemoteUsername": "usagi5886",
-      "RemoteRef": "HEAD",
+      "RemoteRepo": "PraatR",
+      "RemoteRef": "master",
       "RemoteSha": "6842c4424b39628ac9c5bc11d2fe9483c704ac3b",
-      "Hash": "0b07b36b6f40bf442f2868db926373c4"
+      "Hash": "c422c26c92f2a00ccadfde598baef194"
     },
     "R6": {
       "Package": "R6",
@@ -612,11 +612,11 @@
       "Version": "0.9.1",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "rubenarslan",
       "RemoteRepo": "formr",
       "RemoteRef": "master",
       "RemoteSha": "8f77582a70781f2ccb184e967ed120452478e0b5",
-      "RemoteHost": "api.github.com",
       "Hash": "c4401ac2159243b87018e550419ed9c9"
     },
     "fresh": {
@@ -1065,11 +1065,11 @@
       "Version": "1.0.1",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "gongcastro",
       "RemoteRepo": "multilex",
       "RemoteRef": "main",
       "RemoteSha": "0ca2da93b3a0c8ac8fd6019b84014616ec98ce8c",
-      "RemoteHost": "api.github.com",
       "Hash": "f6f9b2e6749e4e23f8b8b731b3679b12"
     },
     "munsell": {
@@ -1228,14 +1228,9 @@
     "posterior": {
       "Package": "posterior",
       "Version": "1.1.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "posterior",
-      "RemoteUsername": "stan-dev",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "f06abf953c3f75183f614487f4951c3fc900177a",
-      "Hash": "fe1521126ebc02fe89b86990d98f4ade"
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c0a0ec06cbabb84f7012963cbd21a153"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -1358,10 +1353,15 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.11",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "320017b52d05a943981272b295750388"
+      "Version": "2.11.3",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "rstudio",
+      "RemoteRepo": "rmarkdown",
+      "RemoteRef": "main",
+      "RemoteSha": "69e6f983fdd9fca18284509eb6fed8fc4c0fc3f7",
+      "Hash": "7b688583c6637b72fafcc51b9c209b00"
     },
     "rmdfiltr": {
       "Package": "rmdfiltr",
