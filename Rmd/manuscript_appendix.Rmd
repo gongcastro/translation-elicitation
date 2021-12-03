@@ -1,7 +1,80 @@
 ---
 ---
 
-```{r accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95% confidence interval of each word. Accuracy is plotted separately for each group."}
+```{r appendix-diagnostics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+tar_load_globals()
+tar_load(stimuli)
+tar_load(participants)
+tar_load(responses)
+tar_load(model_fits)
+
+bayesplot_theme_set(
+  new = theme_custom() + 
+    theme(
+      axis.text.x = element_text(size = 8), 
+      axis.text.y = element_text(size = 8),
+      strip.text = element_text(size = 10),
+      legend.key = element_rect(colour = NA, fill = "white")
+    )
+)
+
+```
+
+
+# Appendix 1: Stan code
+
+```{r appendix-model-code, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+model_fits$fit_3$model
+color_scheme_set(c("#1A85FF", "#9ccaff", "#1A85FF",  "#1A85FF", "#1A85FF", "#1A85FF"))
+
+
+```
+
+# Appendix 2: MCMC diagnostics
+
+## Pairs plot
+
+```{r appendix-mcmc-diagnostics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+posterior_cp <- as.array(model_fits$fit_3)
+
+plot_pairs <- mcmc_pairs(
+  posterior_cp, pars = c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv"),
+  off_diag_args = list(size = 0.75),
+  alpha = 1, size = 0
+)
+
+plot_pairs
+```
+
+## Trace plots
+
+```{r appendix-trace-plot}
+mcmc_trace(model_fits$fit_3, pars = c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv"), n_warmup = 0) +
+  annotate(geom = "rect", xmin = -Inf, xmax = 500, ymin = -Inf, ymax = Inf, alpha = 0.5, fill = "grey")
+
+
+```
+
+## Gelman-Rubin convergence criterion (R-hat)
+
+```{r appendix-rhat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+rhats <- rhat(model_fits$fit_3)
+ratios <- neff_ratio(model_fits$fit_3)
+
+mcmc_rhat(rhats) + 
+  mcmc_neff(ratios) +
+  plot_layout(guides = "keep", ncol = 1) &
+  theme(
+    legend.position = "right"
+  )
+
+
+```
+
+# Appendix 3: by item accuracy
+
+```{r appendix-accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95% confidence interval of each word. Accuracy is plotted separately for each group."}
 
 responses_item <- responses %>%
   group_by(trial_id, group, word) %>%

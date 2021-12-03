@@ -12,7 +12,7 @@ tar_option_set(
         "dplyr", "tidyr", "stringr", "ggplot2", "tibble", "forcats", "multilex", "keyring",
         "readxl", "janitor", "mice", "here", "lubridate", "purrr", "scales", "stringdist",
         "brms", "tidybayes", "gt", "patchwork", "wesanderson", "papaja", "knitr", "data.table",
-        "audio", "tidytext"
+        "audio", "tidytext", "bayesplot"
     )
 )
 
