@@ -58,10 +58,7 @@ draft: no
 csl: "apa7.csl"
 documentclass: apa7
 classoption: man
-appendix: "manuscript_appendix.Rmd"
-output:
-  word_document:
-    reference_docx: "manuscript_template.docx"
+output: papaja::apa6_docx
 ---
 
 
@@ -75,7 +72,11 @@ knitr::opts_chunk$set(
   dpi = 500
 )
 
-options(knitr.kable.NA = '-', knitr.duplicate.label = "allow")
+options(
+  knitr.kable.NA = '-', 
+  knitr.duplicate.label = "allow",
+  gt.html_tag_check = FALSE
+  )
 
 ```
 
@@ -247,6 +248,33 @@ stimuli_table
 We modelled the probability of participants guessing the correct translation of each input word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We first fitted a base model (Model 0) that only included the lexical frequency (`frequency`) of the target word as a fixed effect, with a random intercept per participant. Second, we extended the model to include `pthn` as a fixed effect, with a random slope by participant (Model 1). Third, we added the fixed effect `consonant_ratio` and the `pthn:consonant_ratio`, and random slopes for both effects by participant (Model 2). Third, we added the fixed effect `vowel_ratio` and the `pthn:vowel_ratio`, and random slopes for both effects by participant (Model 3). Finally, we fit a model that included the two-way interactions `pthn:consonant_ratio` and `pthn:vowel_ratio`, an their random slopes by participant (Model 4). All predictor variables were standardised (transformed in standard deviations from the mean) before entering the model. Model 4 can be formally expressed as:
 
 
+$$
+\begin{align*}
+
+&\textbf{Likelihood}  \\
+y_{i} \sim& Bernoulli(p_{i}) && \text{[probability of correct translation]} \\ \\
+
+&\textbf{Parameters}  \\
+
+logit(p_{i}) = ~ &  \beta_{0[p,w]} ~ +  && \text{[linear model]}\\
+& \beta_{1[p]} ~ Frequency_{i} ~ + \\
+& \beta_{2[p]} ~ PTHN_i ~ + \\
+& \beta_{3[p]} ~ Similarity_i ~ + \\
+& \beta_{4[p]} ~ (PTHN_i \times Similarity_i) \\ \\
+
+\beta_{0-6[p,w]} \sim& ~  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p ~\text{in 1, ..., } P ~\text{and  word } w ~\text{in 1, ..., } W && \text{[participant- and word-level intercepts]} \\
+\beta_{1-6[p]} \sim& ~  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p ~\text{in 1, ..., } P
+&& \text{[participant-level coefficients]} \\ \\
+
+&\textbf{Prior}  \\
+
+\mu_{\beta_{p,w}} ~ \sim& ~ \mathcal{N}(0, 3) && \text{[participant-level coefficients]} \\
+\sigma_{\beta_{p}}, ~ \sigma_{\beta_{w}} \sim& ~ \text{half}- Cauchy(0, 3) && \text{[SD for population and participant]} \\
+\rho_{p}, ~ \rho_{w} \sim& ~LKJ(5) && \text{[correlation between participant-level coefficients]} \\
+
+
+\end{align*}
+$$
 
 To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (*LOO*) [@vehtari2017practical]. More information about the models and model comparison can be found in Appendix 2. All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages to process data and to generate figures, and the brms R package [@burkner2017brms] using the cmdstanr backend to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
 
@@ -511,10 +539,73 @@ plot_m + plot_m_re +
 
 \newpage
 
-# Appendix
 
 
-```{r accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English\\-Spanish or in the English\\-Catalan and Spanish\\-Catalan are listed in the Y\\-axis, ordered from higher to lower average translation accuracy, depicted in the X\\-axis. Dots and whiskers represent the average accuracy and 95\\% confidence interval of each word. Accuracy is plotted separately for each group.", fig.height=10, fig.width=9}
+# Appendix 1: MCMC diagnostics
+
+```{r appendix-diagnostics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+suppressWarnings({
+  bayesplot_theme_set(
+    new = theme_custom() + 
+      theme(
+        axis.text.x = element_text(size = 8), 
+        axis.text.y = element_text(size = 8),
+        strip.text = element_text(size = 10),
+        legend.key = element_rect(colour = NA, fill = "white")
+      )
+  )
+})
+
+color_scheme_set("brightblue")
+pars <- c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv")
+
+```
+
+
+## Pairs plot
+
+```{r appendix-mcmc, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+posterior_cp <- as.array(model_fits$fit_3)
+np_cp <- nuts_params(model_fits$fit_3)
+
+plot_pairs <- mcmc_pairs(
+  posterior_cp, pars = pars,
+  off_diag_args = list(size = 0.75)
+)
+
+plot_pairs
+```
+
+## Trace and Rank plots
+
+```{r appendix-trace, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+(mcmc_trace(model_fits$fit_3, pars) + legend_none()) /
+  mcmc_rank_overlay(model_fits$fit_3, pars = pars) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "top"
+  )
+```
+
+## Gelman-Rubin convergence criterion (R-hat)
+
+```{r appendix-rhat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+rhats <- rhat(model_fits$fit_3)
+ratios <- neff_ratio(model_fits$fit_3)
+
+mcmc_rhat_hist(rhats, binwidth = 0.00025, color = "white") + 
+  mcmc_neff_hist(ratios, binwidth = 0.1) +
+  plot_layout(guides = "keep", ncol = 1) &
+  theme(
+    legend.position = "top"
+  )
+```
+
+
+# Appendix 2: by item accuracy
+
+```{r appendix-accuracy, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Proportion of correct translation by item. Words presented to participants in the English-Spanish or in the English-Catalan and Spanish-Catalan are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95% confidence interval of each word. Accuracy is plotted separately for each group."}
 
 responses_item <- responses %>%
   group_by(trial_id, group, word) %>%
@@ -544,12 +635,12 @@ ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin
   scale_x_discrete(labels = function(x) str_remove(x, "___ENG-CAT|___ENG-SPA|___SPA-CAT")) +
   theme(
     legend.position = "none",
-    axis.text.y = element_text(size = 5, colour = "black", hjust = 1),
+    axis.text.y = element_text(size = 5, colour = "black"),
     axis.ticks = element_blank(),
-    axis.text.x = element_text(size = 7, colour = "black"),
+    axis.text.x = element_text(size = 9, colour = "black"),
+    panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
   )
 
 ```
-
 
 

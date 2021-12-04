@@ -9,39 +9,41 @@ tar_load(participants)
 tar_load(responses)
 tar_load(model_fits)
 
-bayesplot_theme_set(
-  new = theme_custom() + 
-    theme(
-      axis.text.x = element_text(size = 8), 
-      axis.text.y = element_text(size = 8),
-      strip.text = element_text(size = 10),
-      legend.key = element_rect(colour = NA, fill = "white")
-    )
-)
+suppressWarnings({
+  bayesplot_theme_set(
+    new = theme_custom() + 
+      theme(
+        axis.text.x = element_text(size = 8), 
+        axis.text.y = element_text(size = 8),
+        strip.text = element_text(size = 10),
+        legend.key = element_rect(colour = NA, fill = "white")
+      )
+  )
+})
+
+color_scheme_set("brightblue")
+pars <- c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv")
 
 ```
 
 
 # Appendix 1: Stan code
 
-```{r appendix-model-code, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r appendix-code, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 model_fits$fit_3$model
-color_scheme_set(c("#1A85FF", "#9ccaff", "#1A85FF",  "#1A85FF", "#1A85FF", "#1A85FF"))
-
-
 ```
 
 # Appendix 2: MCMC diagnostics
 
 ## Pairs plot
 
-```{r appendix-mcmc-diagnostics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r appendix-mcmc, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 posterior_cp <- as.array(model_fits$fit_3)
+np_cp <- nuts_params(model_fits$fit_3)
 
 plot_pairs <- mcmc_pairs(
-  posterior_cp, pars = c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv"),
-  off_diag_args = list(size = 0.75),
-  alpha = 1, size = 0
+  posterior_cp, pars = pars,
+  off_diag_args = list(size = 0.75)
 )
 
 plot_pairs
@@ -49,11 +51,13 @@ plot_pairs
 
 ## Trace plots
 
-```{r appendix-trace-plot}
-mcmc_trace(model_fits$fit_3, pars = c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv"), n_warmup = 0) +
-  annotate(geom = "rect", xmin = -Inf, xmax = 500, ymin = -Inf, ymax = Inf, alpha = 0.5, fill = "grey")
-
-
+```{r appendix-trace, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+(mcmc_trace(model_fits$fit_3, pars) + legend_none()) /
+  mcmc_rank_overlay(model_fits$fit_3, pars = pars) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "top"
+  )
 ```
 
 ## Gelman-Rubin convergence criterion (R-hat)
@@ -62,14 +66,12 @@ mcmc_trace(model_fits$fit_3, pars = c("b_Intercept", "b_frequency_zipf", "b_pthn
 rhats <- rhat(model_fits$fit_3)
 ratios <- neff_ratio(model_fits$fit_3)
 
-mcmc_rhat(rhats) + 
-  mcmc_neff(ratios) +
+mcmc_rhat_hist(rhats, binwidth = 0.00025, color = "white") + 
+  mcmc_neff_hist(ratios, binwidth = 0.1) +
   plot_layout(guides = "keep", ncol = 1) &
   theme(
     legend.position = "right"
   )
-
-
 ```
 
 # Appendix 3: by item accuracy
