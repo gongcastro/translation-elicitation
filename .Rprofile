@@ -1,6 +1,6 @@
 source("renv/activate.R")
 
-library(targets)
+library(targets, quietly = TRUE)
 
 make <- function(){
     job::job(
