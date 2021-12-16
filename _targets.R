@@ -12,7 +12,7 @@ tar_option_set(
         "dplyr", "tidyr", "stringr", "ggplot2", "tibble", "forcats", "multilex", "keyring",
         "readxl", "janitor", "mice", "here", "lubridate", "purrr", "scales", "stringdist",
         "brms", "tidybayes", "gt", "patchwork", "wesanderson", "papaja", "knitr", "data.table",
-        "audio", "tidytext", "bayesplot"
+        "audio", "tidytext", "bayesplot", "GGally", "performance"
     )
 )
 
@@ -42,22 +42,26 @@ list(
         model_formulas,
         formulas <- list(
             f_0 = bf(correct ~ 1 + 
-                         (1 | participant),
-                     family = bernoulli(link = "logit")),
-            f_1 = bf(correct ~ 1 + 
-                         frequency_zipf + 
-                         (1 + frequency_zipf | participant),
-                     family = bernoulli(link = "logit")),
-            f_2 = bf(correct ~ 1 + 
-                         frequency_zipf +
-                         pthn + 
-                         (1 + frequency_zipf + pthn | participant),
-                     family = bernoulli(link = "logit")),
-            f_3 = bf(correct ~ 1 +
-                         frequency_zipf +
-                         pthn*lv +
-                         (1 + frequency_zipf + pthn*lv | participant),
-                     family = bernoulli(link = "logit"))
+                         (1 | participant) + 
+                         (1 | word)),
+            f_1 = bf(correct ~ 1 + frequency_zipf + 
+                         (1 + frequency_zipf | participant) + 
+                         (1 | word)),
+            f_2 = bf(correct ~ 1 + frequency_zipf + pthn + 
+                         (1 + frequency_zipf + pthn | participant) + 
+                         (1 | word)),
+            f_3 = bf(correct ~ 1 + frequency_zipf + pthn + lv +
+                         (1 + frequency_zipf + pthn + lv | participant) + 
+                         (1 | word)),
+            f_4 = bf(correct ~ 1 + frequency_zipf + pthn + lv + pthn:lv + 
+                         (1 + frequency_zipf + pthn*lv | participant) +
+                         (1 | word)),
+            f_5 = bf(correct ~ 1 + frequency_zipf +  pthn + lv + lv:pthn + group +
+                         (1 + frequency_zipf + pthn + lv + lv:pthn | participant) + 
+                         (1 | word)),
+            f_6 = bf(correct ~ 1 + frequency_zipf + pthn + lv + lv:pthn + group + group:lv +
+                         (1 + frequency_zipf + pthn + lv + lv:pthn + group:lv | participant) + 
+                         (1 | word))
         )
     ),
     tar_target(
@@ -67,6 +71,8 @@ list(
             prior(normal(0, 0.1), class = "Intercept"),
             prior(normal(0, 0.1), clas = "b"),
             prior(cauchy(0, 0.1), class = "sd", group = "participant"),
+            prior(cauchy(0, 0.1), class = "sd", group = "word"),
+            
             prior(lkj(8), class = "cor")
         )
     ),
@@ -80,15 +86,15 @@ list(
     ),
     tar_target(
         posterior_draws_fixed,
-        get_model_draws_fixed(model_fits$fit_3)
+        get_model_draws_fixed(model_fits$fit_6)
     ),
     tar_target(
         posterior_epreds_fixed,
-        get_model_epreds_fixed(model_fits$fit_3)
+        get_model_epreds_fixed(model_fits$fit_6)
     ),
     tar_target(
         posterior_epreds_random,
-        get_model_epreds_random(model_fits$fit_3)
+        get_model_epreds_random(model_fits$fit_6, group = c("participant"))
     ),
     
     # render report.Rmd

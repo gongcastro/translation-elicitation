@@ -41,6 +41,25 @@ theme_custom <- function(){
     )
 }
 
+# remove special characters
+replace_non_ascii <- function(x){
+    str_replace_all(
+        x,
+        c(
+            "á" = "a",
+            "é" = "e",
+            "í" = "i",
+            "ó" = "o",
+            "ú" = "u",
+            "à" = "a",
+            "è" = "e",
+            "ò" = "o",
+            "ñ" = "n",
+            "ç" = "c"
+        )
+        )
+}
+
 # extract formants
 extract_formants <- function(
     file,

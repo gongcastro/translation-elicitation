@@ -73,7 +73,8 @@ get_responses_processed <- function(
             language_l1 = ifelse(str_detect(group, "ENG"), "ENG", "SPA")
         ) %>%
         ungroup() %>% 
-        rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "")
+        rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "") %>% 
+        select(-trial_id)
     
     return(processed)
 }
@@ -94,13 +95,13 @@ get_responses_clean <- function(
         # for each participant, select the first non-missing value of the following variables:
         group_by(participant) %>%
         mutate_at(vars(matches("language_|demo_|setup_")), first_non_na) %>%
-        group_by(participant, trial_id) %>%
+        group_by(participant, word) %>%
         mutate(correction = first_non_na(error) %in% "yes") %>% # for each participant and trial, convert first non-missing argument into logical)
         ungroup() %>%
         drop_na(test_language) %>% # filter out rows without relevant info
-        relocate(participant, group, test_language, country, trial_id, word, input_text, key_pressed, key_press_time, error) %>% 
+        relocate(participant, group, test_language, country, word, input_text, key_pressed, key_press_time, error) %>% 
         # aggregate by trial (take only one data point per trial)
-        group_by(participant, group, date, trial_id, test_language, word, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>%
+        group_by(participant, group, date, test_language, word, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>%
         summarise(
             input_text = last_non_na(input_text),
             typing_onset = first_non_na(key_press_time),
@@ -111,9 +112,9 @@ get_responses_clean <- function(
     
     #### merge with trial-level data -----------------------------------------------
     merged <- clean %>%
-        left_join(stimuli) %>% 
-        select(participant, group, trial_id, test_language, country, word, target_word = word2, input_text,
-               lv, typing_offset, vowel_ratio, consonant_ratio, pthn, frequency)
+        left_join(mutate(stimuli, word = replace_non_ascii(word1))) %>% 
+        select(participant, group, test_language, country, word, target_word = word2, input_text,
+               lv, typing_offset, pthn, frequency)
     
     return(merged)
 }
@@ -172,12 +173,8 @@ get_responses <- function(
             valid_response, # response is valid 
             word %!in% practice_trials # not a practice trial
         ) %>% 
-        left_join(stimuli) %>% 
-        mutate(
-            frequency = log10(frequency)+3,
-            onset = ifelse(str_detect(onset, "Same"), "Same", "Different"),
-            overlap_stress = ifelse(overlap_stress==1, "Overlap", "No overlap")
-        ) %>% 
+        left_join(stimuli, by = c("group", "word" = "word1")) %>% 
+        mutate(frequency = log10(frequency)+3) %>% 
         relocate(group, trial_id) %>% 
         arrange(group, trial_id) %>%  
         # typos are considered correct responses
@@ -185,19 +182,18 @@ get_responses <- function(
         mutate(frequency_zipf = relative_to_zipf(frequency)) %>% 
         # center predictors
         mutate_at(
-            vars(lv, consonant_ratio, vowel_ratio, pthn, frequency_zipf),
+            vars(lv, pthn, frequency_zipf),
             function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
         # impute missing data
         mice(m = 5, print = FALSE, method = "pmm") %>% 
         complete() %>% 
         as_tibble() %>% 
         arrange(trial_id, group) %>% 
-        mutate_at(vars(onset, overlap_stress, group), as.factor) %>% 
-        drop_na(correct, vowel_ratio, consonant_ratio, participant, pthn, frequency_zipf)
+        mutate_at(vars(group), as.factor) %>% 
+        drop_na(correct, participant, pthn, frequency_zipf)
     
-    contrasts(responses$group) <- c(-0.5, -0.5, 1)
-    contrasts(responses$onset) <- c(-0.5, 0.5)
-    
+    contrasts(responses$group) <- cbind("ENG vs. SPA" = c(-0.25, -0.25, 0.5), "ENG-CAT vs. ENG-SPA" = c(0.5, -0.5, 0))
+
     return(responses)
 }
 
