@@ -9,6 +9,7 @@ get_responses_processed <- function(
     set.seed(seed) # for reproducibility
     spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "España", "Málaga", "Oviedo", "Santander", "Granada")
     
+    # list CSV files in Data/Raw/ folder
     filenames <- list.files(here("Data", "Raw")) %>% 
         str_extract(".*?\\_") %>% 
         str_remove("_")
@@ -32,21 +33,21 @@ get_responses_processed <- function(
         rename_all(gsub, pattern = "_key_keys|key_keys", replacement = "") %>% 
         # clean text input by participants (because of typos of need to translate) and redefine location    
         group_by(participant) %>% 
+        # for each participant, get first row of each demo variable
         mutate_at(
-            vars(
-                starts_with("demo_"),
-                starts_with("l"),
-                starts_with("setup_"),
-                age, city, setup_location, setup_noise
-            ),
-            first_non_na) %>% 
+            vars(starts_with("demo_"), starts_with("l"), starts_with("setup_"), age, city, setup_location, setup_noise),
+            first_non_na # defined in R/utils.R
+        ) %>% 
         mutate(date = max(date, na.rm = TRUE)) %>% 
         ungroup() %>% 
-        mutate_at(vars(starts_with("language_"), city, starts_with("demo_"), starts_with("l")), clean_input_text) %>% 
+        mutate_at(
+            vars(starts_with("language_"), city, starts_with("demo_"), starts_with("l")), 
+            clean_input_text # defiend in R/utils.R
+        ) %>% 
         mutate(
-            city = str_to_sentence(city),
-            country = ifelse(city %in% spanish_cities, "Spain", "UK"),
-            date = as_datetime(ymd_hms(date)),
+            city = str_to_sentence(city), # capitalise first letter of city names
+            country = ifelse(city %in% spanish_cities, "Spain", "UK"), # group cities into countries
+            date = as_datetime(ymd_hms(date)), # format dates
             demo_sex = case_when(
                 country %in% "UK" & demo_sex %in% "M" ~ "Male",
                 country %in% "UK" & demo_sex %in% "F" ~ "Female",
@@ -58,12 +59,9 @@ get_responses_processed <- function(
                 country %in% "UK" & language_l1 %in% "E" ~ "English"
             ),
             demo_education = as.numeric(demo_education),
-            demo_vision = ifelse(
-                country %in% "UK",
-                !(demo_vision %in% "N"),
-                demo_vision %in% "S"
-            ),
+            demo_vision = ifelse(country %in% "UK", !(demo_vision %in% "N"), demo_vision %in% "S"),
             demo_impairment = !(demo_impairment %in% "N"),
+            # group participants by native langage and testing language
             group = case_when(
                 country %in% "UK" & test_language %in% "Catalan" ~ "ENG-CAT",
                 country %in% "UK" & test_language %in% "Spanish" ~ "ENG-SPA",
@@ -127,6 +125,7 @@ get_participants <- function(
 ){
     participants <- responses_coded %>% 
         rowwise() %>% 
+        # classify responses into "correct" or "incorrect"
         mutate(
             valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
             correct_coded = response_type %in% c("correct", "typo")
@@ -140,7 +139,11 @@ get_participants <- function(
             .groups = "drop"
         ) %>% 
         left_join(
-            distinct(responses_processed, participant, group, country, date, test_language, age, sex, l2, l2oral, l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, impairment, vision)
+            distinct(
+                responses_processed, participant, group, country, date, 
+                test_language, age, sex, l2, l2oral, l2written, spanish_oral,
+                spanish_written, catalan_oral, catalan_written, impairment, vision
+            )
         ) %>% 
         # participant is valid if has completed >= 80% trials (valid)
         mutate(
@@ -161,7 +164,10 @@ get_responses <- function(
     participants,
     stimuli
 ){
-    valid_participants <- filter(participants, valid_participant) %>% pull(participant)
+    # get a vector with valid participants
+    valid_participants <- filter(participants, valid_participant) %>% 
+        pull(participant)
+    
     responses <- responses_coded %>% 
         mutate(
             valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
@@ -173,8 +179,8 @@ get_responses <- function(
             valid_response, # response is valid 
             word %!in% practice_trials # not a practice trial
         ) %>% 
-        left_join(stimuli, by = c("group", "word" = "word1")) %>% 
-        mutate(frequency = log10(frequency)+3) %>% 
+        left_join(stimuli, by = c("group", "word" = "word1")) %>% # add stimuli information
+        mutate(frequency = log10(frequency)+3) %>% # transform lexical frequencies to Zipf scores
         relocate(group, trial_id) %>% 
         arrange(group, trial_id) %>%  
         # typos are considered correct responses
@@ -184,7 +190,7 @@ get_responses <- function(
         mutate_at(
             vars(lv, pthn, frequency_zipf),
             function(x) scale(x, center = TRUE, scale = TRUE)[,1]) %>% 
-        # impute missing data
+        # impute missing data using predictive-mean matching
         mice(m = 5, print = FALSE, method = "pmm") %>% 
         complete() %>% 
         as_tibble() %>% 
@@ -192,8 +198,12 @@ get_responses <- function(
         mutate_at(vars(group), as.factor) %>% 
         drop_na(correct, participant, pthn, frequency_zipf)
     
-    contrasts(responses$group) <- cbind("ENG vs. SPA" = c(-0.25, -0.25, 0.5), "ENG-CAT vs. ENG-SPA" = c(0.5, -0.5, 0))
-
+    # code group contrasts
+    contrasts(responses$group) <- cbind(
+        "ENG vs. SPA" = c(-0.25, -0.25, 0.5), 
+        "ENG-CAT vs. ENG-SPA" = c(0.5, -0.5, 0)
+    )
+    
     return(responses)
 }
 

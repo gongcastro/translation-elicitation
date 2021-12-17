@@ -2,9 +2,9 @@
 
 get_model_fits <- function(
     responses,
-    model_formulas,
-    model_prior,
-    iter = 500,
+    model_formulas, # this is a list of formulas (see _targets.R)
+    model_prior, 
+    iter = 4000,
     cores = 4,
     chains = 4,
     seed = 888
@@ -18,88 +18,85 @@ get_model_fits <- function(
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior[c(1, 3),],
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_0.stan"),
         file = here("Results", "fit_responses_0.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_1 <- brm(
         model_formulas$f_1,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_1.stan"),
         file = here("Results", "fit_responses_1.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_2 <- brm(
         model_formulas$f_2,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_2.stan"),
         file = here("Results", "fit_responses_2.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_3 <- brm(
         model_formulas$f_3,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        sample_prior = "yes",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_3.stan"),
         file = here("Results", "fit_responses_3.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_4 <- brm(
         model_formulas$f_4,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        sample_prior = "yes",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_4.stan"),
         file = here("Results", "fit_responses_4.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_5 <- brm(
         model_formulas$f_5,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        sample_prior = "yes",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_5.stan"),
         file = here("Results", "fit_responses_5.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     fit_6 <- brm(
         model_formulas$f_6,
         data = responses,
         family = bernoulli("logit"),
         prior = model_prior,
-        save_pars = save_pars(all = TRUE),
-        backend = "cmdstanr",
-        sample_prior = "yes",
-        seed = 888,
+        save_pars = save_pars(all = TRUE), # for computing LOO
+        backend = "cmdstanr", # faster compilation times
+        sample_prior = "yes", # for computing Bayes Factors
+        seed = seed, # for reproducibility
         save_model = here("Stan", "fit_responses_6.stan"),
         file = here("Results", "fit_responses_6.rds"), 
-        control = list(adapt_delta = 0.95)
+        control = list(adapt_delta = 0.95) # for better chain convergence
     )
     
     fits <- lst(fit_0, fit_1, fit_2, fit_3, fit_4, fit_5, fit_6)
@@ -111,6 +108,7 @@ get_model_fits <- function(
 # compare models
 get_model_loos <- function(fits){
     path <- here("Results", "model_loos.rds")
+    # if LOO has already been computed, load it
     if (file.exists(path)){
         loo <- readRDS(here(path))
     } else {
@@ -122,24 +120,25 @@ get_model_loos <- function(fits){
 
 # get model posterior draws (fixed effects)
 get_model_draws_fixed <- function(fit){
+    # get samples from posterior for fixed effects and group-level SDs
     post <- gather_draws(fit, `b_.*`, `sd_.*`, regex = TRUE)
     return(post)
 }
 
 
-# get model posterior expected predictions (fixed effects)
+# get marginal expected posterior predictions (across groups)
 get_model_epreds_fixed <- function(fit, ndraws = 100){
     nd <- expand.grid(
-        pthn = c(-1, 1),
-        frequency_zipf = 0,
+        pthn = c(-1, 1), # -1 and +1 SD 
+        frequency_zipf = 0, # mean frequency
         lv = seq(
             min(fit$data$lv, na.rm = TRUE),
             max(fit$data$lv, na.rm = TRUE),
             by = 0.1
         ),
-        group = unique(fit$data$group)
+        group = unique(fit$data$group) # for the three groups
     )
-    m <- add_epred_draws(nd, fit, ndraws = 100, re_formula = NA)
+    m <- add_epred_draws(nd, fit, ndraws = ndraws, re_formula = NA)
     return(m)
 }
 
