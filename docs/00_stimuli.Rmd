@@ -1,0 +1,118 @@
+---
+title: "Stimuli"
+output:
+  md_document:
+    variant: markdown_github
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 4
+    toc_float: true
+bibliography: "references.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = TRUE,
+  warning = TRUE, 
+  cache.extra = knitr::rand_seed,
+  out.width = "80%",
+  results = "asis",
+  dpi = 300,
+  dev.args = list(png = list(type = "cairo"))
+)
+
+options(
+  knitr.kable.NA = '-',
+  knitr.duplicate.label = "allow",
+  ggplot2.discrete.fill = c("#1A85FF", "#ff2976", "#FFC20A"),
+  ggplot2.discrete.colour = c("#1A85FF", "#ff2976", "#FFC20A"),
+  ggplot2.continuous.fill = scale_fill_gradient2(
+    low = "#04bf78", mid = "white", high = "#FFC20A", 
+    na.value = "white", limits = c(-0.4, 0.4)
+  ),
+  ggplot2.continuous.colour = scale_fill_gradient2(
+    low = "#04bf78", mid = "white", high = "#FFC20A", 
+    na.value = "white", limits = c(-0.4, 0.4)
+  )
+)
+```
+
+```{r prepare}
+# import data
+tar_load_globals()
+tar_load(stimuli)
+
+theme_set(theme_custom())
+```
+
+# Overview
+
+Participants in the ENG-SPA listened to `r nrow(stimuli[stimuli$group=="ENG-SPA",])` Spanish words, and participants in the ENG-CAT and the SPA-CAT groups listened to `r nrow(stimuli[stimuli$group=="ENG-CAT",])` trials. Five trials in each condition were practice trials and were excluded from analyses.
+
+```{r stimuli_coded, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE,  include=FALSE}
+stimuli_coded <- mutate(stimuli, test_language = ifelse(group=="ENG-SPA", "Spanish", "Catalan"))
+```
+
+
+# Lexical frequency
+
+```{r stimuli_frequency, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+stimuli_coded %>% 
+  distinct(test_language, word1, .keep_all = TRUE) %>% 
+  left_join(count(., test_language, name = "n_total")) %>% 
+  mutate(test_language = paste0(test_language,  " (N = ", n_total, ")")) %>% 
+  ggplot(aes(frequency_zipf, fill = test_language)) +
+  facet_wrap(~test_language, ncol = 1) +
+  geom_histogram(bins = 25, colour = "white") +
+  labs(x = "Lexical frequency (Zipf score)\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language")  +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+  )
+
+```
+
+# PTHN
+
+```{r stimuli_pthn, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+stimuli_coded %>% 
+  left_join(count(., test_language, name = "n_total")) %>% 
+  mutate(test_language = paste0(test_language,  " (N = ", n_total, ")")) %>% 
+  count(test_language, pthn) %>% 
+  ggplot(aes(reorder(as.factor(pthn), -n), n, fill = test_language)) +
+  facet_wrap(~test_language, ncol = 1) +
+  geom_col(position = position_dodge()) +
+  labs(x = "# Phonological neighbours with higher lexical frequency\nExtracted from CLEARPOND database", y = "# trials", fill = "Test language") +
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+  )
+
+```
+
+# Phonological similarity
+
+```{r stimuli_similarity, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+stimuli_coded %>% 
+  left_join(count(., group, name = "n_total")) %>% 
+  mutate(group = paste0(group,  " (N = ", n_total, ")")) %>% 
+  ggplot(aes(group, lv, fill = group, colour = group)) +
+  geom_violin() +
+  geom_point(shape = 1, stroke = 1, position = position_jitter(width = 0.1), colour = "black", alpha = 0.25) +
+  geom_boxplot(colour = "black", fill = "white", width = 0.1, size = 0.75) +
+  labs(x = "Group", y = "Phonological Leveshtein distance\n(corrected for string length)", fill = "Test language") +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey", linetype = "dotted")
+  ) 
+
+```
+
+
+
+
