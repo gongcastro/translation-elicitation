@@ -24,7 +24,8 @@ get_responses_processed <- function(
         clean_names() %>% 
         # select relevant variables and rename if necessary
         select(
-            participant, test_language, trial_id, word, soundfile, key_pressed, input_text, key_press_time, error, age, date, city,
+            participant, test_language, trial_id, word, soundfile, key_pressed,
+            input_text, key_press_time, error, age, date, city,
             matches("language_l|language_s|language_c|demo_|setup_"),
             -matches("_rt|_time"),
             key_press_time
@@ -35,7 +36,8 @@ get_responses_processed <- function(
         group_by(participant) %>% 
         # for each participant, get first row of each demo variable
         mutate_at(
-            vars(starts_with("demo_"), starts_with("l"), starts_with("setup_"), age, city, setup_location, setup_noise),
+            vars(starts_with("demo_"), starts_with("l"), starts_with("setup_"), 
+                 age, city, setup_location, setup_noise),
             first_non_na # defined in R/utils.R
         ) %>% 
         mutate(date = max(date, na.rm = TRUE)) %>% 

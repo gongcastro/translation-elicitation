@@ -1,9 +1,10 @@
-We collected data from NA to NA. We tested 104 participants. 36 were
-English natives tested in Spanish, 37 were English natives tested in
-Catalan, and 32 were Spanish natives tested in Catalan. NA failed to
-meet all the inclusion criteria and were excluded from further analyses.
-The final sample comprised data from NA participants, 28 in the ENG-SPA
-group, NA in the ENG-CAT group, and 29 in the SPA-CAT group.
+We collected data from June 04th 2020 to June 28th 2020. We tested 104
+participants. 36 were English natives tested in Spanish, 36 were English
+natives tested in Catalan, and 33 were Spanish natives tested in
+Catalan. 14 failed to meet all the inclusion criteria and were excluded
+from further analyses. The final sample comprised data from 14
+participants, 28 in the ENG-SPA group, 33 in the ENG-CAT group, and 30
+in the SPA-CAT group.
 
 Participants were included if[1]:
 

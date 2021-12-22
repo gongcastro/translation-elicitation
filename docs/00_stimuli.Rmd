@@ -55,6 +55,100 @@ Participants in the ENG-SPA listened to `r nrow(stimuli[stimuli$group=="ENG-SPA"
 stimuli_coded <- mutate(stimuli, test_language = ifelse(group=="ENG-SPA", "Spanish", "Catalan"))
 ```
 
+```{r stimulitable, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+tb_stimuli <- stimuli %>% 
+  select(group, word1, frequency, frequency_zipf, pthn, lv) %>% 
+  group_by(group) %>% 
+  summarise_at(
+    vars(frequency:lv), 
+    list(
+      mean = ~mean(., na.rm = TRUE),  
+      sd = ~sd(., na.rm = TRUE)
+    )
+  ) %>%
+  gt(rowname_col = "group") %>% 
+  tab_header(
+    title = md("Table 1"),
+    subtitle = md("Lexical frequency, phonological neigbourhood size, and levenshtein distance of the stimuli words.")
+  ) %>% 
+  tab_source_note(
+    md("*Note*. Mean and standard deviation (*SD*) of lexical frequencies of target words (expressed in counts per million and as Zipf scores), density of higher-frequency phonological neighbourhoods of target words, and normalised Levenshtein phonological similarity between the presented and the target words.")
+  ) %>% 
+  fmt_number(frequency_mean:pthn_sd) %>%
+  fmt_percent(matches("lv")) %>% 
+  tab_spanner(md("**Freq. (million)**"), c("frequency_mean", "frequency_sd")) %>% 
+  tab_spanner(md("**Freq. (Zipf)**"), matches("frequency_zipf")) %>% 
+  tab_spanner(md("***PTHN***"), matches("pthn")) %>% 
+  tab_spanner(md("**Levenshtein**"), matches("lv")) %>% 
+  cols_label(
+    frequency_mean = md("Mean"),
+    frequency_sd = md("*SD*"),
+    frequency_zipf_mean = md("Mean"),
+    frequency_zipf_sd = md("*SD*"),
+    pthn_mean = md("Mean"),
+    pthn_sd = md("*SD*"),
+    lv_mean = md("Mean"),
+    lv_sd = md("*SD*")
+  ) %>% 
+  summary_rows(
+    columns = c(matches("mean"), -matches("lv")),
+    fns = list(
+      Mean = "mean",
+      SD = "sd"
+    )
+  ) %>% 
+  summary_rows(
+    columns = matches("lv"),
+    fns = list(
+      Mean = "mean",
+      SD = "sd"
+    ), formatter = fmt_percent
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", weight = "bold", size = "medium"),
+    locations = cells_title(groups = "title")
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", size = "medium", style = "italic"),
+    locations = cells_title(groups = "subtitle")
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", size = "medium"),
+    locations = cells_source_notes()
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", size = "medium"),
+    locations = cells_stub_grand_summary()
+  ) %>% 
+  tab_style(
+    style = cell_borders(sides = c("left", "right"), color = "white"),
+    locations = list(
+      cells_body(), cells_row_groups(), cells_column_spanners(), 
+      cells_stub(), cells_stub_grand_summary(), cells_source_notes(),
+      cells_column_labels(), cells_stubhead()
+    )
+  ) %>% 
+  tab_style(
+    style = list(cell_text(align = "left", size = "medium"), cell_borders(sides = "all", color = "white")),
+    locations = cells_stub()
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "center", size = "medium", weight = "normal", style = "normal"),
+    locations = list(cells_column_spanners(), cells_column_labels())
+  ) %>% 
+  tab_style(
+    style = cell_borders(sides = "all", color = "white"),
+    locations = cells_body(columns = 1:9)
+  ) %>% 
+  tab_style(
+    style = cell_borders(sides = "top", color = "white"),
+    locations = cells_body(columns = 1:9)
+  ) %>% 
+  gtsave(here("img", "stimuli.png"))
+
+include_graphics(here("img", "stimuli.png"), auto_pdf = FALSE)
+
+```
 
 # Lexical frequency
 
@@ -114,5 +208,40 @@ stimuli_coded %>%
 ```
 
 
+# Correlations
 
+```{r stimuli-correlations, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=4, fig.cap="Marginal distribution and pairwise correlation of lexical frequency, PTHN, and Levenshtein similarity. Statistics are indicated for the three experimental conditions (ENG-SPA, ENG-CAT, and SPA-CAT) with different colours. The upper triangle of the plot matrix shows the Pearson correlation between each pair of variables (asterisks indicate statistical significance at .05, .01, and .001 significance thresholds). The diagonal of the plot matrix indicates the marginal distribution of eacch variable. The lower triangle of the plot matrix representes graphically the association between each pair of variables, together with a linear regression line."}
+my_bin <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    geom_density(..., size = 1, alpha = 0.25) +
+    geom_rug(...)
+}
+
+my_smooth <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    geom_point(..., shape = 1, stroke = 1, alpha = 0.25, size = 0.5) +
+    geom_smooth(..., method = "lm", formula = y ~ x, alpha = 0.25, size = 1)
+}
+
+my_cor <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    ggally_cor(..., size = 7, title = "r", )
+}
+
+
+
+stimuli %>% 
+  drop_na(frequency_zipf, pthn, lv) %>% 
+  ggpairs(
+    mapping = aes(colour = group, fill = group),
+    columns = c("frequency_zipf", "pthn", "lv"),
+    columnLabels = c("Frequency (Zipf)", "PTHN", "Levenshtein"),
+    lower = list(continuous = my_smooth),
+    diag = list(continuous = my_bin),
+    upper = list("my_cor")
+  ) +
+  scale_fill_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) +
+  scale_color_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE)
+
+```
 
