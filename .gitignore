@@ -10,11 +10,12 @@
 *.pptx
 *.docx
 *.rds
-Stimuli/*
+stimuli/*.wav
 Media/*
-Figures/*
-Data/*.rds
+img/*
+data/*.rds
 Results/*.rds
 _targets/objects/*
 _targets/*
-Rmd/nul
+manuscript/nul
+docs/nul

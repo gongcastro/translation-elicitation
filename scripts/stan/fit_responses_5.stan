@@ -101,23 +101,10 @@ generated quantities {
   // compute group-level correlations
   corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
   vector<lower=-1,upper=1>[NC_1] cor_1;
-  // additionally sample draws from priors
-  real prior_b = normal_rng(0,0.1);
-  real prior_Intercept = normal_rng(0,0.1);
-  real prior_sd_1 = cauchy_rng(0,0.1);
-  real prior_cor_1 = lkj_corr_rng(M_1,8)[1, 2];
-  real prior_sd_2 = cauchy_rng(0,0.1);
   // extract upper diagonal of correlation matrix
   for (k in 1:M_1) {
     for (j in 1:(k - 1)) {
       cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
     }
-  }
-  // use rejection sampling for truncated priors
-  while (prior_sd_1 < 0) {
-    prior_sd_1 = cauchy_rng(0,0.1);
-  }
-  while (prior_sd_2 < 0) {
-    prior_sd_2 = cauchy_rng(0,0.1);
   }
 }

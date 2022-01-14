@@ -1,1 +1,24 @@
+<<<<<<< HEAD
+=======
+.Rproj.user
+.Rhistory
+.RData
+.Rproj
+.Ruserdata
+.secrets
+*.Pitch
+*.PitchTier
+*.csv
+*.pptx
+*.docx
+*.rds
+Stimuli/*
+Media/*
+Figures/*
+Data/*.rds
+Results/*.rds
+_targets/objects/*
+_targets/*
+Rmd/nul
+>>>>>>> c92465ffee5b01a15c56bc645bd58fd50fe89122
 nul
