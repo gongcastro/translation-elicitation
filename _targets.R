@@ -18,11 +18,7 @@ tar_option_set(
 
 list(
     # stimuli
-<<<<<<< HEAD
     tar_target(clearpond_path, list(`ENG-CAT` = here("data", "clearpond", "clearpond_english.csv"), `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")),),
-=======
-    tar_target(clearpond_path, list(`ENG-CAT` = here("data", "clearpond", "clearpond_english.csv"), `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), `SPA-CAT` = here("data", "clearpond", "clearpond_spanish.csv")),),
->>>>>>> c92465ffee5b01a15c56bc645bd58fd50fe89122
     tar_target(clearpond, get_clearpond(clearpond_path)),
     tar_target(stimuli_path, here("stimuli", "trials.xlsx")),
     tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
@@ -35,11 +31,7 @@ list(
     tar_target(responses_path, list.files(here("data", "raw"), full.names = TRUE)),
     tar_target(responses_processed, get_responses_processed(responses_path = responses_path, stimuli = stimuli, practice_trials = practice_trials)),
     tar_target(responses_clean, get_responses_clean(responses_processed = responses_processed, stimuli = stimuli)),
-<<<<<<< HEAD
     tar_target(responses_coded_path, here("data", "processed", "02_coded.xlsx")),
-=======
-    tar_target(responses_coded_path, here("data", "responses-processed.xlsx")),
->>>>>>> c92465ffee5b01a15c56bc645bd58fd50fe89122
     tar_target(responses_coded, read_xlsx(responses_coded_path)),
     tar_target(participants, get_participants(responses_processed = responses_processed,responses_coded = responses_coded)),
     tar_target(responses, get_responses(responses_coded = responses_coded, practice_trials = practice_trials, participants = participants, stimuli = stimuli)),

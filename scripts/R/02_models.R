@@ -195,3 +195,20 @@ get_model_epreds_random <- function(fit, ndraws = 100, group = c("participant", 
 }
 
 
+get_model_draws_random <- function(fit, ndraws = 100, group = c("participant", "word")){
+    
+    draws_participant <- NULL
+    if ("participant" %in% group){
+        draws_participant <- gather_draws(fit, r_participant[participant, .param], ndraws = ndraws)
+    }
+    
+    draws_word <- NULL
+    if ("word" %in% group){
+        draws_word <- gather_draws(fit, r_word[word, .param], ndraws = ndraws)
+    }
+    
+    draws <- list(participants = draws_participant, words = draws_word)
+    
+    return(draws)
+}
+

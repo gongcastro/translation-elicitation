@@ -86,25 +86,11 @@ and Allen Riddell. 2017. “Stan: A Probabilistic Programming Language.”
 
 </div>
 
-<div id="ref-carpenter2017stan" class="csl-entry">
-
-———. 2017. “Stan: A Probabilistic Programming Language.” *Grantee
-Submission* 76 (1): 1–32.
-
-</div>
-
 <div id="ref-van2011mice" class="csl-entry">
 
 Van Buuren, Stef, and Karin Groothuis-Oudshoorn. 2011. “Mice:
 Multivariate Imputation by Chained Equations in r.” *Journal of
 Statistical Software* 45 (1): 1–67.
-
-</div>
-
-<div id="ref-van2011mice" class="csl-entry">
-
-———. 2011. “Mice: Multivariate Imputation by Chained Equations in r.”
-*Journal of Statistical Software* 45 (1): 1–67.
 
 </div>
 

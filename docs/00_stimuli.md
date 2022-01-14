@@ -5,7 +5,7 @@ participants in the ENG-CAT and the SPA-CAT groups listened to 86
 trials. Five trials in each condition were practice trials and were
 excluded from analyses.
 
-<img src="C:/Users/gonza/Documents/translation-elicitation/img/stimuli.png" width="80%" />
+<img src="C:/Users/u155880/Documents/translation-elicitation/img/stimuli.png" width="80%" />
 
 # Lexical frequency
 
