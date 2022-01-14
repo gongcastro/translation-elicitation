@@ -1,10 +1,10 @@
 library(targets)
 library(tarchetypes)
 
-source("R/utils.R")
-source("R/00_stimuli.R")
-source("R/01_responses.R")
-source("R/02_models.R")
+source("scripts/R/utils.R")
+source("scripts/R/00_stimuli.R")
+source("scripts/R/01_responses.R")
+source("scripts/R/02_models.R")
 
 # set parameters
 tar_option_set(
@@ -19,20 +19,20 @@ tar_option_set(
 list(
     
     # stimuli
-    tar_target(clearpond_path, list(`ENG-CAT` = here("Data", "clearpond", "clearpond_english.csv"), `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")),),
+    tar_target(clearpond_path, list(`ENG-CAT` = here("data", "clearpond", "clearpond_english.csv"), `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")),),
     tar_target(clearpond, get_clearpond(clearpond_path)),
-    tar_target(stimuli_path, here("Stimuli", "trials.xlsx")),
+    tar_target(stimuli_path, here("stimuli", "trials.xlsx")),
     tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
-    tar_target(audios_path, here("Stimuli/Sounds")),
+    tar_target(audios_path, here("stimuli", "sounds")),
     tar_target(durations, get_duration(stimuli_path = stimuli_path, audios_path = audios_path)),
     tar_target(stimuli, get_stimuli(stimuli_path = stimuli_path, clearpond = clearpond, levenshtein = levenshtein, durations = durations)),
     tar_target(practice_trials, c(109, 147, 159, 167, 179, 1, 26, 70, 86, 96)),
     
     # responses
-    tar_target(responses_path, list.files(here("Data", "Raw"), full.names = TRUE)),
+    tar_target(responses_path, list.files(here("data", "raw"), full.names = TRUE)),
     tar_target(responses_processed, get_responses_processed(responses_path = responses_path, stimuli = stimuli, practice_trials = practice_trials)),
     tar_target(responses_clean, get_responses_clean(responses_processed = responses_processed, stimuli = stimuli)),
-    tar_target(responses_coded_path, here("Data", "02_coded.xlsx")),
+    tar_target(responses_coded_path, here("data", "processed", "02_coded.xlsx")),
     tar_target(responses_coded, read_xlsx(responses_coded_path)),
     tar_target(participants, get_participants(responses_processed = responses_processed,responses_coded = responses_coded)),
     tar_target(responses, get_responses(responses_coded = responses_coded, practice_trials = practice_trials, participants = participants, stimuli = stimuli)),
@@ -101,7 +101,7 @@ list(
     # tar_render(report, "Rmd/report.Rmd"),
     
     # render manuscript.Rmd
-    tar_render(manuscript, "Rmd/manuscript.Rmd")
+    tar_render(manuscript, "manuscript/manuscript.Rmd")
 )
 
 
