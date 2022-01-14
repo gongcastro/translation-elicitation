@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.0.4",
+    "Version": "4.0.5",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -607,11 +607,11 @@
       "Version": "0.9.1",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "rubenarslan",
       "RemoteRepo": "formr",
       "RemoteRef": "master",
       "RemoteSha": "8f77582a70781f2ccb184e967ed120452478e0b5",
-      "RemoteHost": "api.github.com",
       "Hash": "c4401ac2159243b87018e550419ed9c9"
     },
     "fresh": {
@@ -658,10 +658,10 @@
     },
     "ggdist": {
       "Package": "ggdist",
-      "Version": "3.0.0",
+      "Version": "3.0.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "88f5fd58f0af7adb1a08ada8d0b37dbe"
+      "Hash": "1667dc859397c6ea01a39382a4cdf4ee"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -1060,11 +1060,11 @@
       "Version": "1.0.1",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "gongcastro",
       "RemoteRepo": "multilex",
       "RemoteRef": "main",
       "RemoteSha": "0ca2da93b3a0c8ac8fd6019b84014616ec98ce8c",
-      "RemoteHost": "api.github.com",
       "Hash": "f6f9b2e6749e4e23f8b8b731b3679b12"
     },
     "munsell": {
@@ -1230,14 +1230,9 @@
     "posterior": {
       "Package": "posterior",
       "Version": "1.1.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "posterior",
-      "RemoteUsername": "stan-dev",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "f06abf953c3f75183f614487f4951c3fc900177a",
-      "Hash": "fe1521126ebc02fe89b86990d98f4ade"
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c0a0ec06cbabb84f7012963cbd21a153"
     },
     "prettyunits": {
       "Package": "prettyunits",

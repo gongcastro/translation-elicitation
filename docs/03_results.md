@@ -1,3 +1,9 @@
+    ## Loading targets: audios_path, clearpond, clearpond_path, durations, levenshtein, model_fits, model_formulas, model_loos, model_prior, participants, posterior_draws_fixed, posterior_draws_random, posterior_epreds_fixed, posterior_epreds_random, practice_trials, responses, responses_clean, responses_coded, responses_coded_path, responses_path, responses_processed, stimuli, stimuli_path
+
+# Model comparison
+
+<img src="C:/Users/u155880/Documents/translation-elicitation/img/loos.png" width="80%" />
+
 # Model outputs
 
 ## Fixed coefficients
@@ -53,14 +59,23 @@
 
 <div class="figure">
 
-<img src="03_results_files/figure-markdown_github/post_fix-1.png" alt="Points and error bars in indicate the posterior means, and 95% CrI. The intercept has been transformed using the inverse logit to get the average probability of correct response. The resto of the coefficients has been transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable." width="80%" />
+<img src="03_results_files/figure-markdown_github/posteriorfix-1.png" alt="Estimated posterior distributions of coefficients in Model 4. A\) Population-level effects. Distributions indicate the estimated posterior likelihood density of regression coefficients of fixed effects. Credible intervals (*CrI*), represented with increasingly lighter segmentents in the distribution indicate the range of values that contain the true value with 95\%, 80\%, and 50\% probability. Black dots represent the mean of each distribution. B\) Participant\-level coefficient variability. The model estimated participant\-level coefficients to account for the dependency between responses from the same participant. Distributions in this panel indicate the estimated variability across coefficients from different participants, expressed as standard deviations (*SD*). C\) Correlation between participant\-level effects. The model allowed participant-level coefficients to co\-vary. This panel represents the Pearson correlations between each pair of coefficients, expressed as the mean of the posterior distribution of each  estimated correlation." width="80%" />
 <p class="caption">
-Points and error bars in indicate the posterior means, and 95% CrI. The
-intercept has been transformed using the inverse logit to get the
-average probability of correct response. The resto of the coefficients
-has been transformed using the divide-by-four- rule to get the maximum
-change in probability of correct response, associated with a unit
-increase in this variable.
+Estimated posterior distributions of coefficients in Model 4. A)
+Population-level effects. Distributions indicate the estimated posterior
+likelihood density of regression coefficients of fixed effects. Credible
+intervals (*CrI*), represented with increasingly lighter segmentents in
+the distribution indicate the range of values that contain the true
+value with 95%, 80%, and 50% probability. Black dots represent the mean
+of each distribution. B) Participant-level coefficient variability. The
+model estimated participant-level coefficients to account for the
+dependency between responses from the same participant. Distributions in
+this panel indicate the estimated variability across coefficients from
+different participants, expressed as standard deviations (*SD*). C)
+Correlation between participant-level effects. The model allowed
+participant-level coefficients to co-vary. This panel represents the
+Pearson correlations between each pair of coefficients, expressed as the
+mean of the posterior distribution of each estimated correlation.
 </p>
 
 </div>
@@ -92,3 +107,7 @@ the extended model.
 ## Accuracy by participant
 
 <img src="03_results_files/figure-markdown_github/responses_participant-1.png" width="80%" />
+
+# Model diagnostics
+
+<img src="03_results_files/figure-markdown_github/traceplots-1.png" width="80%" />

@@ -42,15 +42,107 @@ options(
 ```{r prepare}
 # import data
 tar_load_globals()
-tar_load(participants)
-tar_load(responses)
-tar_load(model_fits)
-tar_load(model_loos)
-tar_load(posterior_draws_fixed)
-tar_load(posterior_draws_random)
-tar_load(posterior_epreds_fixed)
+tar_load_all()
 
-theme_set(theme_custom())
+theme_set(
+  theme(
+    title = element_text(size = 8, face = "bold"),
+    
+    legend.background = element_rect(fill = NA, colour = NA),
+    legend.key = element_rect(fill = "white", colour = NA),
+    legend.justification = "right",
+    legend.direction = "horizontal",
+    
+    axis.line = element_line(colour = "black", size = 0.5),
+    axis.ticks = element_line(colour = "black", size = 0.5),
+    axis.text.x = element_text(colour = "black"),
+    axis.text.y = element_text(colour = "black"),
+    
+    plot.caption.position = "plot",
+    plot.title = element_text(hjust = 0.5),
+    
+    
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white", colour = NA)
+  )
+)
+```
+
+
+# Model comparison
+
+
+```{r comparison, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+tab_loos <- model_loos %>% 
+  as.data.frame() %>% 
+  rownames_to_column("model") %>% 
+  arrange(desc(elpd_loo)) %>% 
+  select(model, matches("elpd_loo"), matches("looic"), matches("diff")) %>%
+  mutate(model = str_replace(model, "fit_", "Model ")) %>% 
+  mutate_all(~ifelse(. == 0, NA, .)) %>% 
+  gt(rowname_col = "model") %>% 
+  tab_header(
+    title = md("Table 2"),
+    subtitle = md("Model performance and comparison using leave-one-out cross-validation")
+  ) %>% 
+  tab_source_note(
+    md("*Note*. Outcomes of the leave-one-out cross-validation procedure. Each row indicates the values of the expected log-predicted density (*ELPD*), leave-one-out information creterion (*LOO-IC*), and the difference in *ELPD* (*LOO-diff*) between each model and the inmediately simpler model. Each value is accompanied by a standard error (*SE*) indicating the uncertainty of its estimate.")
+  ) %>% 
+  fmt_missing(everything(), missing_text = "-") %>% 
+  fmt_number(2:7) %>% 
+  cols_label(
+    model = md("**Model**"),
+    looic = md("***LOO<sub>IC</sub>***"),
+    se_looic = md("***SE*<sub>IC</sub>**"),
+    elpd_loo = md("***LOO<sub>ELPD</sub>***"),
+    se_elpd_loo = md("***SE***"),
+    elpd_diff = md("***LOO<sub>diff</sub>***"),
+    se_diff = md("***SE<sub>diff</sub>***")
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", weight = "bold", size = "medium"),
+    locations = cells_title(groups = "title")
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", size = "medium", style = "italic"),
+    locations = cells_title(groups = "subtitle")
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "left", size = "medium"),
+    locations = cells_source_notes()
+  ) %>% 
+  tab_style(
+    style = list(cell_borders(sides = c("left", "right"), color = "white"),
+                 cell_text(align = "center")),
+    locations = list(
+      cells_body(), cells_row_groups(), cells_column_spanners(), 
+      cells_stub(), cells_source_notes(),
+      cells_column_labels(), cells_stubhead()
+    )
+  ) %>% 
+  tab_style(
+    style = list(cell_text(align = "left", size = "medium"), 
+                 cell_borders(sides = "all", color = "white")),
+    locations = list(cells_stub(), cells_source_notes())
+  ) %>% 
+  tab_style(
+    style = cell_text(align = "center", size = "medium", weight = "normal", style = "normal"),
+    locations = list(cells_column_spanners(), cells_column_labels())
+  ) %>% 
+  tab_style(
+    style = cell_borders(sides = "all", color = "white"),
+    locations = cells_body(columns = 1:7)
+  ) %>% 
+  tab_style(
+    style = cell_borders(sides = "top", color = "white"),
+    locations = cells_body(columns = 1:7)
+  ) %>% 
+  gtsave(here("img", "loos.png"))
+
+include_graphics(here("img", "loos.png"))
+
+
 ```
 
 
@@ -70,6 +162,7 @@ responses_coded <- responses %>%
   as_tibble() %>% 
   arrange(group, word)
 ```
+
 
 ## Fixed coefficients
 
@@ -110,7 +203,7 @@ coefs %>%
   select(-est_error) %>% 
   gt() %>% 
   fmt_percent(2:4) %>% 
-  cols_merge(vars("q2_5", "q97_5"), pattern = "[{1}, {2}]") %>% 
+  cols_merge(c("q2_5", "q97_5"), pattern = "[{1}, {2}]") %>% 
   cols_label(
     variable = md("**Predictor**"),
     estimate = md("**Mean**"),
@@ -122,7 +215,9 @@ coefs %>%
 ```
 
 
-```{r post_fix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Points and error bars in indicate the posterior means, and 95% CrI. The intercept has been transformed using the inverse logit to get the average probability of correct response. The resto of the coefficients has been transformed using the divide-by-four- rule to get the maximum change in probability of correct response, associated with a unit increase in this variable."}
+```{r posteriorfix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Estimated posterior distributions of coefficients in Model 4. A\\) Population-level effects. Distributions indicate the estimated posterior likelihood density of regression coefficients of fixed effects. Credible intervals (*CrI*), represented with increasingly lighter segmentents in the distribution indicate the range of values that contain the true value with 95\\%, 80\\%, and 50\\% probability. Black dots represent the mean of each distribution. B\\) Participant\\-level coefficient variability. The model estimated participant\\-level coefficients to account for the dependency between responses from the same participant. Distributions in this panel indicate the estimated variability across coefficients from different participants, expressed as standard deviations (*SD*). C\\) Correlation between participant\\-level effects. The model allowed participant-level coefficients to co\\-vary. This panel represents the Pearson correlations between each pair of coefficients, expressed as the mean of the posterior distribution of each  estimated correlation.", fig.height=7, fig.width=6.5}
+
+
 
 coefs <- fixef(model_fits$fit_6) %>% 
   as.data.frame() %>% 
@@ -138,12 +233,12 @@ str_repl <- c(
   "Intercept" = "Intercept",
   "frequency_zipf" = "Frequency\n[+1 SD]",
   "pthn:lv" = "PTHN \u00d7 Levenshtein", 
-  "lv:groupENGvs.SPA" = "Levenshtein \u00d7 Group 1",
-  "lv:groupENGMCATvs.ENGMSPA" = "Levenshtein \u00d7 Group 2",
+  "lv:group1" = "Levenshtein \u00d7 Group 1",
+  "lv:group2" = "Levenshtein \u00d7 Group 2",
   "lv" = "Levenshtein\n[+1 SD]",
   "pthn" = "PTHN\n[+1 SD]",
-  "groupENGvs.SPA" =  "Group 1\n[ENG-* vs. SPA-CAT]",
-  "groupENGMCATvs.ENGMSPA" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
+  "group1" =  "Group 1\n[ENG-* vs. SPA-CAT]",
+  "group2" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
 )
 
 
@@ -221,7 +316,6 @@ post_sd <- ggplot(filter(post_sd_data, group=="Participants"), aes(.value, fct_r
   ggplot(filter(post_sd_data, group=="Words"), aes(.value, fct_rev(.variable_name))) +
   stat_slab(aes(fill = stat(cut_cdf_qi(cdf, .width = c(.5, .8, .95), labels = percent_format())))) +
   stat_pointinterval(.width = 0, point_size = 1) +
-  scale_fill_manual(values = c("#ff2976", "#f2a7c2", "#fcd9e6"), na.translate = FALSE) +
   scale_x_continuous(labels = percent, limits = c(0, 1)) +
   labs(x = "SDs in P(Correct)", title = "By item", fill = "CrI") +
   
@@ -374,10 +468,11 @@ tab_loos <- model_loos %>%
 
 ```
 
+
 ## Random effects
 
 ```{r post_re_participant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-post_re <- posterior_draws_random$participants   %>% 
+post_re <- posterior_draws_random$participants %>% 
   mean_qi() %>% 
   ungroup() %>% 
   left_join(select(participants, participant, group)) %>% 
@@ -402,6 +497,7 @@ ggplot(post_re,
   geom_vline(xintercept = 0) +
   labs(x = "Participant-level adjustment", y = "Participant", colour = "Group",
        title = "By participant") +
+  scale_color_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) &
   theme(
     legend.position = "none",
     legend.title = element_blank(),
@@ -414,43 +510,108 @@ ggplot(post_re,
 
 
 ```{r post_re_word, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fixed_intercept <- fixef(model_fits$fit_6)[1,c(1, 3, 4)] %>% 
+  inv_logit_scaled()
+
 post_re <- posterior_draws_random$words   %>% 
-  mean_qi() %>% 
   ungroup() %>% 
   arrange(word, .param) %>% 
-  mutate(.param_name = str_replace_all(.param, str_repl) %>%  
-           factor(
-             levels = c(
-               "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-               "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-               "Group 1\n[ENG-* vs. SPA-CAT]",
-               "Group 2\n[ENG-CAT vs. ENG-SPA]",
-               "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
-             )
-           ))
+  mutate(
+    .param_name = str_replace_all(.param, str_repl) %>%  
+      factor(
+        levels = c(
+          "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
+          "Group 1\n[ENG-* vs. SPA-CAT]",
+          "Group 2\n[ENG-CAT vs. ENG-SPA]",
+          "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
+        )
+      ),
+    .value = inv_logit_scaled(.value)
+  )
 
-ggplot(post_re, 
-       aes(.value, reorder(as.factor(word), -.value), 
-           xmin = .lower, xmax = .upper, colour = "#1A85FF")) +
-  geom_errorbarh(height = 0, alpha = 0.75) +
-  geom_point(size = 0.1, shape = 4) +
-  geom_vline(xintercept = 0) +
-  labs(x = "Participant-level adjustment", y = "Participant", colour = "Group",
-       title = "By participant") +
+ggplot(post_re, aes(.value, reorder(as.factor(word), .value))) +
+  geom_vline(xintercept = fixed_intercept[1], colour = "grey", size = 1) +
+  
+  stat_interval(
+    size = 1.5,
+    .width = c(0.5, 0.67, 0.95)
+  ) +
+  annotate(
+    geom = "text",
+    x = 0.7,
+    y = 100,
+    size = 3,
+    hjust = 0.5,
+    label = "Item accuracy \n(95%, 67%, and 50% CrI \nof item-level intercepts)"
+  ) +
+  annotate(
+    geom = "rect",
+    alpha = 0.15,
+    xmin = fixed_intercept[2],
+    xmax = fixed_intercept[3],
+    ymin = -Inf,
+    ymax = Inf
+  ) +
+  annotate(
+    x = 0.7,
+    xend = 0.6,
+    y = 108,
+    yend = 130,
+    geom = "curve",
+    curvature = 0.25,
+    arrow = arrow(length = unit(0.2, "cm"))
+  ) +
+  annotate(
+    geom = "text",
+    x = 0.8,
+    y = 10,
+    size = 3,
+    hjust = 0.5,
+    label = "Global posterior accuracy\n(Mean ± 95% CrI of the \npopulation-level intercept)"
+  ) +
+  annotate(
+    x = 0.7,
+    xend = fixed_intercept[1]+0.05,
+    y = 17,
+    yend = 30,
+    geom = "curve",
+    curvature = 0.2,
+    arrow = arrow(length = unit(0.2, "cm"))
+  ) +
+  labs(
+    x = "Posterior probability of correct response",
+    y = "Item",
+    colour = "Credible Interval (CrI)",
+    caption = "Credible intervals cover the range of values of the sampling space that \ncontain the true value with a given certainty."
+  ) +
+  scale_color_manual(
+    values = c("#d2e5fc", "#9ccaff", "#1A85FF"),
+    na.translate = FALSE, 
+    labels = paste0(c(95, 67, 50), "%")
+  ) +
+  scale_x_continuous(limits = c(0, 1), labels = percent) +
   theme(
-    legend.position = "none",
-    legend.title = element_blank(),
+    legend.position = c(0.1, 0.9),
+    legend.direction = "vertical",
+    legend.justification = "left",
+    legend.key = element_rect(fill = NA, colour = NA),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted"),
     axis.text.x = element_text(size = 9),
     axis.text.y = element_blank(),
-    axis.ticks = element_blank()
+    axis.ticks = element_blank(),
+    axis.title = element_text(size = 10),
+    plot.caption.position = "plot",
+    plot.caption = element_text(size = 9, hjust = 0, face = "plain", margin = margin(t = unit(3, "cm")))
   )
+
+ggsave(here("img", "accuracy.png"), height = 9, width = 5, dpi = 500)
 ```
 
 ## Marginal effects
 
 
-```{r emmeans_pthn, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=6}
+```{r emmeans_pthn, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=7, fig.height=6}
 
 m <- posterior_epreds_fixed %>% 
   mutate_at(vars(pthn, frequency_zipf), function(x) paste0(x, " SD")) %>% 
@@ -484,7 +645,11 @@ ggplot(m, aes(lv, .epred, colour = pthn, fill = pthn)) +
        colour = "PTHN", fill = "PTHN", linetype = "PTHN",
        title = "Population-level predictions") +
   scale_color_manual(values = c("#1E88E5", "#ff2976")) +
-  scale_y_continuous(labels = function(x) percent(round(x, 2)), limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  scale_y_continuous(
+    labels = function(x) percent(round(x, 2)),
+    limits = c(0, 1),
+    breaks = seq(0, 1, 0.1)
+  ) +
   theme(
     legend.position = "top",
     plot.title = element_blank()
@@ -522,7 +687,8 @@ ggplot(responses_item, aes(reorder(word_label, correct_prop), correct_prop, ymin
   geom_point(size = 0.5) +
   labs(y = "Correct responses", x = "Word", colour = "Group") +
   coord_flip() +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  scale_color_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) +
+  scale_y_continuous(limits = c(0, 1), labels = percent) +
   theme(
     legend.position = "none",
     axis.text.y = element_blank(),
@@ -556,6 +722,7 @@ ggplot(responses_participant, aes(reorder(participant_label, correct_prop), corr
   geom_point(size = 1) +
   labs(y = "Correct responses", x = "Participant", colour = "Group") +
   coord_flip() +
+  scale_color_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
   theme(
     legend.position = "none",
@@ -564,6 +731,26 @@ ggplot(responses_participant, aes(reorder(participant_label, correct_prop), corr
     axis.text.x = element_text(size = 9),
     panel.grid.major.x = element_line(colour = "grey", linetype = "dotted")
   )
+
+```
+
+# Model diagnostics
+
+```{r traceplots, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+posterior_draws_fixed %>% 
+  mutate(
+    .chain = as.factor(.chain),
+    .variable_name = str_replace_all(.variable, str_repl) %>% 
+      str_remove("b_")
+    ) %>% 
+  ggplot(aes(.iteration, .value, colour = .chain)) +
+  facet_wrap(~.variable_name, scales = "free_y") +
+  geom_line() +
+  labs(x = "Iteration", y = "Value", color = "Chain") +
+  scale_colour_manual(values = c("#1A85FF", "#ff2976", "#FFC20A", "04bf78"), na.translate = FALSE) +
+  theme(legend.position = "top")
+
 
 ```
 
