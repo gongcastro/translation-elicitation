@@ -1,4 +1,4 @@
-# TranslationElicitation [[report]](https://github.com/bilingual-project/translation-elicitation/blob/master/Rmd/report.md)
+# TranslationElicitation [[report]](https://github.com/gongcastro/translation-elicitation/blob/master/docs/report.md)
 
 
 More info in the Open Science Framework repository.
@@ -11,7 +11,7 @@ More info in the Open Science Framework repository.
 You can either download the project as a .zip file by clocking on the green button that says "Code", or if you feel comfortable with Git, you can clone the repository from your console running:
 
 ```bash
-git clone https://github.com/bilingual-project/translation-elicitation.git
+git clone https://github.com/gongcastro/translation-elicitation.git
 ```
 
 ### 2. Setting up R packages with renv
