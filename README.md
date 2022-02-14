@@ -1,4 +1,4 @@
-# TranslationElicitation [[report]](https://github.com/gongcastro/translation-elicitation/blob/master/docs/report.md)
+# TranslationElicitation [[report]](https://github.com/gongcastro/translation-elicitation/blob/main/docs/report.md)
 
 
 More info in the Open Science Framework repository.
