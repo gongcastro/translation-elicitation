@@ -24,6 +24,7 @@ affiliation:
 authornote: |
 
 abstract: |
+  Understanding spoken words in a non-native language is easier when their translations to the native language are phonologically similar. 
 
   <!-- https://tinyurl.com/ybremelq -->
   
@@ -475,7 +476,7 @@ We now report the mean of the posterior distribution of each coefficient in Mode
 
 
 
-coefs <- fixef(model_fits$fit_6) %>% 
+coefs <- fixef(fit_6) %>% 
   as.data.frame() %>% 
   rownames_to_column("variable") %>% 
   clean_names() %>% 
@@ -487,14 +488,14 @@ coefs <- fixef(model_fits$fit_6) %>%
 
 str_repl <- c(
   "Intercept" = "Intercept",
-  "frequency_zipf" = "Frequency\n[+1 SD]",
-  "pthn:lv" = "PTHN \u00d7 Levenshtein", 
-  "lv:group1" = "Levenshtein \u00d7 Group 1",
-  "lv:group2" = "Levenshtein \u00d7 Group 2",
-  "lv" = "Levenshtein\n[+1 SD]",
-  "pthn" = "PTHN\n[+1 SD]",
-  "group1" =  "Group 1\n[ENG-* vs. SPA-CAT]",
-  "group2" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
+  "frequency_zipf_std" = "Frequency\n[+1 SD]",
+  "pthn_std:lv_std" = "PTHN \u00d7 Levenshtein", 
+  "lv_std:groupENGvs.SPA" = "Levenshtein \u00d7 Group 1",
+  "lv_std:groupENGMCATvs.ENGMSPA" = "Levenshtein \u00d7 Group 2",
+  "lv_std" = "Levenshtein\n[+1 SD]",
+  "pthn_std" = "PTHN\n[+1 SD]",
+  "groupENGvs.SPA" =  "Group 1\n[ENG-* vs. SPA-CAT]",
+  "groupENGMCATvs.ENGMSPA" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
 )
 
 
@@ -592,8 +593,8 @@ post_sd <- ggplot(filter(post_sd_data, group=="Participants"), aes(.value, fct_r
 
 
 # Pearson correlations between random effects
-corr_mat <- VarCorr(model_fits$fit_6, summary = TRUE)$participant$cor 
-corr_names <- rownames(VarCorr(model_fits$fit_6, summary = TRUE)$participant$cor)
+corr_mat <- VarCorr(fit_6, summary = TRUE)$participant$cor 
+corr_names <- rownames(VarCorr(fit_6, summary = TRUE)$participant$cor)
 
 corr_mat <- corr_mat %>% 
   as_tibble() %>% 
@@ -651,18 +652,18 @@ post_fix / ((post_sd | post_cors) + plot_layout(widths = c(0.6, 0.4))) +
 ```
 
 ```{r bayesfactors}
-h_frequency <- abs(hypothesis(model_fits$fit_6, hypothesis = "frequency_zipf = 0")$hypothesis$Evid.Ratio)
-h_pthn <- abs(hypothesis(model_fits$fit_6, hypothesis = "pthn = 0")$hypothesis$Evid.Ratio)
-h_lv <- abs(hypothesis(model_fits$fit_6, hypothesis = "lv = 0")$hypothesis$Evid.Ratio)
-h_pthn_lv <- abs(hypothesis(model_fits$fit_6, hypothesis = "pthn:lv = 0")$hypothesis$Evid.Ratio)
-h_group1 <- abs(hypothesis(model_fits$fit_6, hypothesis = "group1 = 0")$hypothesis$Evid.Ratio)
-h_group2 <- abs(hypothesis(model_fits$fit_6, hypothesis = "group1 = 0")$hypothesis$Evid.Ratio)
-h_lv_group1 <- abs(hypothesis(model_fits$fit_6, hypothesis = "lv:group1 = 0")$hypothesis$Evid.Ratio)
-h_lv_group2 <- abs(hypothesis(model_fits$fit_6, hypothesis = "lv:group2 = 0")$hypothesis$Evid.Ratio)
+h_frequency <- abs(hypothesis(fit_6, hypothesis = "frequency_zipf_std = 0")$hypothesis$Evid.Ratio)
+h_pthn <- abs(hypothesis(fit_6, hypothesis = "pthn_std = 0")$hypothesis$Evid.Ratio)
+h_lv <- abs(hypothesis(fit_6, hypothesis = "lv_std = 0")$hypothesis$Evid.Ratio)
+h_pthn_lv <- abs(hypothesis(fit_6, hypothesis = "pthn_std:lv_std = 0")$hypothesis$Evid.Ratio)
+h_group1 <- abs(hypothesis(fit_6, hypothesis = "groupENGvs.SPA = 0")$hypothesis$Evid.Ratio)
+h_group2 <- abs(hypothesis(fit_6, hypothesis = "groupENGMCATvs.ENGMSPA = 0")$hypothesis$Evid.Ratio)
+h_lv_group1 <- abs(hypothesis(fit_6, hypothesis = "lv_std:groupENGvs.SPA = 0")$hypothesis$Evid.Ratio)
+h_lv_group2 <- abs(hypothesis(fit_6, hypothesis = "lv_std:groupENGMCATvs.ENGMSPA = 0")$hypothesis$Evid.Ratio)
 
-icc_conditional <- icc(model_fits$fit_6, by_group = TRUE)$ICC[2]
+icc_conditional <- icc(fit_6, by_group = TRUE)$ICC[2]
 
-sds <- gather_draws(model_fits$fit_6, `sd_.*`, regex = TRUE) %>% 
+sds <- gather_draws(fit_6, `sd_.*`, regex = TRUE) %>% 
   mean_qi() %>% 
   mutate(
     .value = ifelse(grepl("Intercept", .variable), inv_logit_scaled(.value), .value/4),
@@ -673,7 +674,7 @@ sds <- gather_draws(model_fits$fit_6, `sd_.*`, regex = TRUE) %>%
 
 names(sds) <- make_clean_names(names(sds))
 
-word_example <- ranef(model_fits$fit_6)$word[,,"Intercept"] %>% 
+word_example <- ranef(fit_6)$word[,,"Intercept"] %>% 
   as.data.frame() %>% 
   rownames_to_column("word") %>% 
   arrange(-Estimate) %>% 
@@ -689,12 +690,12 @@ participant_ranef_range <- sds %>%
   summarise(.value = range(.value)) %>% 
   unlist()
 
-cors_range <- gather_draws(model_fits$fit_6, `cor_.*`, regex = TRUE) %>% 
+cors_range <- gather_draws(fit_6, `cor_.*`, regex = TRUE) %>% 
   median_qi() %>% 
   summarise(.value = range(.value))
 
-corr_mat <- VarCorr(model_fits$fit_6, summary = TRUE)$participant$cor 
-corr_names <- rownames(VarCorr(model_fits$fit_6, summary = TRUE)$participant$cor)
+corr_mat <- VarCorr(fit_6, summary = TRUE)$participant$cor 
+corr_names <- rownames(VarCorr(fit_6, summary = TRUE)$participant$cor)
 
 corr_data <- corr_mat %>% 
   as_tibble() %>% 
@@ -705,39 +706,39 @@ corr_data <- corr_mat %>%
 
 names(corr_data) <- make_clean_names(names(corr_data))
 
-h_cor_intercept_frequency <- hypothesis(model_fits$fit_6, "participant__Intercept__frequency_zipf = 0", class = "cor")$hypothesis$Evid.Ratio
-h_cor_frequency_zipf_lv_group1 <- hypothesis(model_fits$fit_6, "participant__frequency_zipf__lv:group1 = 0", class = "cor")$hypothesis$Evid.Ratio
-h_cor_intercept_pthn <- hypothesis(model_fits$fit_6, "participant__Intercept__pthn = 0", class = "cor")$hypothesis$Evid.Ratio
+h_cor_intercept_frequency <- hypothesis(fit_6, "participant__Intercept__frequency_zipf_std = 0", class = "cor")$hypothesis$Evid.Ratio
+h_cor_frequency_zipf_lv_group1 <- hypothesis(fit_6, "participant__frequency_zipf_std__lv_std:groupENGvs.SPA = 0", class = "cor")$hypothesis$Evid.Ratio
+h_cor_intercept_pthn <- hypothesis(fit_6, "participant__Intercept__pthn_std = 0", class = "cor")$hypothesis$Evid.Ratio
 ```
 
-Overall, participants were `r percent(coefs$intercept["estimate"], accuracy = 0.01)`, (95% *CrI* = [`r percent(coefs$intercept["q2_5"], accuracy = 0.01)`, `r percent(coefs$intercept["q97_5"], accuracy = 0.01)`]) likely to produce correct translations. The lexical frequency of the correct translation had little impact in accuracy: every standard deviation increment (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE))` Zipf points) decreased the probability of correct translation in `r percent(coefs$frequency_zipf["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$frequency_zipf["estimate"], accuracy = 0.01)`, `r percent(coefs$frequency_zipf["q2_5"], accuracy = 0.01)`], $BF_{\beta\neq< 0}$ = `r printnum(h_frequency)`). The number of phonological neighbours of the correct translation with higher lexical frequency (*PTHN*) slightly decreased the probability of a correct responses in `r percent(coefs$pthn["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$pthn["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_pthn)`) for every increase standard deviation increment  (1 *SD* = `r printnum(sd(stimuli$pthn, na.rm = TRUE))` neighbours). Finally, phonological similarity between translations had a strong effect on participants' accuracy: for every *SD* increment in Levenshtein similarity (1 *SD* = `r printnum(percent(sd(stimuli$lv, na.rm = TRUE)), digits = 2)` similarity), translation accuracy increased in `r percent(coefs$lv["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$lv["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = $>3.09 \times 10^{18}$). This difference increased in `r percent(coefs$pthn_lv["estimate"], accuracy = 0.01)` for every *SD* increment in *PTHN* (95% *CrI* = [`r percent(coefs$pthn_lv["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn_lv["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_pthn_lv)`)
+Overall, participants were `r percent(coefs$intercept["estimate"], accuracy = 0.01)`, (95% *CrI* = [`r percent(coefs$intercept["q2_5"], accuracy = 0.01)`, `r percent(coefs$intercept["q97_5"], accuracy = 0.01)`]) likely to produce correct translations. The lexical frequency of the correct translation had little impact in accuracy: every standard deviation increment (*SD* = `r printnum(sd(stimuli$frequency_zipf, na.rm = TRUE))` Zipf points) decreased the probability of correct translation in `r percent(coefs$frequency_zipf_std["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$frequency_zipf_std["estimate"], accuracy = 0.01)`, `r percent(coefs$frequency_zipf_std["q2_5"], accuracy = 0.01)`], $BF_{\beta\neq< 0}$ = `r printnum(h_frequency)`). The number of phonological neighbours of the correct translation with higher lexical frequency (*PTHN*) slightly decreased the probability of a correct responses in `r percent(coefs$pthn_std["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$pthn_std["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn_std["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_pthn)`) for every increase standard deviation increment  (1 *SD* = `r printnum(sd(stimuli$pthn, na.rm = TRUE))` neighbours). Finally, phonological similarity between translations had a strong effect on participants' accuracy: for every *SD* increment in Levenshtein similarity (1 *SD* = `r printnum(percent(sd(stimuli$lv, na.rm = TRUE)), digits = 2)` similarity), translation accuracy increased in `r percent(coefs$lv_std["estimate"], accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$lv_std["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv_std["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = $>3.09 \times 10^{18}$). This difference increased in `r percent(coefs$pthn_std_lv_std["estimate"], accuracy = 0.01)` for every *SD* increment in *PTHN* (95% *CrI* = [`r percent(coefs$pthn_std_lv_std["q2_5"], accuracy = 0.01)`, `r percent(coefs$pthn_std_lv_std["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_pthn_lv)`)
 
-Spanish natives translating Catalan words were `r percent(coefs$group1["estimate"], accuracy = 0.01)` more accurate than English natives translating Spanish and Catalan words (95% *CrI* = [`r percent(coefs$group1["q2_5"], accuracy = 0.01)`, `r percent(coefs$group1["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_group1)`). This difference increased in `r percent(coefs$lv_group1["estimate"], accuracy = 0.01)` for every one *SD* increment in Levenshtein similarity (95% *CrI* = [`r percent(coefs$lv_group1["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv_group1["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_lv_group1)`). English natives translating Catalan words were `r percent(abs(coefs$group2["estimate"]), accuracy = 0.01)` more accurate than those translating Spanish words (95% *CrI* = [`r percent(coefs$group2["q2_5"], accuracy = 0.01)`, `r percent(coefs$group2["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_group2)`). For every one *SD* increment in Levenshtein similarity, the effect increased in `r percent(abs(coefs$lv_group2["estimate"]), accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$lv_group2["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv_group2["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_lv_group1)`).
+Spanish natives translating Catalan words were `r percent(coefs$group_en_gvs_spa["estimate"], accuracy = 0.01)` more accurate than English natives translating Spanish and Catalan words (95% *CrI* = [`r percent(coefs$group_en_gvs_spa["q2_5"], accuracy = 0.01)`, `r percent(coefs$group_en_gvs_spa["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_group1)`). This difference increased in `r percent(coefs$lv_std_group_en_gvs_spa["estimate"], accuracy = 0.01)` for every one *SD* increment in Levenshtein similarity (95% *CrI* = [`r percent(coefs$lv_std_group_en_gvs_spa["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv_std_group_en_gvs_spa["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_lv_group1)`). English natives translating Catalan words were `r percent(abs(coefs$group_engmca_tvs_engmspa["estimate"]), accuracy = 0.01)` more accurate than those translating Spanish words (95% *CrI* = [`r percent(coefs$group_engmca_tvs_engmspa["q2_5"], accuracy = 0.01)`, `r percent(coefs$group_engmca_tvs_engmspa["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_group2)`). For every one *SD* increment in Levenshtein similarity, the effect increased in `r percent(abs(coefs$lv_std_group_engmca_tvs_engmspa["estimate"]), accuracy = 0.01)` (95% *CrI* = [`r percent(coefs$lv_std_group_engmca_tvs_engmspa["q2_5"], accuracy = 0.01)`, `r percent(coefs$lv_std_group_engmca_tvs_engmspa["q97_5"], accuracy = 0.01)`], $BF_{\beta \neq 0}$ = `r printnum(h_lv_group1)`).
 
 
 ```{r marginaleffects, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=7, fig.height=3.5, fig.cap="Expected mean posterior predictions from Model 4. A) Population-level predictions: the X-axis and the Y-axis represent the Levenshtein distance (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 200 observations from our model: 100 simulations for words with low *PTHN* (-1 *SD*) and 100 simulations for high *PTHN* (+1 *SD*) words. We did this across the range of values of the Levenshtein scores. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink in the case of low PTHN words, and blue in the case of high *PTHN* words. We also plotted the mean of the high *PTHN* (black solid line) and low *PTHN* (black dashed line) simulations to indicate the expected mean value of the posterior predictions of the model. The dispersion of the lines indicates the uncertainty of our predictions. We computed these posterior predictions for each group of participants, and plot tem in separate panels."}
 
 m <- posterior_epreds_fixed %>% 
-  mutate_at(vars(pthn, frequency_zipf), function(x) paste0(x, " SD")) %>% 
+  mutate_at(vars(pthn_std, frequency_zipf_std), function(x) paste0(x, " SD")) %>% 
   mutate(
-    pthn = case_when(
-      pthn=="-1 SD" ~ "Low PTHN",
-      pthn=="0 SD" ~ "Mean PTHN",
-      pthn=="1 SD" ~ "High PTHN"
+    pthn_std = case_when(
+      pthn_std=="-1 SD" ~ "Low PTHN",
+      pthn_std=="0 SD" ~ "Mean PTHN",
+      pthn_std=="1 SD" ~ "High PTHN"
     ),
-    frequency_zipf = case_when(
-      frequency_zipf=="-1 SD" ~ "Low frequency",
-      frequency_zipf=="0 SD" ~ "Mean frequency",
-      frequency_zipf=="1 SD" ~ "High frequency"
+    frequency_zipf_std = case_when(
+      frequency_zipf_std=="-1 SD" ~ "Low frequency",
+      frequency_zipf_std=="0 SD" ~ "Mean frequency",
+      frequency_zipf_std=="1 SD" ~ "High frequency"
     )
   ) 
 
 
-ggplot(m, aes(lv, .epred, colour = pthn, fill = pthn)) +
+ggplot(m, aes(lv_std, .epred, colour = pthn_std, fill = pthn_std)) +
   facet_wrap(~group) +
   geom_hline(yintercept = 0.5, colour = "grey") +
-  geom_line(aes(group = interaction(pthn, .draw)), alpha = 0.25, size = 0.5, show.legend = TRUE) +
-  stat_summary(aes(linetype = pthn), fun = mean, geom = "line", colour = "black", size = 0.75, show.legend = TRUE) +
+  geom_line(aes(group = interaction(pthn_std, .draw)), alpha = 0.25, size = 0.5, show.legend = TRUE) +
+  stat_summary(aes(linetype = pthn_std), fun = mean, geom = "line", colour = "black", size = 0.75, show.legend = TRUE) +
   annotate("segment", x = -0.5, xend = -0.9, y = 0.85, yend = 0.85, arrow = arrow(length = unit(0.1, "cm")), size = .5) +
   annotate("segment", x = 2.25, xend = 2.65, y = 0.85, yend = 0.85, arrow = arrow(length = unit(0.1, "cm")), size = .5) +
   annotate("text", x = -0.5, y = 0.95, size = 2.75, label = "Less similar") +
@@ -756,10 +757,10 @@ ggplot(m, aes(lv, .epred, colour = pthn, fill = pthn)) +
 ```
 
 
-The conditional intra-class correlation (*ICC*) for items was `r percent(icc_conditional, accuracy = 0.01)`, indicating that responses from different participants to the same item were, on average, more similar to each other than responses to other items [@gelman2006data]. Item-level intercepts showed remarkable variability (*SD* = `r percent(sds$sd_word_intercept$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_word_intercept$.lower, accuracy = 0.01)`, `r percent(sds$sd_word_intercept$.upper, accuracy = 0.01)`]), indicating that participants' accuracy differed substantially across words: some words were correctly translated nearly always (e.g., Spanish *tomate*-*tomato*, /tomate/-/təmɑːtoʊ/, `r percent(word_example$tomate$estimate, accuracy = 0.01)`, 95% CrI = [`r percent(word_example$tomate$q2_5, accuracy = 0.01)`, `r percent(word_example$tomate$q97_5, accuracy = 0.01)`]), while others were almost never translated correctly (e.g., Catalan *colom*-*pigeon*, /kulom/-/pɪdʒɪn/, `r percent(word_example$colom$estimate, accuracy = 0.01)`, 95% CrI = [`r percent(word_example$colom$q2_5, accuracy = 0.01)`, `r percent(word_example$colom$q97_5, accuracy = 0.01)`]). Participant-level intercepts also showed high variability (*SD* = `r percent(sds$sd_participant_intercept$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_participant_intercept$.lower, accuracy = 0.01)`, `r percent(sds$sd_participant_intercept$.upper, accuracy = 0.01)`]), suggesting that average translation accuracy also varied significantly across participants. Finally, participant-level estimated slopes showed less variability: *SD* of $Frequency$, $PTHN$, $Levenshtein$, $PTHN \times Levenshtein$, and $Levenshtein \times Group 2$ ranged between `r percent(participant_ranef_range[1], accuracy = 0.01)`, and `r percent(participant_ranef_range[2], accuracy = 0.01)`. The participant-level estimated slopes of the $Leveshtein \times Group 1$ interaction are an exception, though (*SD* = `r percent(sds$sd_participant_lv_group1$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_participant_lv_group1$.lower, accuracy = 0.01)`, `r percent(sds$sd_participant_lv_group1$.upper, accuracy = 0.01)`]). This indicates that the impact of phonological similarity ($Levenshtein$) on the difference in accuracy between English and Spanish natives differed substantially across participants. 
+The conditional intra-class correlation (*ICC*) for items was `r percent(icc_conditional, accuracy = 0.01)`, indicating that responses from different participants to the same item were, on average, more similar to each other than responses to other items [@gelman2006data]. Item-level intercepts showed remarkable variability (*SD* = `r percent(sds$sd_word_intercept$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_word_intercept$.lower, accuracy = 0.01)`, `r percent(sds$sd_word_intercept$.upper, accuracy = 0.01)`]), indicating that participants' accuracy differed substantially across words: some words were correctly translated nearly always (e.g., Spanish *tomate*-*tomato*, /tomate/-/təmɑːtoʊ/, `r percent(word_example$tomate$estimate, accuracy = 0.01)`, 95% CrI = [`r percent(word_example$tomate$q2_5, accuracy = 0.01)`, `r percent(word_example$tomate$q97_5, accuracy = 0.01)`]), while others were almost never translated correctly (e.g., Catalan *colom*-*pigeon*, /kulom/-/pɪdʒɪn/, `r percent(word_example$colom$estimate, accuracy = 0.01)`, 95% CrI = [`r percent(word_example$colom$q2_5, accuracy = 0.01)`, `r percent(word_example$colom$q97_5, accuracy = 0.01)`]). Participant-level intercepts also showed high variability (*SD* = `r percent(sds$sd_participant_intercept$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_participant_intercept$.lower, accuracy = 0.01)`, `r percent(sds$sd_participant_intercept$.upper, accuracy = 0.01)`]), suggesting that average translation accuracy also varied significantly across participants. Finally, participant-level estimated slopes showed less variability: *SD* of $Frequency$, $PTHN$, $Levenshtein$, $PTHN \times Levenshtein$, and $Levenshtein \times Group 2$ ranged between `r percent(participant_ranef_range[1], accuracy = 0.01)`, and `r percent(participant_ranef_range[2], accuracy = 0.01)`. The participant-level estimated slopes of the $Leveshtein \times Group 1$ interaction are an exception, though (*SD* = `r percent(sds$sd_participant_lv_std_group_en_gvs_spa$.value, accuracy = 0.01)`, 95% CrI = [`r percent(sds$sd_participant_lv_std_group_en_gvs_spa$.lower, accuracy = 0.01)`, `r percent(sds$sd_participant_lv_std_group_en_gvs_spaE$.upper, accuracy = 0.01)`]). This indicates that the impact of phonological similarity ($Levenshtein$) on the difference in accuracy between English and Spanish natives differed substantially across participants. 
 
 
-Finally, participant-level effects showed weak Pearson correlations overall (<10%), with three exceptions. The estimated correlation between the intercepts and the slopes of $Frequency$ was `r percent(corr_data$intercept$estimate_frequency_zipf, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$intercept$q2_5_frequency_zipf, accuracy = 0.01)`, `r percent(corr_data$intercept$q97_5_frequency_zipf, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r `round(h_cor_intercept_frequency, 2)`). The estimated correlation between the slopes of $Frequency$ and $Levenshtein \times Group 1$ was `r percent(corr_data$frequency_zipf$estimate_lv_group1, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$frequency_zipf$q2_5_lv_group1, accuracy = 0.01)`, `r percent(corr_data$frequency_zipf$q97_5_lv_group1, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r round(h_cor_frequency_zipf_lv_group1, 2)`). The estimated correlation between the intercepts and the slopes of $PTHN$ was `r percent(corr_data$intercept$estimate_pthn, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$intercept$q2_5_pthn, accuracy = 0.01)`, `r percent(corr_data$intercept$q97_5_pthn, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r round(h_cor_intercept_pthn, 2)`). The large uncertainty associated with these estimates, however, prevents us from interpreting the size of these correlations as practically meaningful.
+Finally, participant-level effects showed weak Pearson correlations overall (<10%), with three exceptions. The estimated correlation between the intercepts and the slopes of $Frequency$ was `r percent(corr_data$intercept$estimate_frequency_zipf_std, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$intercept$q2_5_frequency_zipf_std, accuracy = 0.01)`, `r percent(corr_data$intercept$q97_5_frequency_zipf_std, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r round(h_cor_intercept_frequency, 2)`). The estimated correlation between the slopes of $Frequency$ and $Levenshtein \times Group 1$ was `r percent(corr_data$frequency_zipf_std$estimate_lv_std_group_en_gvs_spa, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$frequency_zipf_std$q2_5_lv_std_group_en_gvs_spa, accuracy = 0.01)`, `r percent(corr_data$frequency_zipf_std$q97_5_lv_std_group_en_gvs_spa, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r round(h_cor_frequency_zipf_lv_group1, 2)`). The estimated correlation between the intercepts and the slopes of $PTHN$ was `r percent(corr_data$intercept$estimate_pthn_std, accuracy = 0.01)` (95% CrI = [`r percent(corr_data$intercept$q2_5_pthn_std, accuracy = 0.01)`, `r percent(corr_data$intercept$q97_5_pthn_std, accuracy = 0.01)`], $BF_{Cor \neq 0}$ = `r round(h_cor_intercept_pthn, 2)`). The large uncertainty associated with these estimates, however, prevents us from interpreting the size of these correlations as practically meaningful.
 
 
 

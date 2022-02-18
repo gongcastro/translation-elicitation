@@ -208,11 +208,12 @@ get_responses <- function(
         arrange(group, trial_id) %>%  
         # typos are considered correct responses
         # transform relative frequency to Zipf score
-        mutate(frequency_zipf = relative_to_zipf(frequency)) %>% 
-        # center predictors
-        mutate_at(
-            vars(lv, pthn, frequency_zipf),
-            function(x) scale(x, center = TRUE, scale = TRUE)[,1]
+        mutate(
+            frequency_zipf = 3+log10(frequency),
+            # center predictors
+            frequency_zipf_std = scale(frequency_zipf)[,1],
+            pthn_std = scale(pthn)[,1],
+            lv_std = scale(lv)[,1]
         ) %>% 
         arrange(trial_id, group) %>% 
         mutate_at(vars(group), as.factor) %>% 

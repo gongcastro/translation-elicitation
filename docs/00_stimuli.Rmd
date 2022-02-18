@@ -210,38 +210,135 @@ stimuli_coded %>%
 
 # Correlations
 
-```{r stimuli-correlations, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=6, fig.height=4, fig.cap="Marginal distribution and pairwise correlation of lexical frequency, PTHN, and Levenshtein similarity. Statistics are indicated for the three experimental conditions (ENG-SPA, ENG-CAT, and SPA-CAT) with different colours. The upper triangle of the plot matrix shows the Pearson correlation between each pair of variables (asterisks indicate statistical significance at .05, .01, and .001 significance thresholds). The diagonal of the plot matrix indicates the marginal distribution of eacch variable. The lower triangle of the plot matrix representes graphically the association between each pair of variables, together with a linear regression line."}
-my_bin <- function(data, mapping, ...) {
-  ggplot(data = data, mapping = mapping) +
-    geom_density(..., size = 1, alpha = 0.25) +
-    geom_rug(...)
-}
+```{r stimuliplot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="100%", fig.width=7, fig.height=5.5, fig.cap="Distribution and summary statistics of stimuli translations, plotted in different panels for English translations of Catalan stimuli (cat-ENG), English translations of Spanish stimuli (spa-ENG), and Spanish translation of Catalan stimuli (cat-SPA). A\\) Lexical frequency of stimuli translations, expressed in counts per million and as Zipf scores. B\\) Number of higher-frequency phonological neighbourhoods (PTHN) of stimuli translations. C\\) Normalised Levenshtein phonological similarity between the presented stimuli and their translations, expressed in percentages. Lexical frequencies and PTHN scores of the stimuli (presented auditorily in Catalan or Spanish) are not described, as participants lack any lexical representation of such words."}
 
-my_smooth <- function(data, mapping, ...) {
-  ggplot(data = data, mapping = mapping) +
-    geom_point(..., shape = 1, stroke = 1, alpha = 0.25, size = 0.5) +
-    geom_smooth(..., method = "lm", formula = y ~ x, alpha = 0.25, size = 1)
-}
+medians <- stimuli %>% 
+  group_by(group) %>% 
+  summarise(
+    pthn_median = median(pthn),
+    pthn_sd = sd(pthn),
+    frequency_zipf_median = median(frequency_zipf),
+    frequency_zipf_sd = sd(frequency_zipf),
+    lv_median = median(lv),
+    lv_sd = sd(lv)
+  ) %>% 
+  mutate(group = case_when(
+    group=="ENG-CAT" ~ "cat-ENG",
+    group=="ENG-SPA" ~ "spa-ENG",
+    group=="SPA-CAT" ~ "cat-SPA",
+  ))
 
-my_cor <- function(data, mapping, ...) {
-  ggplot(data = data, mapping = mapping) +
-    ggally_cor(..., size = 7, title = "r", )
-}
-
-
-
+# frequency
 stimuli %>% 
-  drop_na(frequency_zipf, pthn, lv) %>% 
-  ggpairs(
-    mapping = aes(colour = group, fill = group),
-    columns = c("frequency_zipf", "pthn", "lv"),
-    columnLabels = c("Frequency (Zipf)", "PTHN", "Levenshtein"),
-    lower = list(continuous = my_smooth),
-    diag = list(continuous = my_bin),
-    upper = list("my_cor")
+  mutate(group = case_when(
+    group=="ENG-CAT" ~ "cat-ENG",
+    group=="ENG-SPA" ~ "spa-ENG",
+    group=="SPA-CAT" ~ "cat-SPA",
+  )) %>% 
+  ggplot(aes(frequency_zipf, fill = group)) + 
+  facet_wrap(~group, ncol = 1) + 
+  geom_rect(
+    data = medians, 
+    aes(
+      xmin = frequency_zipf_median-frequency_zipf_sd, xmax = frequency_zipf_median+frequency_zipf_sd, 
+      ymin = -Inf, ymax = Inf, fill = group
+    ), inherit.aes = FALSE, alpha = 0.15
+  ) +   
+  geom_histogram(bins = 20, colour = "white") +
+  geom_vline(
+    data = medians, 
+    aes(xintercept = frequency_zipf_median, group = group), 
+    colour = "black",
+    size = 0.5,
+    linetype = "dashed"
+  ) + 
+  geom_text(
+    data = medians, 
+    aes(
+      label = "Median ± SD", 
+      x = frequency_zipf_median+1.25,
+      y = 13
+    ), 
+    size = 3
   ) +
-  scale_fill_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) +
-  scale_color_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE)
+  geom_curve(
+    data = medians, 
+    aes(
+      x = frequency_zipf_median+0.85, 
+      xend = frequency_zipf_median+0.1,
+      y = 12, 
+      yend = 11
+    ),
+    arrow = arrow(length = unit(0.2, "cm")),
+    curvature = -0.25,
+    colour = "grey30"
+  ) +
+  labs(
+    x = "Lexical frequency (Zipf)", 
+    y = "Number of trials", 
+    title = "Frequency\n(stimuli translations)\n"
+  ) +
+  
+  # PTHN
+  stimuli %>% 
+  count(group, pthn) %>% 
+  mutate(group = case_when(
+    group=="ENG-CAT" ~ "cat-ENG",
+    group=="ENG-SPA" ~ "spa-ENG",
+    group=="SPA-CAT" ~ "cat-SPA",
+  )) %>% 
+  ggplot(aes(pthn, n, fill = group)) + 
+  facet_wrap(~group, ncol = 1) + 
+  geom_rect(
+    data = medians, 
+    aes(
+      xmin = 0, 
+      xmax = pthn_median+pthn_sd, 
+      ymin = -Inf, 
+      ymax = Inf,
+      fill = group
+    ), inherit.aes = FALSE, 
+    alpha = 0.15
+  ) +   
+  geom_col(colour = "white") + 
+  geom_vline(
+    data = medians, aes(xintercept = pthn_median, group = group), 
+    colour = "black", size = 0.5, linetype = "dashed"
+  ) + 
+  labs(
+    x = "PTHN", 
+    y = "Number of trials", 
+    title = "Higher-frequency neighbours\n(stimuli translations)\n"
+  ) +
+  
+  
+  # Levenshtein
+  stimuli %>% 
+  mutate(group = case_when(
+    group=="ENG-CAT" ~ "cat-ENG",
+    group=="ENG-SPA" ~ "spa-ENG",
+    group=="SPA-CAT" ~ "cat-SPA",
+  )) %>% 
+  ggplot(aes(lv, fill = group)) +
+  facet_wrap(~group, ncol = 1) + 
+  geom_rect(
+    data = medians, 
+    aes(
+      xmin = 0, xmax = lv_median+lv_sd, 
+      ymin = -Inf, ymax = Inf, fill = group
+    ), inherit.aes = FALSE, alpha = 0.15
+  ) +   
+  geom_histogram(bins = 20, colour = "white") +
+  geom_vline(
+    data = medians, aes(xintercept = lv_median, group = group), 
+    colour = "black", size = 0.5, linetype = "dashed"
+  ) + 
+  scale_x_continuous(labels = percent) +
+  labs(x = "Levenshtein", y = "Number of trials", title = "Phonological similarity\n(stimuli and stimuli translations)\n") +
+  
+  plot_layout(guides = "collect") &
+  plot_annotation(tag_levels = "A") &
+  scale_fill_manual(values = c("#1A85FF", "#ff2976", "#FFC20A"), na.translate = FALSE) &
+  theme(legend.position = "none")
 
 ```
-

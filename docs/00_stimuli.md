@@ -23,18 +23,19 @@ excluded from analyses.
 
 <div class="figure">
 
-<img src="00_stimuli_files/figure-markdown_github/stimuli-correlations-1.png" alt="Marginal distribution and pairwise correlation of lexical frequency, PTHN, and Levenshtein similarity. Statistics are indicated for the three experimental conditions (ENG-SPA, ENG-CAT, and SPA-CAT) with different colours. The upper triangle of the plot matrix shows the Pearson correlation between each pair of variables (asterisks indicate statistical significance at .05, .01, and .001 significance thresholds). The diagonal of the plot matrix indicates the marginal distribution of eacch variable. The lower triangle of the plot matrix representes graphically the association between each pair of variables, together with a linear regression line." width="80%" />
+<img src="00_stimuli_files/figure-markdown_github/stimuliplot-1.png" alt="Distribution and summary statistics of stimuli translations, plotted in different panels for English translations of Catalan stimuli (cat-ENG), English translations of Spanish stimuli (spa-ENG), and Spanish translation of Catalan stimuli (cat-SPA). A\) Lexical frequency of stimuli translations, expressed in counts per million and as Zipf scores. B\) Number of higher-frequency phonological neighbourhoods (PTHN) of stimuli translations. C\) Normalised Levenshtein phonological similarity between the presented stimuli and their translations, expressed in percentages. Lexical frequencies and PTHN scores of the stimuli (presented auditorily in Catalan or Spanish) are not described, as participants lack any lexical representation of such words." width="100%" />
 <p class="caption">
-Marginal distribution and pairwise correlation of lexical frequency,
-PTHN, and Levenshtein similarity. Statistics are indicated for the three
-experimental conditions (ENG-SPA, ENG-CAT, and SPA-CAT) with different
-colours. The upper triangle of the plot matrix shows the Pearson
-correlation between each pair of variables (asterisks indicate
-statistical significance at .05, .01, and .001 significance thresholds).
-The diagonal of the plot matrix indicates the marginal distribution of
-eacch variable. The lower triangle of the plot matrix representes
-graphically the association between each pair of variables, together
-with a linear regression line.
+Distribution and summary statistics of stimuli translations, plotted in
+different panels for English translations of Catalan stimuli (cat-ENG),
+English translations of Spanish stimuli (spa-ENG), and Spanish
+translation of Catalan stimuli (cat-SPA). A) Lexical frequency of
+stimuli translations, expressed in counts per million and as Zipf
+scores. B) Number of higher-frequency phonological neighbourhoods (PTHN)
+of stimuli translations. C) Normalised Levenshtein phonological
+similarity between the presented stimuli and their translations,
+expressed in percentages. Lexical frequencies and PTHN scores of the
+stimuli (presented auditorily in Catalan or Spanish) are not described,
+as participants lack any lexical representation of such words.
 </p>
 
 </div>

@@ -60,10 +60,8 @@ get_stimuli <- function(
     durations
 ){
     
-    stimuli <- map(
-        c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
-        function(x) read_xlsx(stimuli_path, sheet = x)
-    ) %>% 
+    stimuli <- c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan") %>% 
+        map(~read_xlsx(stimuli_path, sheet = .)) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
         select(-trial_id) %>% 
