@@ -330,13 +330,10 @@ list(
         )
     ),
     
-    # # render docs ----
-    tar_render(readme, "README.Rmd"),
-    
-    tar_render(docs_stimuli, "docs/00_stimuli.Rmd"),
-    tar_render(docs_participants, "docs/01_participants.Rmd"),
-    tar_render(docs_analysis, "docs/02_data-analysis.Rmd"),
-    tar_render(docs_results, "docs/03_results.Rmd"),
+    # render docs ----
+    # tar_render(readme, "README.Rmd"),
+
+    tar_render(docs, "docs/index.Rmd"),
 
     tar_render(manuscript, "manuscript/manuscript.Rmd")
 )
