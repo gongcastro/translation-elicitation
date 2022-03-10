@@ -361,8 +361,7 @@ We measured the phonological similarity between translation pairs by computing t
 We modelled the probability of participants guessing the correct translation of each input word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We first fitted a base model that only included the intercept as a fixed effect, and random intercepts per participant  (Model 0). Second, we added the fixed effect of lexical frequency of the target word ($Frequency$). We then extended the model sequentially by adding the main effect of higher-frequency phonological neighbourhood ($PTHN$), the main effect of Levenshtein similarity ($Levenshtein$), the $PTHN \times Levenshtein$ interaction, the group of participants ($Group$, with levels cat-ENG, spa-ENG, and cat-SPA), and finally, the $Levenshtein \times Group$ interaction). We specified two sum-coded *a priori* contrasts for the $Group$ predictor: one comparing English natives (cat-ENG = -0.25, spa-ENG = -0.25) against Spanish natives (cat-SPA = +0.5), and one comparing English natives translating Spanish words (spa-ENG = -0.5) against English natives translating Catalan words (cat-ENG = +0.5) [@schad2020capitalize]. Each model included random intercepts by item (to account for the correlation of responses from different participants to the same word), and random intercepts and slopes by participant, where our experimental designed allowed it (to account for the correlation between responses from the same participant to different words) [@barr2013random]. We will later refer to these models as Model 0 to Model 6. For interpretability, all continuous predictor variables were standardised (transformed in standard deviations from the mean) before entering the model.
 
 
-$$
-\begin{align}
+$$\begin{align}
 
 &\textbf{Likelihood}  \\
 y_{i} \sim& Bernoulli(p_{i}) && \text{[probability of correct translation]} \\ \\
@@ -386,8 +385,7 @@ logit(p_{i}) = ~ &  \beta_{0[p,w]} ~ +  && \text{[linear model]}\\
 \rho_{p}, ~ \rho_{w} \sim& ~LKJ(8) && \text{[correlation between participant-level coefficients]} \\
 
 
-\end{align}
-$$
+\end{align}$$
 
 To test and account for cross-group differences, we included a random intercept for each group. We compared models using leave-one-out cross-validation (*LOO*) [@vehtari2017practical]. More information about the models and model comparison can be found in Appendix 2. All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages [@wickham2019tidyverse] to process data and to generate figures. We used the brms R package [@burkner2017brms] using the cmdstanr backend to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
 
