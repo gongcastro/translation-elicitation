@@ -174,6 +174,9 @@ get_participants <- function(
                 # L2 is not a blocked one
                 l2 %!in% blocked_languages
         )
+    
+    saveRDS(participants, "results/participants.rds")
+    
     return(participants)
 }
 
@@ -224,6 +227,8 @@ get_responses <- function(
         "ENG vs. SPA" = c(-0.25, -0.25, 0.5), 
         "ENG-CAT vs. ENG-SPA" = c(0.5, -0.5, 0)
     )
+    
+    saveRDS(responses, "results/responses.rds")
     
     return(responses)
 }

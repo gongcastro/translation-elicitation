@@ -80,5 +80,7 @@ get_stimuli <- function(
         complete() %>% 
         as_tibble()
     
+    saveRDS(stimuli, "results/stimuli.rds")
+    
     return(stimuli)
 }
