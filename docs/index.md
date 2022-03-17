@@ -1,6 +1,6 @@
 ---
 title: "Translation Elicitation: Report"
-date: "Last updated: 21/02/2022"
+date: "Last updated: 17/03/2022"
 output:
   html_document:
     theme: paper
@@ -31,7 +31,7 @@ Participants in the ENG-SPA listened to 103 Spanish words, and participants in t
 
 
 
-preserve55e1cae599e1c89f
+preserve7a47443dd48c063d
 
 ## Lexical frequency
 
@@ -163,14 +163,14 @@ We compared this (extended model) to other models dropping one predictor at a ti
 Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
 
 
-preserve8b31c9ad32499d89
+preserve785d648711eda9cb
 
 
 
 
 ### Fixed coefficients
 
-preserve2c0553c3b8b454bc
+preservee3afee68708690a2
 
 
 <div class="figure">
@@ -186,26 +186,15 @@ preserve2c0553c3b8b454bc
 
 <img src="index_files/figure-html/post_re_word-1.png" width="80%" />
 
+<img src="index_files/figure-html/post_re_word_empirical-1.png" width="80%" />
+
 ## Marginal effects
 
 
-<img src="index_files/figure-html/emmeans_pthn-1.png" width="80%" />
-
-
-
-## Accuracy
-
-### Accuracy by item
-
-<img src="index_files/figure-html/accuracy_item-1.png" width="80%" />
-
-### Accuracy by participant
-
-<img src="index_files/figure-html/responses_participant-1.png" width="80%" />
-
-## Model diagnostics
-
-<img src="index_files/figure-html/traceplots-1.png" width="80%" />
+<div class="figure">
+<img src="index_files/figure-html/marginaleffects-1.png" alt="Expected mean posterior predictions from Model 4. A) Population-level predictions: the X-axis and the Y-axis represent the PTHN score (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 300 observations from the posterior distribution of the model: 100 simulations for translations with no similarity (0% Levenshtein), 100 simulations for translations with mean accuracy (20.51% Levenshtein), and 100 simulations for translations with the maximum observed accuracy (83.33% Levenshtein). We did this across the range of values of the PTHN scores. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink for minimum similarity translations, blue for hight similarity translations, and yellow for maximum similarity translations. Black, thick lines indicate the expected mean value of the posterior predictions of the model for each condition. The dispersion of the lines indicates the uncertainty of our predictions. We computed these posterior predictions for each group of participants, and plot tem in separate panels." width="80%" />
+<p class="caption">Expected mean posterior predictions from Model 4. A) Population-level predictions: the X-axis and the Y-axis represent the PTHN score (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 300 observations from the posterior distribution of the model: 100 simulations for translations with no similarity (0% Levenshtein), 100 simulations for translations with mean accuracy (20.51% Levenshtein), and 100 simulations for translations with the maximum observed accuracy (83.33% Levenshtein). We did this across the range of values of the PTHN scores. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink for minimum similarity translations, blue for hight similarity translations, and yellow for maximum similarity translations. Black, thick lines indicate the expected mean value of the posterior predictions of the model for each condition. The dispersion of the lines indicates the uncertainty of our predictions. We computed these posterior predictions for each group of participants, and plot tem in separate panels.</p>
+</div>
 
 
 
