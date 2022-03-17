@@ -43,18 +43,18 @@ get_model_draws_fixed <- function(fit){
 
 
 # get model posterior expected predictions (fixed effects)
-get_model_epreds_fixed <- function(fit, ndraws = 100){
+get_model_epreds_fixed <- function(fit, ndraws = 50){
     nd <- expand.grid(
-        pthn_std = c(-1, 1),
+        lv_std = c(-1, 0, 1),
         frequency_zipf_std = 0,
-        lv_std = seq(
-            min(fit$data$lv_std, na.rm = TRUE),
-            max(fit$data$lv_std, na.rm = TRUE),
+        pthn_std = seq(
+            min(fit$data$pthn_std, na.rm = TRUE),
+            max(fit$data$pthn_std, na.rm = TRUE),
             by = 0.1
         ),
         group = unique(fit$data$group)
     )
-    m <- add_epred_draws(nd, fit, ndraws = 100, re_formula = NA)
+    m <- add_epred_draws(nd, fit, ndraws = 50, re_formula = NA)
     return(m)
 }
 
@@ -66,11 +66,11 @@ get_model_epreds_random <- function(fit, ndraws = 100, group = c("participant", 
     if ("participant" %in% group){
         nd_re_participants <- expand.grid(
             participant = unique(fit$data$participant),
-            pthn_std = c(-1, 1),
+            lv_std = c(-1, 0, 1),
             frequency_zipf_std = 0,
-            lv_std = seq(
-                min(fit$data$lv_std, na.rm = TRUE),
-                max(fit$data$lv_std, na.rm = TRUE),
+            pthn_std = seq(
+                min(fit$data$pthn_std, na.rm = TRUE),
+                max(fit$data$pthn_std, na.rm = TRUE),
                 by = 0.1
             ),
             group = NA
