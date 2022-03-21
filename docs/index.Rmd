@@ -710,12 +710,12 @@ str_repl <- c(
   "Intercept" = "Intercept",
   "frequency_zipf_std" = "Frequency\n[+1 SD]",
   "pthn_std:lv_std" = "PTHN \u00d7 Levenshtein", 
-  "lv_std:groupENGvs.SPA" = "Levenshtein \u00d7 Group 1",
-  "lv_std:groupENGMCATvs.ENGMSPA" = "Levenshtein \u00d7 Group 2",
+  "lv_std:group1" = "Levenshtein \u00d7 Group 1",
+  "lv_std:group2" = "Levenshtein \u00d7 Group 2",
   "lv_std" = "Levenshtein\n[+1 SD]",
   "pthn_std" = "PTHN\n[+1 SD]",
-  "groupENGvs.SPA" =  "Group 1\n[ENG-* vs. SPA-CAT]",
-  "groupENGMCATvs.ENGMSPA" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
+  "group1" =  "Group 1\n[*-ENG vs. cat-SPA]",
+  "group2" = "Group 2\n[cat-ENG vs. spa-ENG]"
 )
 
 coefs %>% 
@@ -724,11 +724,15 @@ coefs %>%
       str_replace_all(str_repl) %>%  
       factor(
         levels = c(
-          "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-          "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-          "Group 1\n[ENG-* vs. SPA-CAT]",
-          "Group 2\n[ENG-CAT vs. ENG-SPA]",
-          "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein",
+          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
+          "Group 2\n[cat-ENG vs. spa-ENG]",
+          "Levenshtein \u00d7 Group 1",
+          "Levenshtein \u00d7 Group 2"
         )
       )
   ) %>% 
@@ -769,8 +773,8 @@ str_repl <- c(
   "lv_std:group2" = "Levenshtein \u00d7 Group 2",
   "lv_std" = "Levenshtein\n[+1 SD]",
   "pthn_std" = "PTHN\n[+1 SD]",
-  "group1" =  "Group 1\n[ENG-* vs. SPA-CAT]",
-  "group2" = "Group 2\n[ENG-CAT vs. ENG-SPA]"
+  "group1" =  "Group 1\n[*-ENG vs. cat-SPA]",
+  "group2" = "Group 2\n[cat-ENG vs. spa-ENG]"
 )
 
 
@@ -781,12 +785,16 @@ post_fix <- posterior_draws_fixed %>%
     .variable_name = str_remove(.variable, "b_") %>% 
       str_replace_all(str_repl) %>%  
       factor(
-        levels = c(
-          "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-          "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-          "Group 1\n[ENG-* vs. SPA-CAT]",
-          "Group 2\n[ENG-CAT vs. ENG-SPA]",
-          "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
+        levels =c(
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein",
+          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
+          "Group 2\n[cat-ENG vs. spa-ENG]",
+          "Levenshtein \u00d7 Group 1",
+          "Levenshtein \u00d7 Group 2"
         )
       ),
     .value = ifelse(str_detect(.variable, "Intercept"), inv_logit_scaled(.value), .value/4)
@@ -823,11 +831,15 @@ post_sd_data <- posterior_draws_fixed %>%
       str_replace_all(str_repl) %>% 
       factor(
         levels = c(
-          "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-          "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-          "Group 1\n[ENG-* vs. SPA-CAT]",
-          "Group 2\n[ENG-CAT vs. ENG-SPA]",
-          "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein",
+          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
+          "Group 2\n[cat-ENG vs. spa-ENG]",
+          "Levenshtein \u00d7 Group 1",
+          "Levenshtein \u00d7 Group 2"
         )
       ),
     group = case_when(
@@ -938,13 +950,18 @@ post_re <- posterior_draws_random$participants %>%
   mutate(.param_name = str_replace_all(.param, str_repl) %>%  
            factor(
              levels = c(
-               "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-               "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-               "Group 1\n[ENG-* vs. SPA-CAT]",
-               "Group 2\n[ENG-CAT vs. ENG-SPA]",
-               "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
-             )
-           ))
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein",
+          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
+          "Group 2\n[cat-ENG vs. spa-ENG]",
+          "Levenshtein \u00d7 Group 1",
+          "Levenshtein \u00d7 Group 2"
+        )
+           )
+        )
 
 ggplot(post_re, 
        aes(.value, sort(as.factor(participant)), 
@@ -985,11 +1002,15 @@ post_re <- posterior_draws_random$words   %>%
     .param_name = str_replace_all(.param, str_repl) %>%  
       factor(
         levels = c(
-          "Intercept", "Frequency\n[+1 SD]", "PTHN\n[+1 SD]", 
-          "Levenshtein\n[+1 SD]", "PTHN \u00d7 Levenshtein",
-          "Group 1\n[ENG-* vs. SPA-CAT]",
-          "Group 2\n[ENG-CAT vs. ENG-SPA]",
-          "Levenshtein \u00d7 Group 1", "Levenshtein \u00d7 Group 2"
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein",
+          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
+          "Group 2\n[cat-ENG vs. spa-ENG]",
+          "Levenshtein \u00d7 Group 1",
+          "Levenshtein \u00d7 Group 2"
         )
       ),
     .value = inv_logit_scaled(.value)
