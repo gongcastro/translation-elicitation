@@ -35,6 +35,9 @@ data {
   int<lower=1> J_2[N];  // grouping indicator per observation
   // group-level predictor values
   vector[N] Z_2_1;
+  vector[N] Z_2_2;
+  vector[N] Z_2_3;
+  int<lower=1> NC_2;  // number of group-level correlations
   int prior_only;  // should the likelihood be ignored?
 }
 transformed data {
@@ -53,7 +56,8 @@ parameters {
   matrix[M_1, N_1] z_1;  // standardized group-level effects
   cholesky_factor_corr[M_1] L_1;  // cholesky factor of correlation matrix
   vector<lower=0>[M_2] sd_2;  // group-level standard deviations
-  vector[N_2] z_2[M_2];  // standardized group-level effects
+  matrix[M_2, N_2] z_2;  // standardized group-level effects
+  cholesky_factor_corr[M_2] L_2;  // cholesky factor of correlation matrix
 }
 transformed parameters {
   matrix[N_1, M_1] r_1;  // actual group-level effects
@@ -63,7 +67,11 @@ transformed parameters {
   vector[N_1] r_1_3;
   vector[N_1] r_1_4;
   vector[N_1] r_1_5;
-  vector[N_2] r_2_1;  // actual group-level effects
+  matrix[N_2, M_2] r_2;  // actual group-level effects
+  // using vectors speeds up indexing in loops
+  vector[N_2] r_2_1;
+  vector[N_2] r_2_2;
+  vector[N_2] r_2_3;
   // compute actual group-level effects
   r_1 = scale_r_cor(z_1, sd_1, L_1);
   r_1_1 = r_1[, 1];
@@ -71,7 +79,11 @@ transformed parameters {
   r_1_3 = r_1[, 3];
   r_1_4 = r_1[, 4];
   r_1_5 = r_1[, 5];
-  r_2_1 = (sd_2[1] * (z_2[1]));
+  // compute actual group-level effects
+  r_2 = scale_r_cor(z_2, sd_2, L_2);
+  r_2_1 = r_2[, 1];
+  r_2_2 = r_2[, 2];
+  r_2_3 = r_2[, 3];
 }
 model {
   // likelihood including constants
@@ -80,7 +92,7 @@ model {
     vector[N] mu = Intercept + rep_vector(0.0, N);
     for (n in 1:N) {
       // add more terms to the linear predictor
-      mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n] + r_1_5[J_1[n]] * Z_1_5[n] + r_2_1[J_2[n]] * Z_2_1[n];
+      mu[n] += r_1_1[J_1[n]] * Z_1_1[n] + r_1_2[J_1[n]] * Z_1_2[n] + r_1_3[J_1[n]] * Z_1_3[n] + r_1_4[J_1[n]] * Z_1_4[n] + r_1_5[J_1[n]] * Z_1_5[n] + r_2_1[J_2[n]] * Z_2_1[n] + r_2_2[J_2[n]] * Z_2_2[n] + r_2_3[J_2[n]] * Z_2_3[n];
     }
     target += bernoulli_logit_glm_lpmf(Y | Xc, mu, b);
   }
@@ -92,8 +104,9 @@ model {
   target += std_normal_lpdf(to_vector(z_1));
   target += lkj_corr_cholesky_lpdf(L_1 | 8);
   target += cauchy_lpdf(sd_2 | 0, 0.1)
-    - 1 * cauchy_lccdf(0 | 0, 0.1);
-  target += std_normal_lpdf(z_2[1]);
+    - 3 * cauchy_lccdf(0 | 0, 0.1);
+  target += std_normal_lpdf(to_vector(z_2));
+  target += lkj_corr_cholesky_lpdf(L_2 | 8);
 }
 generated quantities {
   // actual population-level intercept
@@ -101,16 +114,26 @@ generated quantities {
   // compute group-level correlations
   corr_matrix[M_1] Cor_1 = multiply_lower_tri_self_transpose(L_1);
   vector<lower=-1,upper=1>[NC_1] cor_1;
+  // compute group-level correlations
+  corr_matrix[M_2] Cor_2 = multiply_lower_tri_self_transpose(L_2);
+  vector<lower=-1,upper=1>[NC_2] cor_2;
   // additionally sample draws from priors
   real prior_b = normal_rng(0,0.1);
   real prior_Intercept = normal_rng(0,0.1);
   real prior_sd_1 = cauchy_rng(0,0.1);
   real prior_cor_1 = lkj_corr_rng(M_1,8)[1, 2];
   real prior_sd_2 = cauchy_rng(0,0.1);
+  real prior_cor_2 = lkj_corr_rng(M_2,8)[1, 2];
   // extract upper diagonal of correlation matrix
   for (k in 1:M_1) {
     for (j in 1:(k - 1)) {
       cor_1[choose(k - 1, 2) + j] = Cor_1[j, k];
+    }
+  }
+  // extract upper diagonal of correlation matrix
+  for (k in 1:M_2) {
+    for (j in 1:(k - 1)) {
+      cor_2[choose(k - 1, 2) + j] = Cor_2[j, k];
     }
   }
   // use rejection sampling for truncated priors
