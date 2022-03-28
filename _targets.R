@@ -156,22 +156,19 @@ list(
                     (1 | participant) + 
                     (1 | word)
             ),
-            
             f_1 = bf(
                 correct ~ 1 + 
                     frequency_zipf_std +
-                    (1 + frequency_zipf_std | participant) +
+                    (1 + frequency_zipf_std | participant) + 
                     (1 | word)
             ),
-            
             f_2 = bf(
                 correct ~ 1 + 
-                    frequency_zipf_std + 
+                    frequency_zipf_std +
                     pthn_std + 
                     (1 + frequency_zipf_std + pthn_std | participant) +
                     (1 | word)
             ),
-            
             f_3 = bf(
                 correct ~ 1 + 
                     frequency_zipf_std +
@@ -180,7 +177,6 @@ list(
                     (1 + frequency_zipf_std + pthn_std + lv_std | participant) 
                 + (1 | word)
             ),
-            
             f_4 = bf(
                 correct ~ 1 + 
                     frequency_zipf_std +
@@ -190,28 +186,26 @@ list(
                     (1 + frequency_zipf_std + pthn_std*lv_std | participant) + 
                     (1 | word)
             ),
-            
             f_5 = bf(
                 correct ~ 1 + 
-                    frequency_zipf_std +  
+                    frequency_zipf_std +
                     pthn_std + 
                     lv_std + 
                     lv_std:pthn_std + 
                     group +
                     (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std | participant) + 
-                    (1 | word)
+                    (1 + group | word)
             ),
-            
             f_6 = bf(
                 correct ~ 1 +
-                    frequency_zipf_std + 
+                    frequency_zipf_std +
                     pthn_std + 
                     lv_std + 
                     lv_std:pthn_std + 
                     group + 
                     group:lv_std +
                     (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std + group:lv_std | participant) + 
-                    (1 | word))
+                    (1 + group | word))
         )
     ),
     # model prior
@@ -219,7 +213,7 @@ list(
         model_prior,
         c(
             prior(normal(0, 0.1), class = "Intercept"),
-            prior(normal(0, 0.1), clas = "b"),
+            prior(normal(0, 0.1), class = "b"),
             prior(cauchy(0, 0.1), class = "sd", group = "participant"),
             prior(cauchy(0, 0.1), class = "sd", group = "word"),
             prior(lkj(8), class = "cor")
@@ -249,44 +243,44 @@ list(
         fit_2, 
         get_model_fit(
             name = "fit_2", 
-            formula = model_formulas$f_2,
-            data = responses,
-            prior = model_prior
-        )
-    ),
-    tar_target(
-        fit_3,
-        get_model_fit(
-            name = "fit_3", 
-            formula = model_formulas$f_3,
+            formula = model_formulas$f_2, 
             data = responses, 
             prior = model_prior
         )
     ),
     tar_target(
-        fit_4, 
+        fit_3, 
+        get_model_fit(
+            name = "fit_3", 
+            formula = model_formulas$f_3,
+            data = responses,
+            prior = model_prior
+        )
+    ),
+    tar_target(
+        fit_4,
         get_model_fit(
             name = "fit_4", 
-            formula = model_formulas$f_4, 
-            data = responses,
+            formula = model_formulas$f_4,
+            data = responses, 
             prior = model_prior
         )
     ),
     tar_target(
         fit_5, 
         get_model_fit(
-            name = "fit_5",
+            name = "fit_5", 
             formula = model_formulas$f_5, 
-            data = responses, 
+            data = responses,
             prior = model_prior
         )
     ),
     tar_target(
         fit_6, 
         get_model_fit(
-            name = "fit_6", 
-            formula = model_formulas$f_6,
-            data = responses,
+            name = "fit_6",
+            formula = model_formulas$f_6, 
+            data = responses, 
             prior = model_prior
         )
     ),
@@ -301,7 +295,7 @@ list(
                 fit_2,
                 fit_3,
                 fit_4, 
-                fit_5, 
+                fit_5,
                 fit_6
             )
         )
@@ -314,9 +308,7 @@ list(
     ),
     tar_target(
         posterior_epreds_fixed, 
-        get_model_epreds_fixed(
-            fit_6
-        )
+        get_model_epreds_fixed(fit_6)
     ),
     tar_target(
         posterior_draws_random,
@@ -325,17 +317,17 @@ list(
     tar_target(
         posterior_epreds_random, 
         get_model_epreds_random(
-            fit_6, 
+            fit_5, 
             group = "participant"
         )
     ),
     
     # render docs ----
-    # tar_render(readme, "README.Rmd"),
+     tar_render(readme, "README.Rmd"),
 
-    tar_render(docs, "docs/index.Rmd"),
+     tar_render(docs, "docs/index.Rmd"),
 
-    tar_render(manuscript, "manuscript/manuscript.Rmd")
+     tar_render(manuscript, "manuscript/manuscript.Rmd")
 )
 
 
