@@ -23,18 +23,21 @@ tar_load_all <- function(){
     })
 }
 
-unmake <- function() {
+unmake <- function(keep_models = TRUE) {
     path <- list.files("results", full.names = TRUE)
     tar_destroy(ask = FALSE)
     
-    if (length(path) > 1) {
-        for (i in 1:length(path)){
-            if (file.exists(path[i])) {
-                file.remove(path[i])
+    if (!keep_models){
+        if (length(path) > 1) {
+            for (i in 1:length(path)){
+                if (file.exists(path[i])) {
+                    file.remove(path[i])
+                }
             }
         }
-        message("Removed project outputs!")
     }
+    message("Removed project outputs!")
+    
 }
 
 message("Run make() to update the project\nRun tar_load_all() to load all built targets")
