@@ -2,8 +2,22 @@
 "%!in%" <- function(x, y) !(x %in% y)
 
 # find first/last non-missing value in vector
-first_non_na <- function(x) ifelse(is.logical(first(x[!is.na(x)])), NA, first(x[!is.na(x)]))
-last_non_na <- function(x) ifelse(is.logical(last(x[!is.na(x)])), NA, last(x[!is.na(x)]))
+first_non_na <- function(x){
+    ifelse(
+        is.logical(first(x[!is.na(x)])),
+        NA,
+        first(x[!is.na(x)])
+    )
+}
+
+last_non_na <- function(x){
+    ifelse(
+        is.logical(last(x[!is.na(x)])),
+        NA,
+        last(x[!is.na(x)])
+    )
+}
+
 # add_big_mark <- function(x) format(x, big.mark = ",", scientific = FALSE)
 clean_input_text <- function(x) {
     {{ x }} %>% 
@@ -54,113 +68,48 @@ replace_non_ascii <- function(x){
             "è" = "e",
             "ò" = "o",
             "ñ" = "n",
-            "ç" = "c",
-            "ü" = "u",
-            "Ã¼" = "u"
+            "ç" = "c"
         )
     )
 }
 
 
 # download clearpond
-import_clearpond <- function(
-    language = c(
-        "english", 
-        "dutch", 
-        "french",
-        "spanish",
-        "german"
-    )
-){
-    
-    require(tidyverse)
-    require(janitor)
-    
-    urls <- tribble(
-        ~lang, ~url, ~data, ~header,
-        "english", "https://clearpond.northwestern.edu/englishCPdatabase2.zip", "englishCPdatabase2.txt", "clearpondHeaders_EN.txt",
-        "dutch", "https://clearpond.northwestern.edu/dutchCPdatabase2.zip", "dutchCPdatabase2.txt", "clearpondHeaders_NL.txt",
-        "french", "https://clearpond.northwestern.edu/frenchCPdatabase2.zip", "frenchCPdatabase2.txt", "clearpondHeaders_FR.txt",
-        "german", "https://clearpond.northwestern.edu/germanCPdatabase2.zip", "germanCPdatabase2.txt", "clearpondHeaders_DE.txt",
-        "spanish", "https://clearpond.northwestern.edu/spanishCPdatabase2.zip", "spanishCPdatabase2.txt", "clearpondHeaders_SP.txt"
-    ) %>%
-        filter(lang %in% language)
-    
-    dir <- tempdir()
-    
-    files <- replicate(
-        tempfile(),
-        n = length(urls$lang)
-    )
-    
-    d <- pmap(
-        .l = list(
-            url = as.list(urls$url),
-            file = as.list(files), 
-            data = as.list(urls$data),
-            header = as.list(urls$header)
-        ),
-        
-        .f = function(
-            url = .l[[1]], 
-            file = .l[[2]],
-            data = .l[[3]],
-            header = .l[[4]]
-        ) {
-            
-            download.file(url, destfile = file)
-            unzip(zipfile = file, exdir = dir)
-            
-            headers <- c("word", read.delim(paste0(dir, .Platform$file.sep, header))[,1])
-            
-            d <- paste0(dir, .Platform$file.sep, data) %>% 
-                read.delim() %>%
-                `colnames<-`(., headers) %>%
-                as_tibble() %>%
-                mutate_at(
-                    vars(ends_with("W")),
-                    ~str_split(., pattern = ";")
-                )
-            
-            return(d)
-        }
-        
-    ) %>%
-        set_names(language) %>%
-        bind_rows(.id = "language") %>%
-        clean_names()
-    
-    
-    return(d)
-}
+# import_clearpond <- function(language = c("english", "dutch", "french", "spanish", "german")){
+#     require(tidyverse)
+#     require(janitor)
+#     urls <- tribble(
+#         ~lang, ~url, ~data, ~header,
+#         "english", "https://clearpond.northwestern.edu/englishCPdatabase2.zip", "englishCPdatabase2.txt", "clearpondHeaders_EN.txt",
+#         "dutch", "https://clearpond.northwestern.edu/dutchCPdatabase2.zip", "dutchCPdatabase2.txt", "clearpondHeaders_NL.txt",
+#         "french", "https://clearpond.northwestern.edu/frenchCPdatabase2.zip", "frenchCPdatabase2.txt", "clearpondHeaders_FR.txt",
+#         "german", "https://clearpond.northwestern.edu/germanCPdatabase2.zip", "germanCPdatabase2.txt", "clearpondHeaders_DE.txt",
+#         "spanish", "https://clearpond.northwestern.edu/spanishCPdatabase2.zip", "spanishCPdatabase2.txt", "clearpondHeaders_SP.txt"
+#     ) %>% 
+#         filter(lang %in% language)
+#     
+#     dir <- tempdir()
+#     files <- replicate(tempfile(), n = length(urls$lang))
+#     d <- pmap(
+#         .l = list(url = as.list(urls$url), file = as.list(files), data = as.list(urls$data), header = as.list(urls$header)),
+#         .f = function(url = .l[[1]], file = .l[[2]], data = .l[[3]], header = .l[[4]]) {
+#             download.file(url, destfile = file)
+#             unzip(zipfile = file, exdir = dir)
+#             headers <- c("word", read.delim(paste0(dir, .Platform$file.sep, header))[,1])
+#             d <- read.delim(paste0(dir, .Platform$file.sep, data)) %>% 
+#                 `colnames<-`(., headers) %>% 
+#                 as_tibble() %>% 
+#                 mutate_at(vars(ends_with("W")), ~str_split(., pattern = ";"))
+#             return(d)
+#         }
+#     ) %>% 
+#         set_names(language) %>% 
+#         bind_rows(.id = "language") %>% 
+#         clean_names()
+#     return(d)
+# }
 
-# import subtlex
-import_subtlex <- function() {
-    df <- list.files(
-        "data", 
-        pattern = "SUBTLEX",
-        full.names = TRUE, 
-        recursive = TRUE
-    ) %>%
-        map(
-            ~janitor::clean_names(
-                readxl::read_xlsx(., na = c("", "NA"))
-            )
-        ) %>%
-        set_names(c("Catalan", "Spanish", "English"))
-    
-    df$English$freq_rel <- 10^(df$English$freq_zipf-3)
-    
-    df <- df %>%
-        bind_rows(.id = "language") %>%
-        select(
-            word, 
-            language, 
-            freq_rel
-        ) %>%
-        mutate(freq_zipf = 3+log10(freq_rel))
-    return(df)
-}
+
 
 
 # import_trials
@@ -171,17 +120,11 @@ import_trials <- function(path = "stimuli/trials.xlsx", subtlex = NULL){
     trials <- readxl::excel_sheets(path)[-1] %>% 
         map(~readxl::read_xlsx(
             path, 
-            sheet = .,
+            sheet = ., 
             na = c("", "NA")
-        )
-        ) %>% 
-        set_names(
-            c(
-                "Spanish-English", 
-                "Catalan-English",
-                "Catalan-Spanish"
             )
-        ) %>% 
+            ) %>% 
+        set_names(c("Spanish-English", "Catalan-English", "Catalan-Spanish")) %>% 
         map2(
             .y = list(
                 filter(subtlex, language=="English"),
@@ -192,15 +135,15 @@ import_trials <- function(path = "stimuli/trials.xlsx", subtlex = NULL){
         ) %>% 
         bind_rows(.id = "list") %>% 
         select(
-            list,
+            list, 
             trial_id, 
             word1, 
             word2, 
-            jtrace1, 
-            jtrace2, 
+            jtrace1,
+            jtrace2,
             consonant_ratio, 
-            vowel_ratio,
-            onset, 
+            vowel_ratio, 
+            onset,
             overlap_stress, 
             starts_with("freq_")
         )
