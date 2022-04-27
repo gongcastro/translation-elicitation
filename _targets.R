@@ -9,8 +9,7 @@ source("R/02_models.R", encoding = "UTF-8")
 
 # set number of cores to use with brms
 options(
-    mc.cores = 1,
-    encoding = "UTF-8"
+    mc.cores = 1
 )
 
 # set parameters
@@ -62,9 +61,9 @@ list(
     tar_target(
         clearpond_path, 
         lst(
-            `ENG-CAT` = here("data", "clearpond", "clearpond_english.csv"), 
-            `ENG-SPA` = here("data", "clearpond", "clearpond_english.csv"), 
-            `SPA-CAT` = here("data", "clearpond", "clearpond_spanish.csv")
+            "cat-ENG" = here("data", "clearpond", "clearpond_english.csv"), 
+            "spa-ENG" = here("data", "clearpond", "clearpond_english.csv"), 
+            "cat-SPAT" = here("data", "clearpond", "clearpond_spanish.csv")
         )
     ),
     tar_target(
@@ -193,13 +192,9 @@ list(
                     pthn_std + 
                     lv_std + 
                     pthn_std:lv_std + 
-<<<<<<< HEAD
                     (1 + frequency_zipf_std + pthn_std*lv_std | participant_id) + 
                     (1 | translation_id)
-            )
-=======
-                    (1 + frequency_zipf_std + pthn_std*lv_std | participant) + 
-                    (1 | word)
+                
             ),
             f_5 = bf(
                 correct ~ 1 + 
@@ -208,8 +203,8 @@ list(
                     lv_std + 
                     lv_std:pthn_std + 
                     group +
-                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std | participant) + 
-                    (1 + group | word)
+                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std | participant_id) + 
+                    (1 + group | translation_id)
             ),
             f_6 = bf(
                 correct ~ 1 +
@@ -219,9 +214,8 @@ list(
                     lv_std:pthn_std + 
                     group + 
                     group:lv_std +
-                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std + group +group:lv_std | participant) + 
-                    (1 | word))
->>>>>>> eb2ad2e01316fbb4878ef163afbb685d3a91ad49
+                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std + group + group:lv_std | participant_id) + 
+                    (1 | translation_id))
         )
     ),
     # model prior
@@ -281,6 +275,24 @@ list(
             prior = model_prior
         )
     ),
+    tar_target(
+        fit_5,
+        get_model_fit(
+            name = "fit_5", 
+            formula = model_formulas$f_5,
+            data = responses, 
+            prior = model_prior
+        )
+    ),
+    tar_target(
+        fit_6,
+        get_model_fit(
+            name = "fit_6", 
+            formula = model_formulas$f_6,
+            data = responses, 
+            prior = model_prior
+        )
+    ),
     
     # leave-one-out cross-validation (compare models' predictive accuracy)
     tar_target(
@@ -291,45 +303,18 @@ list(
                 fit_1,
                 fit_2,
                 fit_3,
-                fit_4
+                fit_4,
+                fit_5,
+                fit_6
             )
         )
     ),
-    
-<<<<<<< HEAD
-    # posterior draws of population- and group-level effects, and predictions
-    tar_target(
-        posterior_draws_fixed,
-        get_model_draws_fixed(fit_4)
-    ),
-    tar_target(
-        posterior_epreds_fixed, 
-        get_model_epreds_fixed(fit_4)
-    ),
-    tar_target(
-        posterior_draws_random,
-        get_model_draws_random(fit_4)
-    ),
-    tar_target(
-        posterior_epreds_random, 
-        get_model_epreds_random(
-            fit_4, 
-            group = "participant"
-        )
-    )
-    
     # render docs ----
-    # tar_render(readme, "README.Rmd"),
-    # 
-    # tar_render(docs, "docs/index.Rmd"),
-=======
-    # render docs ----
-    tar_render(readme, "README.Rmd")
-    # 
-    # tar_render(docs, "docs/index.Rmd")
->>>>>>> eb2ad2e01316fbb4878ef163afbb685d3a91ad49
-    # 
-    # tar_render(manuscript, "manuscript/manuscript.Rmd")
+    tar_render(readme, "README.Rmd"),
+    #
+    tar_render(docs, "docs/index.Rmd"),
+    #
+    tar_render(manuscript, "manuscript/manuscript.Rmd")
 )
 
 

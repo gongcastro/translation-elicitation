@@ -1,6 +1,6 @@
 ---
 title: "Translation Elicitation: Report"
-date: "Last updated: 28/03/2022"
+date: "Last updated: 27/04/2022"
 output:
   html_document:
     theme: paper
@@ -27,11 +27,11 @@ csl: "apa7.csl"
 
 ## Summary
 
-Participants in the ENG-SPA listened to 103 Spanish words, and participants in the ENG-CAT and the SPA-CAT groups listened to 86 trials. Five trials in each condition were practice trials and were excluded from analyses.
+Participants in the spa-ENG listened to 103 Spanish words, and participants in the cat-ENG and the cat-SPA groups listened to 86 trials. Five trials in each condition were practice trials and were excluded from analyses.
 
 
 
-preserve842b5930d134dcdd
+preserve503851525ba8b488
 
 ## Lexical frequency
 
@@ -59,7 +59,7 @@ preserve842b5930d134dcdd
 
 
 
-We collected data from June 04th 2020 to June 28th 2020. We tested 104 participants. 36 were English natives tested in Spanish, 37 were English natives tested in Catalan, and 32 were Spanish natives tested in Catalan. 14 failed to meet all the inclusion criteria and were excluded from further analyses. The final sample comprised data from 14 participants, 28 in the ENG-SPA group, 34 in the ENG-CAT group, and 29 in the SPA-CAT group.
+We collected data from June 04th 2020 to June 28th 2020. We tested 104 participants. 36 were English natives tested in Spanish, 37 were English natives tested in Catalan, and 32 were Spanish natives tested in Catalan. 14 failed to meet all the inclusion criteria and were excluded from further analyses. The final sample comprised data from 14 participants, 28 in the spa-ENG group, 34 in the cat-ENG group, and 29 in the cat-SPA group.
 
 Participants were included if^[We originally planned to exclude participants that reported any visual impairment that glasses would not correct. This item was phrased as Do you have normal or corrected-to-normal VISION? (Yes/No) in English, and as ¿Tienes problemas de VISIÓN que unas gafas o lentes de contacto NO corrijan? (Sí/No). Surprisingly, the proportion of Spanish participants that reported visual impairment was implausibly large (n = 6, 18.18%). This is possibly due to some participants using glasses daily and not having read the item until the end, where it is indicated that the use of glasses is considered as normal vision]:
 
@@ -163,14 +163,14 @@ We compared this (extended model) to other models dropping one predictor at a ti
 Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
 
 
-preserved517bda4f547a7e7
+preserve73b85ab34a068847
 
 
 
 
 ### Fixed coefficients
 
-preservedf9176d7b5385f0a
+preserveae842d3f9698ef43
 
 
 <div class="figure">
@@ -179,14 +179,11 @@ preservedf9176d7b5385f0a
 </div>
 
 
-## Random effects
-
-<img src="index_files/figure-html/post_re_participant-1.png" width="80%" />
 
 
 <img src="index_files/figure-html/post_re_word-1.png" width="80%" />
 
-
+<img src="index_files/figure-html/post_re_word_empirical-1.png" width="80%" />
 
 ## Marginal effects
 
@@ -196,5 +193,12 @@ preservedf9176d7b5385f0a
 <p class="caption">Expected mean posterior predictions from Model 4. A) Population-level predictions: the X-axis and the Y-axis represent the PTHN score (in standard deviations from the mean) and the probability of correct translation, respectively. We simulated 300 observations from the posterior distribution of the model: 100 simulations for translations with no similarity (0% Levenshtein), 100 simulations for translations with mean accuracy (20.51% Levenshtein), and 100 simulations for translations with the maximum observed accuracy (83.33% Levenshtein). We did this across the range of values of the PTHN scores. For each simulation, we drew a single sample from the posterior distribution of each coefficient. Each simulation is depicted in the graph as a line: pink for minimum similarity translations, blue for hight similarity translations, and yellow for maximum similarity translations. Black, thick lines indicate the expected mean value of the posterior predictions of the model for each condition. The dispersion of the lines indicates the uncertainty of our predictions. We computed these posterior predictions for each group of participants, and plot tem in separate panels.</p>
 </div>
 
+# Additional analyses
 
+## Previous familiarity
+
+
+<img src="index_files/figure-html/familiarity-frequency-distribution-1.png" width="80%" />
+
+<img src="index_files/figure-html/previous-familiarity-1.png" width="80%" />
 
