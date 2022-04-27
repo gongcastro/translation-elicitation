@@ -61,6 +61,10 @@ object will be directly save as a variable in your workspace.
 
     ## Run make() to update the project
     ## Run tar_load_all() to load all built targets
+    ## Warning message:
+    ## package 'targets' was built under R version 4.0.5 
+    ## Warning message:
+    ## package 'tarchetypes' was built under R version 4.0.5 
 
 ![](README_files/figure-gfm/targets-1.png)<!-- -->
 
