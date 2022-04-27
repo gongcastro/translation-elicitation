@@ -1,6 +1,6 @@
 ---
 title: "Translation Elicitation: Report"
-date: "Last updated: 17/03/2022"
+date: "Last updated: 21/03/2022"
 output:
   html_document:
     theme: paper
@@ -31,7 +31,7 @@ Participants in the ENG-SPA listened to 103 Spanish words, and participants in t
 
 
 
-preserve7a47443dd48c063d
+preserve1afd4934c32582c4
 
 ## Lexical frequency
 
@@ -163,14 +163,14 @@ We compared this (extended model) to other models dropping one predictor at a ti
 Leave-one-out cross-validation. The more negative is `elpd_diff` (and the larger its magnitude compared to its corresponding standard error), the better it first the data compared to the null model (`~ 1 + (1 | participant)`). The model that fits the data the best is the extended model.
 
 
-preserve785d648711eda9cb
+preserve597109132a602539
 
 
 
 
 ### Fixed coefficients
 
-preservee3afee68708690a2
+preservefe0c88e257ad760b
 
 
 <div class="figure">
