@@ -115,11 +115,19 @@ get_stimuli <- function(
         left_join(clearpond) %>%
         left_join(levenshtein) %>% 
         mutate(
+            word1 = replace_non_ascii(word1),
             frequency_zipf = log10(frequency)+3,
-            duration = durations
+            duration = durations,
+            # assign a numeric ID to each unique translation pair
+            translation = paste0(word1, " /", ipa1, "/ - ", word2, " /", ipa2, "/"),
+            translation_id = as.integer(as.factor(translation)),
+            # does lexical frequency need to be imputed?
+            is_imputed = is.na(frequency_zipf)
         ) %>% 
         select(
             group,
+            translation,
+            translation_id,
             word1, 
             word2,
             ipa1, 
@@ -129,9 +137,6 @@ get_stimuli <- function(
             pthn, 
             lv, 
             duration
-        ) %>% 
-        mutate(
-            is_imputed = is.na(frequency_zipf),
         ) %>% 
         # impute missing data
         mice(

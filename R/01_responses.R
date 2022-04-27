@@ -23,13 +23,28 @@ get_responses_processed <- function(
         clean_names() %>% 
         # select relevant variables and rename if necessary
         select(
-            participant, test_language, trial_id, word, soundfile, key_pressed, input_text, key_press_time, error, age, date, city,
+            participant, 
+            test_language, 
+            trial_id, 
+            word, 
+            soundfile, 
+            key_pressed, 
+            input_text, 
+            key_press_time, 
+            error,
+            age, 
+            date, 
+            city,
             matches("language_l|language_s|language_c|demo_|setup_"),
             -matches("_rt|_time"),
             key_press_time
         ) %>% 
         rename(demo_impairment = demo_language_key_keys) %>% 
-        rename_all(gsub, pattern = "_key_keys|key_keys", replacement = "") %>% 
+        rename_all(
+            gsub,
+            pattern = "_key_keys|key_keys",
+            replacement = ""
+        ) %>% 
         # clean text input by participants (because of typos of need to translate) and redefine location    
         group_by(participant) %>% 
         mutate_at(
@@ -37,15 +52,31 @@ get_responses_processed <- function(
                 starts_with("demo_"),
                 starts_with("l"),
                 starts_with("setup_"),
-                age, city, setup_location, setup_noise
+                age, 
+                city,
+                setup_location, 
+                
             ),
-            first_non_na) %>% 
+            first_non_na
+        ) %>% 
         mutate(date = max(date, na.rm = TRUE)) %>% 
         ungroup() %>% 
-        mutate_at(vars(starts_with("language_"), city, starts_with("demo_"), starts_with("l")), clean_input_text) %>% 
+        mutate_at(
+            vars(
+                starts_with("language_"),
+                city, 
+                starts_with("demo_"),
+                starts_with("l")
+            ),
+            clean_input_text
+        ) %>% 
         mutate(
             city = str_to_sentence(city),
-            country = ifelse(city %in% spanish_cities, "Spain", "UK"),
+            country = ifelse(
+                city %in% spanish_cities,
+                "Spain", 
+                "UK"
+            ),
             date = as_datetime(ymd_hms(date)),
             demo_sex = case_when(
                 country %in% "UK" & demo_sex %in% "M" ~ "Male",
@@ -69,11 +100,23 @@ get_responses_processed <- function(
                 country %in% "UK" & test_language %in% "Spanish" ~ "ENG-SPA",
                 TRUE ~ "SPA-CAT"
             ),
-            language_l2 = ifelse(is.na(language_l2), "None", language_l2),
-            language_l1 = ifelse(str_detect(group, "ENG"), "ENG", "SPA")
+            language_l2 = ifelse(
+                is.na(language_l2),
+                "None",
+                language_l2
+            ),
+            language_l1 = ifelse(
+                str_detect(group, "ENG"),
+                "ENG", 
+                "SPA"
+            )
         ) %>%
         ungroup() %>% 
-        rename_all(gsub, pattern = "demo_|language_|setup_", replacement = "") %>% 
+        rename_all(
+            gsub, 
+            pattern = "demo_|language_|setup_", 
+            replacement = ""
+        ) %>% 
         select(-trial_id)
     
     return(processed)
@@ -87,6 +130,7 @@ get_responses_clean <- function(
     clean <- responses_processed %>%
         group_by(participant) %>% 
         mutate(
+            word = replace_non_ascii(word),
             age = max(age, na.rm = TRUE),
             key_press_time = key_press_time-1,
             input_text = str_to_lower(input_text),
@@ -94,14 +138,48 @@ get_responses_clean <- function(
         ) %>%
         # for each participant, select the first non-missing value of the following variables:
         group_by(participant) %>%
-        mutate_at(vars(matches("language_|demo_|setup_")), first_non_na) %>%
-        group_by(participant, word) %>%
+        mutate_at(
+            vars(matches("language_|demo_|setup_")),
+            first_non_na
+        ) %>%
+        group_by(
+            participant, 
+            word
+        ) %>%
         mutate(correction = first_non_na(error) %in% "yes") %>% # for each participant and trial, convert first non-missing argument into logical)
         ungroup() %>%
         drop_na(test_language) %>% # filter out rows without relevant info
-        relocate(participant, group, test_language, country, word, input_text, key_pressed, key_press_time, error) %>% 
+        relocate(
+            participant,
+            group, 
+            test_language, 
+            country,
+            word, 
+            input_text,
+            key_pressed, 
+            key_press_time,
+            error
+        ) %>% 
         # aggregate by trial (take only one data point per trial)
-        group_by(participant, group, date, test_language, word, age, sex, l1, l2, l2oral, l2written, country, city, vision, impairment, location, noise) %>%
+        group_by(
+            participant,
+            group, 
+            date, 
+            test_language,
+            word,
+            age, 
+            sex, 
+            l1, 
+            l2, 
+            l2oral, 
+            l2written, 
+            country, 
+            city, 
+            vision, 
+            impairment, 
+            location,
+            noise
+        ) %>%
         summarise(
             input_text = last_non_na(input_text),
             typing_onset = first_non_na(key_press_time),
@@ -112,9 +190,26 @@ get_responses_clean <- function(
     
     # merge with trial-level data
     merged <- clean %>%
-        left_join(mutate(stimuli, word = replace_non_ascii(word1))) %>% 
-        select(participant, group, test_language, country, word, target_word = word2, input_text,
-               lv, typing_offset, pthn, frequency)
+        left_join(
+            mutate(
+                stimuli,
+                word = replace_non_ascii(word1)
+            )
+        ) %>% 
+        select(
+            participant, 
+            group, 
+            translation_id,
+            translation,
+            country, 
+            presented_word = word, 
+            target_translation = word2,
+            input_text,
+            lv,
+            typing_offset, 
+            pthn,
+            frequency
+        )
     
     return(merged)
 }
@@ -127,25 +222,52 @@ get_participants <- function(
     min_valid_trials = 0.80,
     min_age = 18,
     max_age = 26,
-    blocked_languages = c("Italian", "Spanish")
+    blocked_languages = c(
+        "Italian",
+        "Spanish"
+    )
 ){
     
     extra_info <- distinct(
         responses_processed, 
-        participant, group, country, date, test_language, age, sex, l2, l2oral, 
-        l2written, spanish_oral, spanish_written, catalan_oral, catalan_written, 
-        impairment, vision
+        participant,
+        group, 
+        country,
+        date, 
+        test_language, 
+        age,
+        sex, 
+        l2, 
+        l2oral, 
+        l2written,
+        spanish_oral, 
+        spanish_written, 
+        catalan_oral, 
+        catalan_written, 
+        impairment, 
+        vision
     )
     
     participants <- responses_coded %>% 
         # code valid and correct responses
         rowwise() %>% 
         mutate(
-            valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
-            correct_coded = response_type %in% c("correct", "typo")
+            valid_response = response_type %in% c(
+                "correct", 
+                "typo",
+                "wrong",
+                "false_friend"
+            ),
+            correct_coded = response_type %in% c(
+                "correct",
+                "typo"
+            )
         ) %>%
         # get proportion of correct trials per participant
-        group_by(participant, group) %>%
+        group_by(
+            participant, 
+            group
+        ) %>%
         summarise(
             n = n(), # total number of trials
             n_valid = sum(valid_response, na.rm = TRUE), # total number of valid trials
@@ -157,6 +279,7 @@ get_participants <- function(
         left_join(extra_info) %>% 
         # participant is valid if has completed >= 80% trials (valid)
         mutate(
+            participant_id = as.integer(as.factor(participant)),
             invalid_participant_trials = ifelse(
                 test_language %in% "Catalan", 
                 n_valid < min_valid_trials*86, 
@@ -196,8 +319,16 @@ get_responses <- function(
     # process responses
     responses <- responses_coded %>% 
         mutate(
-            valid_response = response_type %in% c("correct", "typo", "wrong", "false_friend"),
-            correct = response_type %in% c("correct", "type"),
+            valid_response = response_type %in% c(
+                "correct", 
+                "typo", 
+                "wrong", 
+                "false_friend"
+            ),
+            correct = response_type %in% c(
+                "correct", 
+                "type"
+            ),
             group = as.factor(group)
         ) %>%
         filter(
@@ -205,10 +336,29 @@ get_responses <- function(
             valid_response, # response is valid 
             word %!in% practice_trials # not a practice trial
         ) %>% 
-        left_join(stimuli, by = c("group", "word" = "word1")) %>% 
+        left_join(
+            stimuli, 
+            by = c(
+                "group", 
+                "word" = "word1"
+            )
+        ) %>% 
+        left_join(
+            select(
+                participants,
+                participant,
+                participant_id
+            )
+        ) %>% 
         mutate(frequency = log10(frequency)+3) %>% 
-        relocate(group, trial_id) %>% 
-        arrange(group, trial_id) %>%  
+        relocate(
+            group,
+            trial_id
+        ) %>% 
+        arrange(
+            group,
+            trial_id
+        ) %>%  
         # typos are considered correct responses
         # transform relative frequency to Zipf score
         mutate(
@@ -218,9 +368,35 @@ get_responses <- function(
             pthn_std = scale(pthn)[,1],
             lv_std = scale(lv)[,1]
         ) %>% 
-        arrange(trial_id, group) %>% 
-        mutate_at(vars(group), as.factor) %>% 
-        drop_na(correct, participant, pthn, frequency_zipf)
+        arrange(
+            trial_id, 
+            group
+        ) %>% 
+        mutate_at(
+            vars(group),
+            as.factor
+        ) %>% 
+        drop_na(
+            correct,
+            participant,
+            pthn,
+            frequency_zipf
+        ) %>% 
+        select(
+            translation_id,
+            participant_id,
+            group,
+            word,
+            input_text,
+            correct,
+            valid_response,
+            frequency_zipf,
+            pthn,
+            lv,
+            frequency_zipf_std,
+            pthn_std,
+            lv_std
+        )
     
     # a priori contrasts for each group
     contrasts(responses$group) <- cbind(
