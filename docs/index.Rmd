@@ -316,32 +316,32 @@ stimuli_coded %>%
   left_join(
     count(
       ., 
-      test_language, 
+      group, 
       name = "n_total"
     )
   ) %>% 
   mutate(
     test_language = paste0(
-      test_language, 
+      group, 
       " (N = ", 
       n_total, 
       ")"
     )
   ) %>% 
   count(
-    test_language, 
+    group, 
     pthn
   ) %>% 
   ggplot() +
   aes(
-    reorder(as.factor(pthn), -n), 
+    as.factor(pthn), 
     n,
-    fill = test_language
+    fill = group
   ) +
-facet_wrap(
-  ~test_language,
-  ncol = 1
-) +
+  facet_wrap(
+    ~group,
+    ncol = 1
+  ) +
   geom_col(position = position_dodge()) +
   labs(
     x = "# Phonological neighbours with higher lexical frequency\nExtracted from CLEARPOND database",
@@ -1004,13 +1004,11 @@ The estimation of the model was performed using Bayesian inference via Hamiltoni
 
 We compared this (extended model) to other models dropping one predictor at a time using Leave-one-out cross-validation (LOO-CV), using the `loo` and `loo_compare` functions of the `brms` package. We compared our extended model against the following models:
 
-* fit_0: `~ 1 + (1 | participant) + (1 | word)`
-* fit_1: `~ 1 + frequency_zipf + (1 + frequency_zipf | participant) + (1 | word)`
-* fit_2: `~ 1 + frequency_zipf + pthn + (1 + frequency_zipf + pthn | participant) + (1 | word)`
-* fit_3: `~ 1 + frequency_zipf + pthn + lv + (1 + frequency_zipf + pthn + lv | participant) + (1 | word)`
-* fit_4: `~ 1 + frequency_zipf + pthn + lv + pthn:lv + (1 + frequency_zipf + pthn + pthn:lv + lv | participant) + (1 | word)`
-* fit_5: `~ 1 + frequency_zipf + pthn + lv + pthn:lv + group + (1 + frequency_zipf + pthn + pthn:lv + lv | participant) + (1 | word)`
-* fit_6: `~ 1 + frequency_zipf + pthn + lv + pthn:lv + group + group:lv + (1 + frequency_zipf + pthn + pthn:lv + lv | participant) + (1 | word)`
+* fit_0: `~ 1 + (1 | participant_id) + (1 | translation_id)`
+* fit_1: `~ 1 + frequency_zipf + (1 + frequency_zipf | participant_id) + (1 | translation_id)`
+* fit_2: `~ 1 + frequency_zipf + pthn + (1 + frequency_zipf + pthn | participant_id) + (1 | translation_id)`
+* fit_3: `~ 1 + frequency_zipf + pthn + lv + (1 + frequency_zipf + pthn + lv | participant_id) + (1 | translation_id)`
+* fit_4: `~ 1 + frequency_zipf + pthn + lv + pthn:lv + (1 + frequency_zipf + pthn + pthn:lv + lv | participant_id) + (1 | translation_id)`
 
 
 
@@ -1200,7 +1198,7 @@ model_loos %>%
 
 ```{r coefs_fixed_table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-coefs <- fixef(fit_6) %>% 
+coefs <- fixef(fit_4) %>% 
   as.data.frame() %>% 
   rownames_to_column("variable") %>% 
   clean_names() %>% 
@@ -1217,12 +1215,8 @@ str_repl <- c(
   "Intercept" = "Intercept",
   "frequency_zipf_std" = "Frequency\n[+1 SD]",
   "pthn_std:lv_std" = "PTHN \u00d7 Levenshtein", 
-  "lv_std:group1" = "Levenshtein \u00d7 Group 1",
-  "lv_std:group2" = "Levenshtein \u00d7 Group 2",
   "lv_std" = "Levenshtein\n[+1 SD]",
-  "pthn_std" = "PTHN\n[+1 SD]",
-  "group1" =  "Group 1\n[*-ENG vs. cat-SPA]",
-  "group2" = "Group 2\n[cat-ENG vs. spa-ENG]"
+  "pthn_std" = "PTHN\n[+1 SD]"
 )
 
 coefs %>% 
@@ -1235,11 +1229,7 @@ coefs %>%
           "Frequency\n[+1 SD]",
           "PTHN\n[+1 SD]", 
           "Levenshtein\n[+1 SD]", 
-          "PTHN \u00d7 Levenshtein",
-          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
-          "Group 2\n[cat-ENG vs. spa-ENG]",
-          "Levenshtein \u00d7 Group 1",
-          "Levenshtein \u00d7 Group 2"
+          "PTHN \u00d7 Levenshtein"
         )
       )
   ) %>% 
@@ -1266,8 +1256,7 @@ coefs %>%
 ```{r posteriorfix, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Estimated posterior distributions of coefficients in Model 4. A\\) Population-level effects. Distributions indicate the estimated posterior likelihood density of regression coefficients of fixed effects. Credible intervals (*CrI*), represented with increasingly lighter segmentents in the distribution indicate the range of values that contain the true value with 95\\%, 80\\%, and 50\\% probability. Black dots represent the mean of each distribution. B\\) Participant\\-level coefficient variability. The model estimated participant\\-level coefficients to account for the dependency between responses from the same participant. Distributions in this panel indicate the estimated variability across coefficients from different participants, expressed as standard deviations (*SD*). C\\) Correlation between participant\\-level effects. The model allowed participant-level coefficients to co\\-vary. This panel represents the Pearson correlations between each pair of coefficients, expressed as the mean of the posterior distribution of each  estimated correlation.", fig.height=7, fig.width=6.5}
 
 
-
-coefs <- fixef(fit_6) %>% 
+coefs <- fixef(fit_4) %>% 
   as.data.frame() %>% 
   rownames_to_column("variable") %>% 
   clean_names() %>% 
@@ -1288,12 +1277,8 @@ str_repl <- c(
   "Intercept" = "Intercept",
   "frequency_zipf_std" = "Frequency\n[+1 SD]",
   "pthn_std:lv_std" = "PTHN \u00d7 Levenshtein", 
-  "lv_std:groupENGvs.SPA" = "Levenshtein \u00d7 Group 1",
-  "lv_std:groupENGMCATvs.ENGMSPA" = "Levenshtein \u00d7 Group 2",
   "lv_std" = "Levenshtein\n[+1 SD]",
-  "pthn_std" = "PTHN\n[+1 SD]",
-  "groupENGvs.SPA" =  "Group 1\n[*-ENG vs. cat-SPA]",
-  "groupENGMCATvs.ENGMSPA" = "Group 2\n[cat-ENG vs. spa-ENG]"
+  "pthn_std" = "PTHN\n[+1 SD]"
 )
 
 
@@ -1379,7 +1364,7 @@ post_sd_data <- posterior_draws_fixed %>%
   mutate(
     .variable_name = str_remove(
       .variable, 
-      "sd_participant__|sd_word__"
+      "sd_participant_id__|sd_translation_id__"
     ) %>% 
       str_replace_all(str_repl) %>% 
       factor(
@@ -1388,16 +1373,12 @@ post_sd_data <- posterior_draws_fixed %>%
           "Frequency\n[+1 SD]",
           "PTHN\n[+1 SD]", 
           "Levenshtein\n[+1 SD]", 
-          "PTHN \u00d7 Levenshtein",
-          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
-          "Group 2\n[cat-ENG vs. spa-ENG]",
-          "Levenshtein \u00d7 Group 1",
-          "Levenshtein \u00d7 Group 2"
+          "PTHN \u00d7 Levenshtein"
         )
       ),
     group = case_when(
       str_detect(.variable, "participant") ~ "Participants",
-      str_detect(.variable, "word") ~ "Words"
+      str_detect(.variable, "translation") ~ "Words"
     ),
     .value = ifelse(
       str_detect(.variable, "Intercept"),
@@ -1406,7 +1387,8 @@ post_sd_data <- posterior_draws_fixed %>%
     )
   ) 
 
-post_sd <- filter(post_sd_data, group=="Participants") %>% 
+post_sd <- post_sd_data %>% 
+  filter(group=="Participants") %>% 
   ggplot() +
   aes(
     .value,
@@ -1450,13 +1432,14 @@ post_sd <- filter(post_sd_data, group=="Participants") %>%
     fct_rev(.variable_name)
   ) +
   stat_slab(
-    aes(fill = stat(
-      cut_cdf_qi(
-        cdf, 
-        .width = c(.5, .8, .95),
-        labels = percent_format()
+    aes(
+      fill = stat(
+        cut_cdf_qi(
+          cdf, 
+          .width = c(.5, .8, .95),
+          labels = percent_format()
+        )
       )
-    )
     )
   ) +
   stat_pointinterval(
@@ -1472,7 +1455,6 @@ post_sd <- filter(post_sd_data, group=="Participants") %>%
     title = "By item", 
     fill = "CrI"
   ) +
-  
   plot_layout(
     ncol = 1, 
     heights = c(0.85, 0.15), 
@@ -1492,13 +1474,13 @@ post_sd <- filter(post_sd_data, group=="Participants") %>%
     panel.grid.major.y = element_line(
       colour = "grey",
       size = 0.5
-      )
+    )
   ) 
 
 
 # Pearson correlations between random effects
-corr_mat <- VarCorr(fit_6, summary = TRUE)$participant$cor 
-corr_names <- rownames(VarCorr(fit_6, summary = TRUE)$participant$cor)
+corr_mat <- VarCorr(fit_4, summary = TRUE)$participant_id$cor 
+corr_names <- rownames(VarCorr(fit_4, summary = TRUE)$participant_id$cor)
 
 corr_mat <- corr_mat %>% 
   as_tibble() %>% 
@@ -1514,7 +1496,7 @@ corr_data <- corr_mat %>%
     -term1, 
     names_to = "term2", 
     values_to = ".value"
-    ) %>% 
+  ) %>% 
   drop_na(.value)
 
 post_cors <- corr_data %>% 
@@ -1554,8 +1536,8 @@ post_cors <- corr_data %>%
     fct_inorder(term1), 
     fct_rev(fct_inorder(term2)),
     fill = .value
-  )
-geom_tile(na.rm = TRUE) +
+  ) +
+  geom_tile(na.rm = TRUE) +
   geom_text(
     aes(label = .value_label), 
     size = 3, 
@@ -1579,15 +1561,15 @@ geom_tile(na.rm = TRUE) +
     legend.position = c(1, 1),
     legend.direction = "horizontal",
     legend.key.height = unit(0.1, "cm"),
-    legend.key.width = unit(0.3, "cm"),
+    legend.key.width = unit(0.4, "cm"),
     legend.justification = c(1, 1),
     legend.title = element_blank(),
-    legend.text = element_text(size = 5),
+    legend.text = element_text(size = 7),
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     axis.ticks = element_blank(),
-    axis.text.x = element_text(size = 6, angle = 90, hjust = 0, vjust = 1),
-    axis.text.y = element_text(size = 6, vjust = 1, hjust = 1)
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0, vjust = 1),
+    axis.text.y = element_text(size = 8, vjust = 1, hjust = 1)
   )
 
 post_fix / 
@@ -1612,13 +1594,13 @@ post_re <- posterior_draws_random$participants %>%
   left_join(
     select(
       participants,
-      participant,
+      participant_id,
       group
     )
   ) %>% 
   arrange(
     group, 
-    participant, 
+    participant_id, 
     .param
   ) %>% 
   mutate(
@@ -1632,11 +1614,7 @@ post_re <- posterior_draws_random$participants %>%
           "Frequency\n[+1 SD]",
           "PTHN\n[+1 SD]", 
           "Levenshtein\n[+1 SD]", 
-          "PTHN \u00d7 Levenshtein",
-          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
-          "Group 2\n[cat-ENG vs. spa-ENG]",
-          "Levenshtein \u00d7 Group 1",
-          "Levenshtein \u00d7 Group 2"
+          "PTHN \u00d7 Levenshtein"
         )
       )
   )
@@ -1645,7 +1623,7 @@ ggplot(
   post_re, 
   aes(
     .value, 
-    sort(as.factor(participant)), 
+    sort(as.factor(participant_id)), 
     xmin = .lower,
     xmax = .upper,
     colour = group
@@ -1692,13 +1670,25 @@ ggplot(
 
 
 ```{r post_re_word, echo=FALSE, fig.height=9, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE}
-fixed_intercept <- fixef(fit_6)[1,c(1, 3, 4)] %>% 
+fixed_intercept <- fixef(fit_4)[1,c(1, 3, 4)] %>% 
   inv_logit_scaled()
 
-post_re <- posterior_draws_random$words   %>% 
+empirical_accuracy <- responses %>% 
+  group_by(group, translation_id, lv) %>% 
+  summarise(
+    successes = sum(correct, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) %>% 
+  mutate(
+    prop = prop_adj(successes, n),
+    prop_se = prop_adj_se(successes, n)
+  ) 
+
+post_re <- posterior_draws_random$words %>% 
   ungroup() %>% 
   arrange(
-    word, 
+    translation_id, 
     .param
   ) %>% 
   mutate(
@@ -1712,83 +1702,70 @@ post_re <- posterior_draws_random$words   %>%
           "Frequency\n[+1 SD]",
           "PTHN\n[+1 SD]", 
           "Levenshtein\n[+1 SD]", 
-          "PTHN \u00d7 Levenshtein",
-          "Group 1\n[cat/spa-ENG vs. cat-SPA]",
-          "Group 2\n[cat-ENG vs. spa-ENG]",
-          "Levenshtein \u00d7 Group 1",
-          "Levenshtein \u00d7 Group 2"
+          "PTHN \u00d7 Levenshtein"
         )
       ),
     .value = inv_logit_scaled(.value)
+  ) %>% 
+  left_join(
+    empirical_accuracy
   )
 
-ggplot(
-  post_re,
-  aes(
-    .value,
-    reorder(
-      as.factor(word), 
-      .value
+
+post_re %>% 
+  left_join(
+    select(
+      stimuli,
+      group,
+      translation_id,
+      translation,
+      lv
+    ) %>% 
+      mutate(translation = paste0(translation, " (", percent(lv), ")"))
+  ) %>% 
+  ggplot(
+    aes(
+      x = .value,
+      y = reorder(
+        as.factor(translation), 
+        .value
+      )
     )
-  )
-) +
+  ) +
+  facet_wrap(
+    ~group,
+    scales = "free_y"
+  ) +
   geom_vline(
     xintercept = fixed_intercept[1],
     colour = "grey", 
     size = 1
   ) +
-  
   stat_interval(
     size = 1.5,
     .width = c(0.5, 0.67, 0.95)
   ) +
-  annotate(
-    geom = "text",
-    x = 0.7,
-    y = 100,
-    size = 3,
-    hjust = 0.5,
-    label = "Item accuracy \n(95%, 67%, and 50% CrI \nof item-level intercepts)"
+  geom_point(
+    aes(
+      x = prop
+    ),
+    size = 0.5,
+    shape = 3
   ) +
-  annotate(
-    geom = "rect",
-    alpha = 0.15,
-    xmin = fixed_intercept[2],
-    xmax = fixed_intercept[3],
-    ymin = -Inf,
-    ymax = Inf
-  ) +
-  annotate(
-    x = 0.7,
-    xend = 0.6,
-    y = 108,
-    yend = 130,
-    geom = "curve",
-    curvature = 0.25,
-    arrow = arrow(length = unit(0.2, "cm"))
-  ) +
-  annotate(
-    geom = "text",
-    x = 0.8,
-    y = 10,
-    size = 3,
-    hjust = 0.5,
-    label = "Global posterior accuracy\n(Mean ± 95% CrI of the \npopulation-level intercept)"
-  ) +
-  annotate(
-    x = 0.7,
-    xend = fixed_intercept[1]+0.05,
-    y = 17,
-    yend = 30,
-    geom = "curve",
-    curvature = 0.2,
-    arrow = arrow(length = unit(0.2, "cm"))
+  geom_errorbar(
+    aes(
+      x = prop,
+      xmin = prop-prop_se,
+      xmax = prop+prop_se
+    ),
+    width = 0,
+    size = 0.5
   ) +
   labs(
-    x = "Posterior probability of correct response",
-    y = "Item",
-    colour = "Credible Interval (CrI)",
-    caption = "Credible intervals cover the range of values of the sampling space that \ncontain the true value with a given certainty."
+    x = "Probability of correct response",
+    y = "Translation",
+    colour = "Model prediction (credible interval)",
+    caption = "Credible intervals cover the range of values of the sampling space that contain the true value with a given certainty."
   ) +
   scale_color_manual(
     values = c("#d2e5fc", "#9ccaff", "#1A85FF"),
@@ -1797,9 +1774,7 @@ ggplot(
   ) +
   scale_x_continuous(limits = c(0, 1), labels = percent) +
   theme(
-    legend.position = c(0.1, 0.9),
-    legend.direction = "vertical",
-    legend.justification = "left",
+    legend.position = "top",
     legend.key = element_rect(
       fill = NA, 
       colour = NA
@@ -1824,15 +1799,18 @@ ggplot(
 ggsave(
   here("img", "accuracy.png"), 
   height = 9,
-  width = 5, 
-  dpi = 500
+  width = 14,
+  dpi = 1000
 )
 ```
 
-```{r post_re_word_empirical, echo=FALSE, fig.height=9, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r post_re_word_lv, echo=FALSE, fig.height=9, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-means <- responses %>% 
-  group_by(group) %>% 
+fixed_intercept <- fixef(fit_4)[1,c(1, 3, 4)] %>% 
+  inv_logit_scaled()
+
+empirical_accuracy <- responses %>% 
+  group_by(group, translation_id, lv) %>% 
   summarise(
     successes = sum(correct, na.rm = TRUE),
     n = n(),
@@ -1841,100 +1819,104 @@ means <- responses %>%
   mutate(
     prop = prop_adj(successes, n),
     prop_se = prop_adj_se(successes, n)
+  ) 
+
+post_re <- posterior_draws_random$words %>% 
+  ungroup() %>% 
+  arrange(
+    translation_id, 
+    .param
+  ) %>% 
+  mutate(
+    .param_name = str_replace_all(
+      .param, 
+      str_repl
+    ) %>%  
+      factor(
+        levels = c(
+          "Intercept", 
+          "Frequency\n[+1 SD]",
+          "PTHN\n[+1 SD]", 
+          "Levenshtein\n[+1 SD]", 
+          "PTHN \u00d7 Levenshtein"
+        )
+      ),
+    .value = inv_logit_scaled(.value)
+  ) %>% 
+  left_join(
+    empirical_accuracy
   )
 
 
-posterior_accuracy <- 
-  
-  responses %>% 
-  mutate(
-    stim = paste0(
-      word, " (", ipa1, ") / ", 
-      word2, " (", ipa2, ") / ",
-      percent(lv, accuracy = 1)
+post_re %>% 
+  left_join(
+    select(
+      stimuli,
+      group,
+      translation_id,
+      translation,
+      lv
+    ) %>% 
+      mutate(translation = paste0(translation, " (", percent(lv), ")"))
+  ) %>% 
+  ggplot(
+    aes(
+      x = .value,
+      y = reorder(
+        as.factor(translation), 
+        lv
+      )
     )
-  ) %>% 
-  group_by(group, stim, lv) %>% 
-  summarise(
-    successes = sum(correct, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
-  ) %>% 
-  mutate(
-    prop = prop_adj(successes, n),
-    prop_se = prop_adj_se(successes, n)
-  ) %>% 
-  ggplot() +
-  aes(
-    x = prop,
-    y = reorder(as.factor(stim), lv),
-    xmin = prop-prop_se,
-    xmax = prop+prop_se,
-    label = percent(lv),
-    colour = group
   ) +
-  facet_wrap(~group, scales = "free_y") +
+  facet_wrap(
+    ~group,
+    scales = "free_y"
+  ) +
   geom_vline(
-    data = means,
-    aes(xintercept = prop),
-    size = 1,
-    colour = "grey"
+    xintercept = fixed_intercept[1],
+    colour = "grey", 
+    size = 1
   ) +
-  geom_errorbar(width = 0.1) +
-  geom_point() +
-  annotate(
-    geom = "text",
-    x = 0.7,
-    y = 10,
-    size = 3,
-    hjust = 0.5,
-    label = "Item accuracy \n(95% CI)"
+  stat_interval(
+    size = 1.5,
+    .width = c(0.5, 0.67, 0.95)
   ) +
-  annotate(
-    x = 0.7,
-    xend = 0.15,
-    y = 13,
-    yend = 20,
-    geom = "curve",
-    curvature = 0.25,
-    arrow = arrow(length = unit(0.2, "cm"))
+  geom_point(
+    aes(
+      x = prop
+    ),
+    size = 0.5,
+    shape = 4
   ) +
-  # annotate(
-  #   geom = "text",
-  #   x = 0.8,
-  #   y = 10,
-  #   size = 3,
-  #   hjust = 0.5,
-  #   label = "Global posterior accuracy\n(Mean ± 95% CrI of the \npopulation-level intercept)"
-  # ) +
-  # annotate(
-  #   x = 0.7,
-  #   xend = fixed_intercept[1]+0.05,
-#   y = 17,
-#   yend = 30,
-#   geom = "curve",
-#   curvature = 0.2,
-#   arrow = arrow(length = unit(0.2, "cm"))
-# ) +
-labs(
-  x = "Probability of correct response",
-  y = "Presented word / Correct translation / Levenshtein similarity"
-) +
-  scale_colour_manual(
-    values = c("#1A85FF", "#ff2976", "#FFC20A"),
-    na.translate = FALSE
+  geom_errorbar(
+    aes(
+      x = prop,
+      xmin = prop-prop_se,
+      xmax = prop+prop_se
+    ),
+    width = 0,
+    size = 0.5
   ) +
-  scale_x_continuous(
-    limits = c(0, 1), 
-    labels = percent
+  labs(
+    x = "Posterior probability of correct response",
+    y = "Translation (Levenshtein similarity)",
+    colour = "Model prediction (credible interval)",
+    caption = "Credible intervals cover the range of values of the sampling space that contain the true value with a given certainty."
   ) +
+  scale_color_manual(
+    values = c("#d2e5fc", "#9ccaff", "#1A85FF"),
+    na.translate = FALSE, 
+    labels = paste0(c(95, 67, 50), "%")
+  ) +
+  scale_x_continuous(limits = c(0, 1), labels = percent) +
   theme(
-    legend.position = "none",
-    legend.direction = "vertical",
-    legend.justification = "left",
-    legend.key = element_rect(fill = NA, colour = NA),
+    legend.position = "top",
+    legend.key = element_rect(
+      fill = NA, 
+      colour = NA
+    ),
     panel.grid.major.x = element_line(
-      colour = "grey",
+      colour = "grey", 
       linetype = "dotted"
     ),
     axis.text.x = element_text(size = 7),
@@ -1943,17 +1925,18 @@ labs(
     axis.title = element_text(size = 10),
     plot.caption.position = "plot",
     plot.caption = element_text(
-      size = 9,
+      size = 9, 
       hjust = 0, 
-      face = "plain", 
-      margin = margin(t = unit(3, "cm")))
+      face = "plain",
+      margin = margin(t = unit(3, "cm"))
+    )
   )
 
 ggsave(
-  here("img", "accuracy_empirical.png"), 
+  here("img", "accuracy_lv.png"), 
   height = 9,
-  width = 15,
-  dpi = 500
+  width = 16,
+  dpi = 1000
 )
 ```
 
@@ -1964,22 +1947,21 @@ ggsave(
 
 nd <- expand.grid(
   lv_std = c(
-    min(fit_6$data$lv_std),
+    min(fit_4$data$lv_std),
     0,
-    max(fit_6$data$lv_std)
+    max(fit_4$data$lv_std)
   ),
   frequency_zipf_std = 0,
   pthn_std = seq(
-    min(fit_6$data$pthn_std, na.rm = TRUE),
-    max(fit_6$data$pthn_std, na.rm = TRUE),
+    min(fit_4$data$pthn_std, na.rm = TRUE),
+    max(fit_4$data$pthn_std, na.rm = TRUE),
     by = 0.1
-  ),
-  group = unique(fit_6$data$group)
+  )
 )
 
 m <- add_epred_draws(
   nd, 
-  fit_6, 
+  fit_4, 
   ndraws = 100, 
   re_formula = NA
 ) %>% 
@@ -1987,9 +1969,9 @@ m <- add_epred_draws(
     lv_std = factor(
       lv_std,
       levels = c(
-        min(fit_6$data$lv_std),
+        min(fit_4$data$lv_std),
         0,
-        max(fit_6$data$lv_std)
+        max(fit_4$data$lv_std)
       ),
       labels = c(
         paste0("-1 SD (", percent(min(responses$lv, na.rm = TRUE)), ")"),
@@ -2007,7 +1989,6 @@ ggplot(m) +
     colour = lv_std,
     fill = lv_std
   ) +
-  facet_wrap(~group) +
   geom_hline(
     yintercept = 0.5, 
     colour = "grey"
