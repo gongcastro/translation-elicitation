@@ -1,3 +1,94 @@
+# get SUBTLEX lexical frequencies ----
+get_subtlex <- function(){
+    
+    paths <- list(
+        English = here("data", "subtlex", "SUBTLEX-UK.txt"),
+        Spanish = here("data", "subtlex", "SUBTLEX-ESP.txt"),
+        Catalan = here("data", "subtlex", "SUBTLEX-CAT.txt")
+    )
+    
+    # import SUBTLEX-UK (English)
+    subtlex_eng <- paths$English %>% 
+        fread(
+            verbose = FALSE,
+            showProgress = TRUE
+        ) %>%
+        as_tibble() %>% 
+        clean_names() %>% 
+        rename(
+            word = spelling,
+            frequency_count = freq_count,
+            frequency_zipf = log_freq_zipf
+        ) %>% 
+        select(word, frequency_count, frequency_zipf)
+    
+    
+    # import SUBTLEX-ESP (Spanish)
+    subtlex_spa <- paths$Spanish %>%
+        fread(
+            verbose = FALSE,
+            showProgress = FALSE,
+            select = 1:4
+        ) %>% 
+        clean_names() %>%
+        mutate(frequency_zipf = log10(freq_per_million)+3) %>% 
+        rename(frequency_count = freq_count) %>% 
+        select(
+            word, 
+            frequency_count, 
+            frequency_zipf
+        ) %>% 
+        drop_na() 
+    
+    
+    # import SUBTLEX-CAT (Catalan)
+    subtlex_cat <- paths$Catalan %>%
+        fread(
+            verbose = FALSE,
+            showProgress = FALSE, dec = "."
+        ) %>% 
+        clean_names() %>% 
+        rename(
+            word = words, 
+            frequency_count = abs_wf, 
+            frequency_zipf = zipf
+        ) %>% 
+        mutate(frequency_count = as.numeric(str_remove_all(frequency_count, ","))) %>% 
+        select(word, frequency_count, frequency_zipf)
+    
+    # merge datasets
+    frequency <- list(
+        English = subtlex_eng,
+        Spanish = subtlex_spa,
+        Catalan = subtlex_cat
+    ) %>% 
+        bind_rows(.id = "test_language") %>% 
+        select(word, test_language, frequency_count, frequency_zipf) 
+    
+}
+
+
+# import subtlex
+import_subtlex <- function() {
+    df <- here("data") %>% 
+        list.files(
+            pattern = "SUBTLEX",
+            full.names = TRUE, 
+            recursive = TRUE
+        ) %>%
+        map(~clean_names(read_xlsx(., na = c("", "NA")))) %>%
+        set_names(c("Catalan", "Spanish", "English"))
+    
+    df$English$freq_rel <- 10^(df$English$freq_zipf-3)
+    
+    df <- df %>%
+        bind_rows(.id = "language") %>%
+        select(word, language, freq_rel) %>%
+        mutate(freq_zipf = 3+log10(freq_rel))
+    
+    return(df)
+}
+
 # relative frequencies and phonological neighbours
 get_clearpond <- function(clearpond_path){
     clearpond <- clearpond_path %>% 
@@ -18,15 +109,29 @@ get_clearpond <- function(clearpond_path){
 # get Leveshtein similarity scores
 get_levenshtein <- function(stimuli_path){
     
-    levenshtein <- map(
-        c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
-        function(x) read_xlsx(stimuli_path, sheet = x)
+    levenshtein <- c(
+        "ENG-SPA" = "English-Spanish", 
+        "ENG-CAT" = "English-Catalan",
+        "SPA-CAT" = "Spanish-Catalan"
     ) %>% 
+        map(
+            function(x) read_xlsx(stimuli_path, sheet = x)
+        ) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
-        select(group, word1, word2, ipa1, ipa2) %>% 
+        select(
+            group, 
+            word1, 
+            word2, 
+            ipa1, 
+            ipa2
+        ) %>% 
         mutate(
-            n_char = ifelse(nchar(ipa1) > nchar(ipa2), nchar(ipa1), nchar(ipa2)),
+            n_char = ifelse(
+                nchar(ipa1) > nchar(ipa2),
+                nchar(ipa1), 
+                nchar(ipa2)
+            ),
             lv = stringsim(ipa1, ipa2, method = "lv")
         )
     
@@ -38,17 +143,30 @@ get_duration <- function(
     stimuli_path,
     audios_path
 ){
-    stimuli <- map(
-        c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan"),
-        ~read_xlsx(stimuli_path, sheet = .)) %>% 
+    stimuli <- c(
+        "ENG-SPA" = "English-Spanish", 
+        "ENG-CAT" = "English-Catalan",
+        "SPA-CAT" = "Spanish-Catalan"
+    ) %>% 
+        map(~read_xlsx(stimuli_path, sheet = .)) %>% 
         bind_rows(.id = "group") %>% 
-        select(word1, group, file) %>% 
+        select(
+            word1, 
+            group, 
+            file
+        ) %>% 
         mutate(file = here("stimuli", "sounds", file))
     
     audios <- map(stimuli$file, load.wave) 
+    
     lengths <- map_dbl(audios, length)/2
-    sampling_rate <- unique(map_dbl(audios, ~attr(., "rate")))
+    
+    sampling_rate <- audios %>% 
+        map_dbl(attr, "rate") %>% 
+        unique()
+    
     duration <- lengths/sampling_rate
+    
     return(duration)
 }
 
@@ -60,7 +178,11 @@ get_stimuli <- function(
     durations
 ){
     
-    stimuli <- c("ENG-SPA" = "English-Spanish", "ENG-CAT" = "English-Catalan", "SPA-CAT" = "Spanish-Catalan") %>% 
+    stimuli <- c(
+        "ENG-SPA" = "English-Spanish",
+        "ENG-CAT" = "English-Catalan", 
+        "SPA-CAT" = "Spanish-Catalan"
+    ) %>% 
         map(~read_xlsx(stimuli_path, sheet = .)) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
@@ -71,7 +193,19 @@ get_stimuli <- function(
             frequency_zipf = log10(frequency)+3,
             duration = durations
         ) %>% 
-        select(group, word1, word2, ipa1, ipa2, frequency, frequency_zipf, pthn, lv, duration) %>% 
+        select(
+            group,
+            word1, 
+            word2, 
+            ipa1, 
+            ipa2,
+            frequency,
+            frequency_zipf, 
+            pthn, 
+            lv,
+            duration,
+            problematic
+        ) %>% 
         mutate(
             is_imputed = is.na(frequency_zipf),
         ) %>% 

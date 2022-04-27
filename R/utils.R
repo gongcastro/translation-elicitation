@@ -2,8 +2,22 @@
 "%!in%" <- function(x, y) !(x %in% y)
 
 # find first/last non-missing value in vector
-first_non_na <- function(x) ifelse(is.logical(first(x[!is.na(x)])), NA, first(x[!is.na(x)]))
-last_non_na <- function(x) ifelse(is.logical(last(x[!is.na(x)])), NA, last(x[!is.na(x)]))
+first_non_na <- function(x){
+    ifelse(
+        is.logical(first(x[!is.na(x)])),
+        NA,
+        first(x[!is.na(x)])
+    )
+}
+
+last_non_na <- function(x){
+    ifelse(
+        is.logical(last(x[!is.na(x)])),
+        NA,
+        last(x[!is.na(x)])
+    )
+}
+
 # add_big_mark <- function(x) format(x, big.mark = ",", scientific = FALSE)
 clean_input_text <- function(x) {
     {{ x }} %>% 
@@ -95,25 +109,21 @@ replace_non_ascii <- function(x){
 #     return(d)
 # }
 
-# import subtlex
-import_subtlex <- function() {
-    df <- list.files("data", pattern = "SUBTLEX", full.names = TRUE, recursive = TRUE) %>%
-        map(~janitor::clean_names(readxl::read_xlsx(., na = c("", "NA")))) %>%
-        set_names(c("Catalan", "Spanish", "English"))
-    df$English$freq_rel <- 10^(df$English$freq_zipf-3)
-    df <- df %>%
-        bind_rows(.id = "language") %>%
-        select(word, language, freq_rel) %>%
-        mutate(freq_zipf = 3+log10(freq_rel))
-    return(df)
-}
+
 
 
 # import_trials
 import_trials <- function(path = "stimuli/trials.xlsx", subtlex = NULL){
+    
     if (is.null(subtlex)) subtlex <- import_subtlex()
+    
     trials <- readxl::excel_sheets(path)[-1] %>% 
-        map(~readxl::read_xlsx(path, sheet = ., na = c("", "NA"))) %>% 
+        map(~readxl::read_xlsx(
+            path, 
+            sheet = ., 
+            na = c("", "NA")
+            )
+            ) %>% 
         set_names(c("Spanish-English", "Catalan-English", "Catalan-Spanish")) %>% 
         map2(
             .y = list(
@@ -125,8 +135,17 @@ import_trials <- function(path = "stimuli/trials.xlsx", subtlex = NULL){
         ) %>% 
         bind_rows(.id = "list") %>% 
         select(
-            list, trial_id, word1, word2, jtrace1, jtrace2, consonant_ratio, 
-            vowel_ratio, onset, overlap_stress, starts_with("freq_")
+            list, 
+            trial_id, 
+            word1, 
+            word2, 
+            jtrace1,
+            jtrace2,
+            consonant_ratio, 
+            vowel_ratio, 
+            onset,
+            overlap_stress, 
+            starts_with("freq_")
         )
     return(trials)
 }

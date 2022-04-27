@@ -2,13 +2,16 @@ library(targets)
 library(tarchetypes)
 
 # load functions
-source("R/utils.R")
-source("R/00_stimuli.R")
-source("R/01_responses.R")
-source("R/02_models.R")
+source("R/utils.R", encoding = "UTF-8")
+source("R/00_stimuli.R", encoding = "UTF-8")
+source("R/01_responses.R", encoding = "UTF-8")
+source("R/02_models.R", encoding = "UTF-8")
 
 # set number of cores to use with brms
-options(mc.cores = 1)
+options(
+    mc.cores = 1,
+    encoding = "UTF-8"
+)
 
 # set parameters
 tar_option_set(
@@ -41,20 +44,27 @@ tar_option_set(
         "audio",
         "tidytext",
         "bayesplot",
-        "performance"
-    )
+        "performance",
+        "httr"
+    ), 
 )
 
 list(
     # stimuli ----
+    
+    # get SUBTLEX data
+    tar_target(
+        subtlex,
+        get_subtlex()
+    ),
     
     # get data on lexical frequency and phonological neighbourhood density
     tar_target(
         clearpond_path, 
         lst(
             `ENG-CAT` = here("data", "clearpond", "clearpond_english.csv"), 
-            `ENG-SPA` = here("Data", "clearpond", "clearpond_english.csv"), 
-            `SPA-CAT` = here("Data", "clearpond", "clearpond_spanish.csv")
+            `ENG-SPA` = here("data", "clearpond", "clearpond_english.csv"), 
+            `SPA-CAT` = here("data", "clearpond", "clearpond_spanish.csv")
         )
     ),
     tar_target(
@@ -210,7 +220,7 @@ list(
                     lv_std:pthn_std + 
                     group + 
                     group:lv_std +
-                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std + group:lv_std | participant) + 
+                    (1 + frequency_zipf_std + pthn_std + lv_std + lv_std:pthn_std + group +group:lv_std | participant) + 
                     (1 | word))
         )
     ),
@@ -307,35 +317,12 @@ list(
         )
     ),
     
-    # posterior draws of population- and group-level effects, and predictions
-    tar_target(
-        posterior_draws_fixed,
-        get_model_draws_fixed(fit_6)
-    ),
-    tar_target(
-        posterior_epreds_fixed, 
-        get_model_epreds_fixed(
-            fit_6
-        )
-    ),
-    tar_target(
-        posterior_draws_random,
-        get_model_draws_random(fit_6)
-    ),
-    tar_target(
-        posterior_epreds_random, 
-        get_model_epreds_random(
-            fit_6, 
-            group = "participant"
-        )
-    ),
-    
     # render docs ----
-    # tar_render(readme, "README.Rmd"),
-
-    tar_render(docs, "docs/index.Rmd"),
-
-    tar_render(manuscript, "manuscript/manuscript.Rmd")
+    tar_render(readme, "README.Rmd")
+    # 
+    # tar_render(docs, "docs/index.Rmd")
+    # 
+    # tar_render(manuscript, "manuscript/manuscript.Rmd")
 )
 
 
