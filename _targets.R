@@ -102,7 +102,9 @@ list(
             stimuli_path = stimuli_path, 
             clearpond = clearpond,
             levenshtein = levenshtein,
-            durations = durations)
+            durations = durations
+        ), 
+        priority = 1
     ),
     tar_target(
         practice_trials, 
@@ -142,7 +144,8 @@ list(
         get_participants(
             responses_processed = responses_processed,
             responses_coded = responses_coded
-        )
+        ),
+        priority = 1
     ),
     tar_target(
         responses,
@@ -151,7 +154,8 @@ list(
             practice_trials = practice_trials,
             participants = participants, 
             stimuli = stimuli
-        )
+        ),
+        priority = 1
     ),
     
     # models ----
@@ -309,12 +313,12 @@ list(
             )
         )
     ),
-    # render docs ----
-    tar_render(readme, "README.Rmd"),
+    # # render docs ----
+    tar_render(readme, "README.Rmd", priority = 0),
     #
-    tar_render(docs, "docs/index.Rmd"),
+    tar_render(docs, "docs/index.Rmd", priority = 0),
     #
-    tar_render(manuscript, "manuscript/manuscript.Rmd")
+    tar_render(manuscript, "manuscript/manuscript.Rmd", priority = 0)
 )
 
 
