@@ -78,7 +78,12 @@ get_clearpond <- function(clearpond_path){
             function(x){
                 fread(x) %>% 
                     clean_names() %>% 
-                    select("word", "pho_word", "freq_per_million", "pthn")
+                    select(
+                        word,
+                        pho_word,
+                        freq_per_million,
+                        pthn
+                    )
             }
         ) %>% 
         bind_rows(.id = "group") %>% 
@@ -87,12 +92,12 @@ get_clearpond <- function(clearpond_path){
             word,
             group, 
             .keep_all = TRUE
-            ) %>% 
+        ) %>% 
         rename(
             word2 = word, 
             phon_clearpond = pho_word,
             frequency = freq_per_million
-            )
+        )
     return(clearpond)
 }
 
@@ -104,9 +109,7 @@ get_levenshtein <- function(stimuli_path){
         "cat-ENG" = "English-Catalan",
         "cat-SPA" = "Spanish-Catalan"
     ) %>% 
-        map(
-            function(x) read_xlsx(stimuli_path, sheet = x)
-        ) %>% 
+        map(function(x) read_xlsx(stimuli_path, sheet = x)) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
         select(
@@ -122,8 +125,16 @@ get_levenshtein <- function(stimuli_path){
                 nchar(ipa1), 
                 nchar(ipa2)
             ),
-            lv = stringsim(enc2utf8(ipa1), enc2utf8(ipa2), method = "lv"),
-            lv_dist = stringdist(enc2utf8(ipa1), enc2utf8(ipa2), method = "lv")
+            lv = stringsim(
+                enc2utf8(ipa1),
+                enc2utf8(ipa2),
+                method = "lv"
+            ),
+            lv_dist = stringdist(
+                enc2utf8(ipa1),
+                enc2utf8(ipa2), 
+                method = "lv"
+            )
         )
     
     return(levenshtein)
@@ -202,6 +213,7 @@ get_stimuli <- function(
             frequency_zipf, 
             pthn, 
             lv,
+            lv_dist,
             duration,
             problematic
         ) %>% 
