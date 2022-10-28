@@ -1,6 +1,9 @@
 source("renv/activate.R")
+source("R/utils.R")
 
 library(targets, quietly = TRUE)
+
+tar_load_globals()
 
 # run all targets as an RStudio job
 make <- function(){

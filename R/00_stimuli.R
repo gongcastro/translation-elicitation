@@ -1,162 +1,115 @@
-# get SUBTLEX lexical frequencies ----
-get_subtlex <- function(){
+
+# generate PCT corpora from Clearpond 
+make_pct_corpus <- function(){
     
-    paths <- list(
-        English = here("data", "subtlex", "SUBTLEX-UK.txt"),
-        Spanish = here("data", "subtlex", "SUBTLEX-ESP.txt"),
-        Catalan = here("data", "subtlex", "SUBTLEX-CAT.txt")
+    # load headers
+    corpus_spa_headers <- readLines(
+        here("data", "clearpond", "spanishCPdatabase2", "clearpondHeaders_SP.txt"),
+        warn = FALSE
     )
     
-    # import SUBTLEX-UK (English)
-    subtlex_eng <- paths$English %>% 
-        fread(
-            verbose = FALSE,
-            showProgress = TRUE
-        ) %>%
-        as_tibble() %>% 
-        clean_names() %>% 
-        rename(
-            word = spelling,
-            frequency_count = freq_count,
-            frequency_zipf = log_freq_zipf
-        ) %>% 
-        select(word, frequency_count, frequency_zipf)
+    corpus_eng_headers <- readLines(
+        here("data", "clearpond", "englishCPdatabase2", "clearpondHeaders_EN.txt"),
+        warn = FALSE
+    )
     
+    # load corpora
+    suppressWarnings({
+        corpus_spa <- here("data", "clearpond", "spanishCPdatabase2", "spanishCPdatabase2.txt") %>% 
+            read_tsv(col_names = corpus_spa_headers, show_col_types = FALSE) %>% 
+            clean_names() %>% 
+            select(Spelling = word, Transcription = phono, Frequency = frequency) %>% 
+            write_csv(
+                here("data", "pct", "pct-corpus_spa.csv")
+            )
+    })
     
-    # import SUBTLEX-ESP (Spanish)
-    subtlex_spa <- paths$Spanish %>%
-        fread(
-            verbose = FALSE,
-            showProgress = FALSE,
-            select = 1:4
-        ) %>% 
-        clean_names() %>%
-        mutate(frequency_zipf = log10(freq_per_million)+3) %>% 
-        rename(frequency_count = freq_count) %>% 
-        select(
-            word, 
-            frequency_count, 
-            frequency_zipf
-        ) %>% 
-        drop_na() 
+    message("Spanish corpus generated")
     
+    suppressWarnings({
+        
+        here("data", "clearpond", "englishCPdatabase2", "englishCPdatabase2.txt") %>% 
+            read_tsv(col_names = corpus_eng_headers, show_col_types = FALSE) %>% 
+            clean_names() %>% 
+            select(
+                Spelling = word, 
+                Transcription = phono, 
+                Frequency = frequency
+            ) %>% 
+            write_csv(
+                here("data", "pct", "pct-corpus_eng.csv")
+            )
+    })
     
-    # import SUBTLEX-CAT (Catalan)
-    subtlex_cat <- paths$Catalan %>%
-        fread(
-            verbose = FALSE,
-            showProgress = FALSE, 
-            dec = "."
-        ) %>% 
-        clean_names() %>% 
-        rename(
-            word = words, 
-            frequency_count = abs_wf, 
-            frequency_zipf = zipf
-        ) %>% 
-        mutate(frequency_count = as.numeric(str_remove_all(frequency_count, ","))) %>% 
-        select(word, frequency_count, frequency_zipf)
-    
-    # merge datasets
-    frequency <- list(
-        English = subtlex_eng,
-        Spanish = subtlex_spa,
-        Catalan = subtlex_cat
-    ) %>% 
-        bind_rows(.id = "test_language") %>% 
-        select(word, test_language, frequency_count, frequency_zipf) 
-    
-    return(frequency)
+    message("English corpus generated")
     
 }
 
 
-# relative frequencies and phonological neighbours
-get_clearpond <- function(clearpond_path){
-    clearpond <- clearpond_path %>% 
-        map(
-            function(x){
-                fread(x) %>% 
-                    clean_names() %>% 
-                    select(
-                        word,
-                        pho_word,
-                        freq_per_million,
-                        pthn
-                    )
+# generate PCT corpora from Clearpond 
+get_neighbours_cp <- function(group = c("spa-ENG", "cat-ENG", "cat-SPA")){
+    suppressWarnings({
+        neighbours <- lapply(
+            group,
+            function(x) {
+                here("data", "pct", paste0("pct-neighbours_", x, ".csv")) %>% 
+                    read_csv(na = "", col_types = "cdcd") %>% 
+                    clean_names() 
             }
         ) %>% 
-        bind_rows(.id = "group") %>% 
-        as_tibble() %>%
-        distinct(
-            word,
-            group, 
-            .keep_all = TRUE
-        ) %>% 
-        rename(
-            word2 = word, 
-            phon_clearpond = pho_word,
-            frequency = freq_per_million
+            bind_rows() %>% 
+            rename(neighbours = neighbors) %>% 
+            mutate(neighbours = str_split(neighbours, pattern = ","))
+    })
+    
+    return(neighbours)
+    
+}
+
+
+# get shared phonemes
+get_shared_phonemes <- function(x, y){
+    length(
+        intersect(
+            unlist(strsplit(x, split = "")),
+            unlist(strsplit(y, split = ""))
         )
-    return(clearpond)
+    )
 }
 
 # get Leveshtein similarity scores
 get_levenshtein <- function(stimuli_path){
     
-    levenshtein <- c(
-        "spa-ENG" = "English-Spanish", 
-        "cat-ENG" = "English-Catalan",
-        "cat-SPA" = "Spanish-Catalan"
-    ) %>% 
-        map(function(x) read_xlsx(stimuli_path, sheet = x)) %>% 
+    groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
+    
+    levenshtein <- groups %>% 
+        map(~read_xlsx(stimuli_path, sheet = .)) %>% 
+        set_names(groups) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
-        select(
-            group, 
-            word1, 
-            word2, 
-            ipa1, 
-            ipa2
-        ) %>% 
+        select(group, word_1, word_2, sampa_1, sampa_2) %>% 
         mutate(
             n_char = ifelse(
-                nchar(ipa1) > nchar(ipa2),
-                nchar(ipa1), 
-                nchar(ipa2)
+                nchar(sampa_1) > nchar(sampa_2),
+                nchar(sampa_1), 
+                nchar(sampa_2)
             ),
-            lv = stringsim(
-                enc2utf8(ipa1),
-                enc2utf8(ipa2),
-                method = "lv"
-            ),
-            lv_dist = stringdist(
-                enc2utf8(ipa1),
-                enc2utf8(ipa2), 
-                method = "lv"
-            )
+            lv = stringsim(sampa_1, sampa_2, method = "lv"),
+            lv_dist = stringdist(sampa_1, sampa_2, method = "lv")
         )
     
     return(levenshtein)
 }
 
 # get audio duration
-get_duration <- function(
-    stimuli_path,
-    audios_path
-){
-    stimuli <- c(
-        "spa-ENG" = "English-Spanish", 
-        "cat-ENG" = "English-Catalan",
-        "cat-SPA" = "Spanish-Catalan"
-    ) %>% 
+get_duration <- function(stimuli_path, audios_path){
+    groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
+    
+    stimuli <- groups %>% 
         map(~read_xlsx(stimuli_path, sheet = .)) %>% 
+        set_names(groups) %>% 
         bind_rows(.id = "group") %>% 
-        select(
-            word1, 
-            group, 
-            file
-        ) %>% 
+        select(word_1, group, file) %>% 
         mutate(file = here("stimuli", "sounds", file))
     
     audios <- map(stimuli$file, load.wave) 
@@ -172,57 +125,105 @@ get_duration <- function(
     return(duration)
 }
 
+
+# get within-language 
+get_neighbours <- function(stimuli_path, type){
+    
+    stopifnot("type must be one of 'within' or 'across'" = type %in% c("within", "across"))
+    
+    groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
+    
+    stimuli <- groups %>% 
+        map(~read_xlsx(stimuli_path, sheet = .)) %>% 
+        set_names(groups) %>% 
+        bind_rows(.id = "group")
+    
+    corpus <- paste0("data/pct/pct-corpus_", c("eng", "spa"), ".csv") %>% 
+        set_names("eng", "spa") %>% 
+        map(
+            function(x){
+                suppressMessages({
+                    read_csv(x, name_repair = make_clean_names) %>% 
+                        mutate(transcription = str_remove_all(transcription, "\\.")) %>% 
+                        distinct(transcription) %>% 
+                        pull(transcription)
+                })
+            }
+        )
+    
+    stimuli_split <- split(stimuli, f = stimuli$group)
+    corpus_split <- corpus[c("eng", "spa", "eng")] %>% 
+        set_names(names(stimuli_split))
+    
+    if (type=="within") {
+        neighbours <- map2(
+            stimuli_split, corpus_split, 
+            ~find_neighbours(.x[["sampa_2"]], .y)
+        ) %>% 
+            bind_rows(.id = "group")
+    }
+    
+    if (type=="across") {
+        neighbours <- map2(
+            stimuli_split, corpus_split, 
+            ~find_neighbours(.x[["sampa_1"]], .y)
+        ) %>% 
+            bind_rows(.id = "group")
+    }
+    
+    return(neighbours)
+}
+
+
 # process stimuli and add information
 get_stimuli <- function(
-    stimuli_path,
-    clearpond,
-    levenshtein,
-    durations
+        stimuli_path,
+        neighbours,
+        levenshtein,
+        durations
 ){
     
-    stimuli <- c(
-        "spa-ENG" = "English-Spanish",
-        "cat-ENG" = "English-Catalan", 
-        "cat-SPA" = "Spanish-Catalan"
-    ) %>% 
+    groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
+    
+    stimuli <- groups %>% 
         map(~read_xlsx(stimuli_path, sheet = .)) %>% 
+        set_names(groups) %>% 
         bind_rows(.id = "group") %>% 
         clean_names() %>% 
-        select(-trial_id) %>% 
-        left_join(clearpond) %>%
-        left_join(levenshtein) %>% 
+        select(group, word_1, word_2, ipa_flat_1, ipa_flat_2, sampa_1, sampa_2, practice_trial, file, freq_rel_2)  %>% 
+        left_join(select(levenshtein, -c(sampa_1, sampa_2))) %>% 
         mutate(
-            word1 = replace_non_ascii(word1),
-            frequency_zipf = log10(frequency)+3,
+            practice_trial = as.logical(practice_trial),
+            freq_zipf_2 = log10(freq_rel_2)+3,
+            freq_2 = freq_rel_2,
             duration = durations,
             # assign a numeric ID to each unique translation pair
-            translation = paste0(word1, " /", ipa1, "/ - ", word2, " /", ipa2, "/"),
+            translation = paste0(word_1, " /", ipa_flat_1, "/ - ", word_2, " /", ipa_flat_2, "/"),
             translation_id = as.integer(as.factor(translation)),
             # does lexical frequency need to be imputed?
-            is_imputed = is.na(frequency_zipf)
+            is_imputed = is.na(freq_zipf_2),
+            sampa_1 = str_remove_all(sampa_1, "\\."),
+            sampa_2 = str_remove_all(sampa_2, "\\.")
         ) %>% 
         select(
-            group,
-            translation,
-            translation_id,
-            word1, 
-            word2, 
-            ipa1, 
-            ipa2,
-            frequency,
-            frequency_zipf, 
-            pthn, 
-            lv,
-            lv_dist,
-            duration,
-            problematic
+            group, translation, translation_id, word_1, word_2, 
+            sampa_1, sampa_2, ipa_flat_1, ipa_flat_2,
+            freq_2, freq_zipf_2, 
+            lv, lv_dist,
+            duration, practice_trial
         ) %>% 
-        mutate(
-            is_imputed = is.na(frequency_zipf),
-        ) %>% 
-        # impute missing data
-        mice(m = 5, print = FALSE, method = "pmm") %>% 
-        complete() %>% 
+        left_join(
+            rename(
+                neighbours,
+                sampa_1 = token, 
+                nd = neighbour_dens,
+                nd_list = neighbour_list
+            )
+        ) %>%         
+        # mutate(is_imputed = is.na(frequency_zipf)) %>% 
+        # # impute missing data
+        # mice(m = 5, print = FALSE, method = "pmm", ) %>% 
+        # complete() %>% 
         as_tibble()
     
     saveRDS(stimuli, "results/stimuli.rds")

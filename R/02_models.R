@@ -11,7 +11,7 @@ get_model_fit <- function(name, formula, prior, ...){
         prior = prior,
         save_pars = save_pars(all = TRUE),
         backend = "cmdstanr",
-        iter = 6000,
+        iter = 1000,
         cores = 1,
         chains = 1,
         seed = 888,
