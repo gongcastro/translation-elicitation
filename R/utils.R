@@ -58,7 +58,7 @@ theme_custom <- function(){
 replace_non_ascii <- function(x){
     str_replace_all(
         x,
-        c(
+        enc2utf8(c(
             "á" = "a",
             "é" = "e",
             "í" = "i",
@@ -68,22 +68,15 @@ replace_non_ascii <- function(x){
             "è" = "e",
             "ò" = "o",
             "ñ" = "n",
-            "ç" = "c"
-        )
+            "ç" = "c",
+            "ü" = "u"
+        ))
     )
 }
 
 
 # download clearpond
-import_clearpond <- function(
-    language = c(
-        "english", 
-        "dutch", 
-        "french", 
-        "spanish", 
-        "german"
-    )
-){
+import_clearpond <- function(language = c("english", "dutch", "french", "spanish", "german")){
     urls <- tribble(
         ~lang, ~url, ~data, ~header,
         "english", "https://clearpond.northwestern.edu/englishCPdatabase2.zip", "englishCPdatabase2.txt", "clearpondHeaders_EN.txt",
@@ -104,10 +97,10 @@ import_clearpond <- function(
             header = as.list(urls$header)
         ),
         .f = function(
-            url = .l[[1]],
-            file = .l[[2]],
-            data = .l[[3]], 
-            header = .l[[4]]
+        url = .l[[1]],
+        file = .l[[2]],
+        data = .l[[3]], 
+        header = .l[[4]]
         ) {
             download.file(url, destfile = file)
             unzip(zipfile = file, exdir = dir)
@@ -191,3 +184,45 @@ prop_adj_ci <- function(x, n, .width = 0.95) {
     ci[2] <- ifelse(ci[2]>1, 1, ci[2]) # truncate at 1
     return(ci)
 }
+
+
+
+# get neighbours based on Levenshtein distance
+find_neighbours <- function(x, corpus, neighbour_threshold = 1) {
+    
+    x <- str_remove_all(x, "[:punct:]")
+    
+    neighbours <- stringdistmatrix(x, corpus) %>% 
+        as_tibble() %>% 
+        set_names(corpus) %>% 
+        mutate(row_name = x) %>% 
+        pivot_longer(-row_name, names_to = "corpus", values_to = "lv") %>% 
+        mutate(is_neighbour = lv <= neighbour_threshold) %>% 
+        filter(row_name!=corpus) %>% 
+        group_by(row_name) %>% 
+        summarise(
+            neighbour_dens = sum(is_neighbour, na.rm = TRUE),
+            neighbour_list = list(corpus[is_neighbour]),
+            .groups = "drop"
+        ) %>% 
+        rename(token = row_name)
+    
+    return(neighbours)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
