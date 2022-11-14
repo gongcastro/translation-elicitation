@@ -18,6 +18,8 @@ last_non_na <- function(x){
     )
 }
 
+clean_sampa <- function(x) gsub("\\.", "", x)
+
 # add_big_mark <- function(x) format(x, big.mark = ",", scientific = FALSE)
 clean_input_text <- function(x) {
     {{ x }} %>% 
@@ -211,7 +213,7 @@ find_neighbours <- function(x, corpus, neighbour_threshold = 1) {
 }
 
 
-
+logit_to_prob <- function(x, variable) ifelse(grepl("intercept", tolower(variable)), plogis(x), x/4)
 
 
 

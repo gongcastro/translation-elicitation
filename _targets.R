@@ -49,7 +49,8 @@ tar_option_set(
         "bayesplot",
         "performance",
         "httr",
-        "ggrepel"
+        "ggrepel",
+        "yardstick"
     ), 
 )
 
@@ -62,6 +63,16 @@ list(
     # stimuli ----
     
     tar_target(stimuli_path, "stimuli/trials.xlsx", format = "file"),
+    
+    tar_target(
+        stimuli_exclude,
+        c(
+            "corona", # problematic, given COVID-19
+            "moneda", # 2 correct responses: money, coin
+            "lengua", # 2 correct responses: language, tongue
+            "porc"   # 2 correct responses: pork, pig
+        )
+    ),
     
     # get data on cross-language Levenshtein distance
     tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
@@ -80,7 +91,8 @@ list(
             stimuli_path = stimuli_path, 
             levenshtein = levenshtein,
             durations = durations,
-            neighbours = neighbours
+            neighbours = neighbours,
+            stimuli_exclude = stimuli_exclude
         )
     ),
     
@@ -129,8 +141,13 @@ list(
             ),
             f_4 = bf(
                 correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + 
-                (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
+                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
                     (1 | translation_id)
+            ),
+            f_5 = bf(
+                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
+                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
+                    (1 + group | translation_id)
             )
         )
     ),
@@ -152,9 +169,13 @@ list(
     tar_target(fit_2, get_model_fit(name = "fit_2", formula = model_formulas$f_2, data = responses, prior = model_prior)),
     tar_target(fit_3, get_model_fit(name = "fit_3", formula = model_formulas$f_3, data = responses, prior = model_prior)),
     tar_target(fit_4, get_model_fit(name = "fit_4", formula = model_formulas$f_4, data = responses, prior = model_prior)),
-
+    tar_target(fit_5, get_model_fit(name = "fit_5", formula = model_formulas$f_5, data = responses, prior = model_prior)),
+    
     # leave-one-out cross-validation (compare models' predictive accuracy)
-    tar_target(model_loos, loo_compare(map(lst(fit_0, fit_1, fit_2, fit_3, fit_4),loo))),
+    tar_target(model_loos, loo_compare(map(lst(fit_0, fit_1, fit_2, fit_3, fit_4, fit_5), loo))),
+    
+    # get ROC curves
+    tar_target(model_rocs, map(lst(fit_0, fit_1, fit_2, fit_3, fit_4, fit_5), ~get_roc_curve(responses, ., ndraws = 50))),
     
     #### study 2: questionnaire ################################################
     
@@ -197,9 +218,14 @@ list(
                     (1 | translation_id)
             ),
             questionnaire_f_4 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + nd_std + 
+                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + 
                     (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) + 
-                    (1  | translation_id)
+                    (1 | translation_id)
+            ),
+            questionnaire_f_5 = bf(
+                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
+                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) + 
+                    (1 + group | translation_id)
             )
         )
     ),
@@ -210,9 +236,18 @@ list(
     tar_target(questionnaire_fit_2, get_model_fit(name = "questionnaire_fit_2", formula = questionnaire_model_formulas$questionnaire_f_2, data = questionnaire_responses, prior = model_prior)),
     tar_target(questionnaire_fit_3, get_model_fit(name = "questionnaire_fit_3", formula = questionnaire_model_formulas$questionnaire_f_3, data = questionnaire_responses, prior = model_prior)),
     tar_target(questionnaire_fit_4, get_model_fit(name = "questionnaire_fit_4", formula = questionnaire_model_formulas$questionnaire_f_4, data = questionnaire_responses, prior = model_prior)),
-
+    tar_target(questionnaire_fit_5, get_model_fit(name = "questionnaire_fit_5", formula = questionnaire_model_formulas$questionnaire_f_5, data = questionnaire_responses, prior = model_prior)),
+    
     # leave-one-out cross-validation (compare models' predictive accuracy)
-    tar_target(questionnaire_model_loos, loo_compare(map(lst(questionnaire_fit_0, questionnaire_fit_1, questionnaire_fit_2, questionnaire_fit_3, questionnaire_fit_4),loo)))
+    tar_target(questionnaire_model_loos, loo_compare(map(lst(questionnaire_fit_0, questionnaire_fit_1, questionnaire_fit_2, questionnaire_fit_3, questionnaire_fit_4, questionnaire_fit_5),loo))),
+    
+    # ROC curves
+    tar_target(
+        questionnaire_model_rocs,
+        map(
+            lst(questionnaire_fit_0, questionnaire_fit_1, questionnaire_fit_2, questionnaire_fit_3, questionnaire_fit_4, questionnaire_fit_5), 
+            ~get_roc_curve(questionnaire_responses, ., ndraws = 50))
+    )
     
     # # render docs ----
     # tar_render(readme, "README.Rmd", priority = 0),
