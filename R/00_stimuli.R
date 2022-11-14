@@ -89,6 +89,7 @@ get_levenshtein <- function(stimuli_path){
         clean_names() %>% 
         select(group, word_1, word_2, sampa_1, sampa_2) %>% 
         mutate(
+            across(starts_with("sampa_"), clean_sampa),
             n_char = ifelse(
                 nchar(sampa_1) > nchar(sampa_2),
                 nchar(sampa_1), 
@@ -176,12 +177,7 @@ get_neighbours <- function(stimuli_path, type){
 
 
 # process stimuli and add information
-get_stimuli <- function(
-        stimuli_path,
-        neighbours,
-        levenshtein,
-        durations
-){
+get_stimuli <- function(stimuli_path, neighbours, levenshtein, durations, stimuli_exclude){
     
     groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
     
@@ -224,7 +220,8 @@ get_stimuli <- function(
         # # impute missing data
         # mice(m = 5, print = FALSE, method = "pmm", ) %>% 
         # complete() %>% 
-        as_tibble()
+        as_tibble() %>% 
+        filter(!(word_1 %in% stimuli_exclude))
     
     saveRDS(stimuli, "results/stimuli.rds")
     
