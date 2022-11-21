@@ -4,7 +4,7 @@ make_pct_corpus <- function(){
     
     # load headers
     corpus_spa_headers <- readLines(
-        here("data", "clearpond", "spanishCPdatabase2", "clearpondHeaders_SP.txt"),
+        here("data", "stimuli", "clearpond", "spanishCPdatabase2", "clearpondHeaders_SP.txt"),
         warn = FALSE
     )
     
@@ -15,7 +15,7 @@ make_pct_corpus <- function(){
     
     # load corpora
     suppressWarnings({
-        corpus_spa <- here("data", "clearpond", "spanishCPdatabase2", "spanishCPdatabase2.txt") %>% 
+        corpus_spa <- here("data", "stimuli", "clearpond", "spanishCPdatabase2", "spanishCPdatabase2.txt") %>% 
             read_tsv(col_names = corpus_spa_headers, show_col_types = FALSE) %>% 
             clean_names() %>% 
             select(Spelling = word, Transcription = phono, Frequency = frequency) %>% 
@@ -28,7 +28,7 @@ make_pct_corpus <- function(){
     
     suppressWarnings({
         
-        here("data", "clearpond", "englishCPdatabase2", "englishCPdatabase2.txt") %>% 
+        here("data", "stimuli", "clearpond", "englishCPdatabase2", "englishCPdatabase2.txt") %>% 
             read_tsv(col_names = corpus_eng_headers, show_col_types = FALSE) %>% 
             clean_names() %>% 
             select(
@@ -37,7 +37,7 @@ make_pct_corpus <- function(){
                 Frequency = frequency
             ) %>% 
             write_csv(
-                here("data", "pct", "pct-corpus_eng.csv")
+                here("data", "stimuli", "pct", "pct-corpus_eng.csv")
             )
     })
     
@@ -52,7 +52,7 @@ get_neighbours_cp <- function(group = c("spa-ENG", "cat-ENG", "cat-SPA")){
         neighbours <- lapply(
             group,
             function(x) {
-                here("data", "pct", paste0("pct-neighbours_", x, ".csv")) %>% 
+                here("data", "stimuli", "pct", paste0("pct-neighbours_", x, ".csv")) %>% 
                     read_csv(na = "", col_types = "cdcd") %>% 
                     clean_names() 
             }
@@ -139,7 +139,7 @@ get_neighbours <- function(stimuli_path, type){
         set_names(groups) %>% 
         bind_rows(.id = "group")
     
-    corpus <- paste0("data/pct/pct-corpus_", c("eng", "spa"), ".csv") %>% 
+    corpus <- paste0("data/stimuli/pct/pct-corpus_", c("eng", "spa"), ".csv") %>% 
         set_names("eng", "spa") %>% 
         map(
             function(x){
