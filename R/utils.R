@@ -1,3 +1,41 @@
+# run all targets as an RStudio job
+make <- function(){
+    job::job(
+        title = "Translation Elicitation", {{ 
+            targets::tar_make() 
+        }}
+    )
+}
+
+# load all built targets (and packages)
+tar_load_all <- function(){
+    invisible({
+        suppressMessages({
+            tar_load_globals()
+        })
+        tars <- tar_objects()
+        message("Loading targets: ", paste0(tars, collapse = ", "))
+        lapply(tars, tar_load_raw, envir = .GlobalEnv)
+    })
+}
+
+unmake <- function(keep_models = TRUE) {
+    path <- list.files("results", full.names = TRUE)
+    tar_destroy("all", ask = FALSE)
+    
+    if (!keep_models){
+        if (length(path) > 1) {
+            for (i in 1:length(path)){
+                if (file.exists(path[i])) {
+                    file.remove(path[i])
+                }
+            }
+        }
+    }
+    message("Removed project outputs!")
+    
+}
+
 # evaluate if x is NOT an element of y
 "%!in%" <- function(x, y) !(x %in% y)
 

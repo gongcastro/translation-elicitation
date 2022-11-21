@@ -4,14 +4,15 @@ library(tarchetypes)
 # load functions
 source("R/utils.R", encoding = "UTF-8")
 source("R/00_stimuli.R", encoding = "UTF-8")
-source("R/01_responses.R", encoding = "UTF-8")
-source("R/02_models.R", encoding = "UTF-8")
-source("R/03_questionnaire.R", encoding = "UTF-8")
-
+source("R/01_experiment.R", encoding = "UTF-8")
+source("R/02_questionnaire.R", encoding = "UTF-8")
+source("R/03_merged.R", encoding = "UTF-8")
+source("R/04_models.R", encoding = "UTF-8")
 
 # set number of cores to use with brms
 options(
-    mc.cores = 1
+    mc.cores = 4,
+    brms.backend = "cmdstanr"
 )
 
 # set parameters
@@ -26,8 +27,6 @@ tar_option_set(
         "ggplot2",
         "tibble", 
         "forcats",
-        "multilex",
-        "keyring",
         "readxl",
         "janitor", 
         "mice", 
@@ -40,18 +39,16 @@ tar_option_set(
         "tidybayes",
         "gt", 
         "patchwork", 
-        "wesanderson", 
         "papaja", 
         "knitr", 
         "data.table",
         "audio",
         "tidytext",
         "bayesplot",
-        "performance",
+        "parameters",
         "httr",
-        "ggrepel",
-        "yardstick"
-    ), 
+        "ggrepel"
+    )
 )
 
 conflicted::conflict_prefer("filter", "dplyr")
@@ -60,7 +57,7 @@ conflicted::conflict_prefer("last", "dplyr")
 conflicted::conflict_prefer("between", "dplyr")
 
 list(
-    # stimuli ----
+    # stimuli ------------------------------------------------------------------
     
     tar_target(stimuli_path, "stimuli/trials.xlsx", format = "file"),
     
@@ -70,7 +67,7 @@ list(
             "corona", # problematic, given COVID-19
             "moneda", # 2 correct responses: money, coin
             "lengua", # 2 correct responses: language, tongue
-            "porc"   # 2 correct responses: pork, pig
+            "porc"    # 2 correct responses: pork, pig
         )
     ),
     
@@ -96,158 +93,75 @@ list(
         )
     ),
     
-    # responses ----
-    tar_target(responses_path, list.files("data/raw", full.names = TRUE)),
+    # experiment responses -----------------------------------------------------
+    tar_target(exp_raw, get_exp_raw()),
+    tar_target(exp_processed, get_exp_processed(exp_raw, stimuli)),
+    tar_target(exp_participants, get_exp_participants(exp_processed)),
+    tar_target(exp_responses, get_exp_responses(exp_participants, stimuli)),
     
-    tar_target(responses_processed, get_responses_processed(responses_path = responses_path, stimuli = stimuli)),
+    # questionnaire responses --------------------------------------------------
+    tar_target(quest_raw, get_quest_raw()),
+    tar_target(quest_processed, get_quest_processed(quest_raw)),
+    tar_target(quest_participants, get_quest_participants(quest_processed)),
+    tar_target(quest_responses, get_quest_responses(quest_processed, quest_participants, stimuli)),
     
-    tar_target(responses_clean, get_responses_clean(responses_processed = responses_processed, stimuli = stimuli)),
+    # merge datasets -----------------------------------------------------------
+    tar_target(dataset_1, get_dataset_1(exp_responses, quest_responses, stimuli)),
+    tar_target(dataset_2, get_dataset_2(exp_responses, quest_responses, stimuli)),
+    tar_target(dataset_3, get_dataset_3(exp_responses, quest_responses, stimuli)),
     
-    # manually coded responses
-    tar_target(responses_coded_path, "data/processed/02_coded.xlsx"),
+    # models -------------------------------------------------------------------
     
-    tar_target(responses_coded, read_xlsx(responses_coded_path)),
-    
-    tar_target(participants, get_participants(responses_processed = responses_processed, responses_coded = responses_coded)),
-    
-    tar_target(responses, get_responses(responses_coded = responses_coded, participants = participants, stimuli = stimuli),),
-    
-    # models ----
-    
-    # model formulas (adding fixed effects, one at a time)
-    tar_target(
-        model_formulas,
-        lst(
-            f_0 = bf(
-                correct ~ 1 + 
-                    (1 | participant_id) + 
-                    (1 | translation_id)
-            ),
-            f_1 = bf(
-                correct ~ 1 + 
-                    freq_zipf_2_std +
-                    (1 + freq_zipf_2_std | participant_id) + 
-                    (1 | translation_id)
-            ),
-            f_2 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std + 
-                    (1 + freq_zipf_2_std + nd_std | participant_id) +
-                    (1 | translation_id)
-            ),
-            f_3 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std + lv_std + 
-                    (1 + freq_zipf_2_std + nd_std + lv_std | participant_id) +
-                    (1 | translation_id)
-            ),
-            f_4 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + 
-                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
-                    (1 | translation_id)
-            ),
-            f_5 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
-                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
-                    (1 + group | translation_id)
-            )
-        )
-    ),
-    
-    # model prior
     tar_target(
         model_prior,
-        c(
-            prior(normal(0, 0.1), class = "Intercept"),
-            prior(normal(0, 0.1), class = "b"),
-            prior(exponential(3), class = "sd"),
-            prior(lkj(8), class = "cor")
+        c(prior(normal(0, 0.1), class = "Intercept"),
+          prior(normal(0, 0.1), class = "b"),
+          prior(exponential(3), class = "sd"),
+          prior(lkj(5), class = "cor"))
+    ),
+    
+    ## analysis 1
+    tar_target(
+        fit_1,
+        brm(
+            bf(correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + lv_std:group +  
+                   (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
+                   (1 + group | translation_id)),
+            data = dataset_1,
+            family = bernoulli("logit"),
+            prior = model_prior,
+            save_pars = save_pars(all = TRUE),
+            iter = 1000, chains = 4, seed = 888,
+            control = list(adapt_delta = 0.95),
+            save_model = "stan/fit_1.stan",
+            file = "results/fit_1",
+            sample_prior = "yes"
         )
     ),
     
-    # fit models
-    tar_target(fit_0, get_model_fit(name = "fit_0", formula = model_formulas$f_0, data = responses, prior = model_prior[c(1, 3),])),
-    tar_target(fit_1, get_model_fit(name = "fit_1", formula = model_formulas$f_1, data = responses, prior = model_prior)),
-    tar_target(fit_2, get_model_fit(name = "fit_2", formula = model_formulas$f_2, data = responses, prior = model_prior)),
-    tar_target(fit_3, get_model_fit(name = "fit_3", formula = model_formulas$f_3, data = responses, prior = model_prior)),
-    tar_target(fit_4, get_model_fit(name = "fit_4", formula = model_formulas$f_4, data = responses, prior = model_prior)),
-    tar_target(fit_5, get_model_fit(name = "fit_5", formula = model_formulas$f_5, data = responses, prior = model_prior)),
-    
-    # leave-one-out cross-validation (compare models' predictive accuracy)
-    tar_target(model_loos, loo_compare(map(lst(fit_0, fit_1, fit_2, fit_3, fit_4, fit_5), loo))),
-    
-    # get ROC curves
-    tar_target(model_rocs, map(lst(fit_0, fit_1, fit_2, fit_3, fit_4, fit_5), ~get_roc_curve(responses, ., ndraws = 50))),
-    
-    #### study 2: questionnaire ################################################
-    
-    tar_target(questionnaire_data_raw, get_questionnaire_data_raw()),
-    
-    tar_target(questionnaire_participants, get_questionnaire_participants(questionnaire_data_raw)),
-    
-    tar_target(questionnaire_data_processed, get_questionnaire_data_processed(questionnaire_data_raw)),
-    
-    tar_target(questionnaire_data_clean, get_questionnaire_data_clean(questionnaire_participants)),
-    
-    tar_target(questionnaire_responses, get_questionnaire_responses(questionnaire_data_clean, stimuli)),
-    
-    
-    # models ----
-    
-    # model formulas (adding fixed effects, one at a time)
+    # analysis 2
     tar_target(
-        questionnaire_model_formulas,
-        lst(
-            questionnaire_f_0 = bf(
-                correct ~ 1 + 
-                    (1 | participant_id) + 
-                    (1 | translation_id)
-            ),
-            questionnaire_f_1 = bf(
-                correct ~ 1 + 
-                    freq_zipf_2_std +
-                    (1 + freq_zipf_2_std | participant_id) + 
-                    (1 | translation_id)
-            ),
-            questionnaire_f_2 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std + 
-                    (1 + freq_zipf_2_std + nd_std | participant_id) +
-                    (1 | translation_id)
-            ),
-            questionnaire_f_3 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std + lv_std + 
-                    (1 + freq_zipf_2_std + nd_std + lv_std | participant_id) +
-                    (1 | translation_id)
-            ),
-            questionnaire_f_4 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + 
-                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) + 
-                    (1 | translation_id)
-            ),
-            questionnaire_f_5 = bf(
-                correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
-                    (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) + 
-                    (1 + group | translation_id)
-            )
+        fit_2,
+        brm(
+            bf(correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
+                   (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
+                   (1 + group | translation_id)),
+            data = dataset_2,
+            family = bernoulli("logit"),
+            prior = model_prior,
+            save_pars = save_pars(all = TRUE),
+            iter = 1000, chains = 4, seed = 888,
+            control = list(adapt_delta = 0.95),
+            save_model = "stan/fit_2.stan",
+            file = "results/fit_2",
+            sample_prior = "yes"
         )
     ),
     
-    # fit models
-    tar_target(questionnaire_fit_0, get_model_fit(name = "questionnaire_fit_0", formula = questionnaire_model_formulas$questionnaire_f_0, data = questionnaire_responses, prior = model_prior[c(1, 3),])),
-    tar_target(questionnaire_fit_1, get_model_fit(name = "questionnaire_fit_1", formula = questionnaire_model_formulas$questionnaire_f_1, data = questionnaire_responses, prior = model_prior)),
-    tar_target(questionnaire_fit_2, get_model_fit(name = "questionnaire_fit_2", formula = questionnaire_model_formulas$questionnaire_f_2, data = questionnaire_responses, prior = model_prior)),
-    tar_target(questionnaire_fit_3, get_model_fit(name = "questionnaire_fit_3", formula = questionnaire_model_formulas$questionnaire_f_3, data = questionnaire_responses, prior = model_prior)),
-    tar_target(questionnaire_fit_4, get_model_fit(name = "questionnaire_fit_4", formula = questionnaire_model_formulas$questionnaire_f_4, data = questionnaire_responses, prior = model_prior)),
-    tar_target(questionnaire_fit_5, get_model_fit(name = "questionnaire_fit_5", formula = questionnaire_model_formulas$questionnaire_f_5, data = questionnaire_responses, prior = model_prior)),
     
-    # leave-one-out cross-validation (compare models' predictive accuracy)
-    tar_target(questionnaire_model_loos, loo_compare(map(lst(questionnaire_fit_0, questionnaire_fit_1, questionnaire_fit_2, questionnaire_fit_3, questionnaire_fit_4, questionnaire_fit_5),loo))),
-    
-    # ROC curves
-    tar_target(
-        questionnaire_model_rocs,
-        map(
-            lst(questionnaire_fit_0, questionnaire_fit_1, questionnaire_fit_2, questionnaire_fit_3, questionnaire_fit_4, questionnaire_fit_5), 
-            ~get_roc_curve(questionnaire_responses, ., ndraws = 50))
-    )
+    # get model parameters
+    tar_target(parameters_1, model_parameters(fit_1, ci_method = "hdi", test = "pd", verbose = FALSE, ci = 0.95)),
+    tar_target(parameters_2, model_parameters(fit_2, ci_method = "hdi", test = "pd", verbose = FALSE, ci = 0.95))
     
     # # render docs ----
     # tar_render(readme, "README.Rmd", priority = 0),
