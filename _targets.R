@@ -67,7 +67,8 @@ list(
             "corona", # problematic, given COVID-19
             "moneda", # 2 correct responses: money, coin
             "lengua", # 2 correct responses: language, tongue
-            "porc"    # 2 correct responses: pork, pig
+            "porc",   # 2 correct responses: pork, pig
+            "ola"     # homophone with translation of "hello" ("hola")
         )
     ),
     
