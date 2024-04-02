@@ -1,76 +1,44 @@
-library(targets)
-library(tarchetypes)
+suppressWarnings({
+    library(tarchetypes)
+    library(dplyr)
+    library(tidyr)
+    library(stringr)
+    library(ggplot2)
+    library(ggdist)
+    library(beeswarm)
+    library(readxl)
+    library(brms)
+    library(cmdstanr)
+    library(stringdist)
+    library(cli)
+    library(readr)
+    library(purrr)
+})
 
 # load functions
 source("R/utils.R", encoding = "UTF-8")
-source("R/00_stimuli.R", encoding = "UTF-8")
-source("R/01_experiment.R", encoding = "UTF-8")
-source("R/02_questionnaire.R", encoding = "UTF-8")
-source("R/03_merged.R", encoding = "UTF-8")
-source("R/04_models.R", encoding = "UTF-8")
+source("R/stimuli.R", encoding = "UTF-8")
+source("R/experiment.R", encoding = "UTF-8")
+source("R/questionnaire.R", encoding = "UTF-8")
+source("R/merged.R", encoding = "UTF-8")
+source("R/models.R", encoding = "UTF-8")
 
 # set number of cores to use with brms
-options(
-    mc.cores = 4,
-    brms.backend = "cmdstanr"
-)
+options(mc.cores = 4,
+        brms.backend = "cmdstanr")
 
-# set parameters
-tar_option_set(
-    # manifest dependencies (via tar_renv)
-    packages = c(
-        "arrow",
-        "dplyr", 
-        "tidyr", 
-        "stringr",
-        "readr",
-        "ggplot2",
-        "tibble", 
-        "forcats",
-        "readxl",
-        "janitor", 
-        "mice", 
-        "here", 
-        "lubridate", 
-        "purrr", 
-        "scales", 
-        "stringdist",
-        "brms", 
-        "tidybayes",
-        "gt", 
-        "patchwork", 
-        "papaja", 
-        "knitr", 
-        "data.table",
-        "audio",
-        "tidytext",
-        "bayesplot",
-        "parameters",
-        "httr",
-        "ggrepel"
-    )
-)
-
-conflicted::conflict_prefer("filter", "dplyr")
-conflicted::conflict_prefer("first", "dplyr")
-conflicted::conflict_prefer("last", "dplyr")
-conflicted::conflict_prefer("between", "dplyr")
 
 list(
     # stimuli ------------------------------------------------------------------
-    
     tar_target(stimuli_path, "stimuli/trials.xlsx", format = "file"),
     
-    tar_target(
-        stimuli_exclude,
-        c(
-            "corona", # problematic, given COVID-19
-            "moneda", # 2 correct responses: money, coin
-            "lengua", # 2 correct responses: language, tongue
-            "porc",   # 2 correct responses: pork, pig
-            "ola"     # homophone with translation of "hello" ("hola")
-        )
-    ),
+    # exclude some stimuli:
+    # corona: problematic after COVID-19
+    # moneda: two possible correct responses (money, coin)
+    # lengua: two correct responses (language, tongue)
+    # porc: two possible correct responses (pork, pig)
+    # ola: homophone with translation of "hello" ("hola")
+    tar_target(stimuli_exclude, c("corona", "moneda", "lengua", "porc", "ola")),
     
     # get data on cross-language Levenshtein distance
     tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
@@ -83,16 +51,12 @@ list(
     tar_target(neighbours, get_neighbours(stimuli_path, "across")),
     
     # join all stimuli data
-    tar_target(
-        stimuli, 
-        get_stimuli(
-            stimuli_path = stimuli_path, 
-            levenshtein = levenshtein,
-            durations = durations,
-            neighbours = neighbours,
-            stimuli_exclude = stimuli_exclude
-        )
-    ),
+    tar_target(stimuli, 
+               get_stimuli(stimuli_path = stimuli_path, 
+                           levenshtein = levenshtein,
+                           durations = durations,
+                           neighbours = neighbours,
+                           stimuli_exclude = stimuli_exclude)),
     
     # experiment responses -----------------------------------------------------
     tar_target(exp_raw, get_exp_raw()),
