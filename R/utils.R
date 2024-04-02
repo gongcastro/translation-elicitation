@@ -7,18 +7,6 @@ make <- function(){
     )
 }
 
-# load all built targets (and packages)
-tar_load_all <- function(){
-    invisible({
-        suppressMessages({
-            tar_load_globals()
-        })
-        tars <- tar_objects()
-        message("Loading targets: ", paste0(tars, collapse = ", "))
-        lapply(tars, tar_load_raw, envir = .GlobalEnv)
-    })
-}
-
 unmake <- function(keep_models = TRUE) {
     path <- list.files("results", full.names = TRUE)
     tar_destroy("all", ask = FALSE)
@@ -227,28 +215,7 @@ prop_adj_ci <- function(x, n, .width = 0.95) {
 
 
 
-# get neighbours based on Levenshtein distance
-find_neighbours <- function(x, corpus, neighbour_threshold = 1) {
-    
-    x <- str_remove_all(x, "[:punct:]")
-    
-    neighbours <- stringdistmatrix(x, corpus) %>% 
-        as_tibble() %>% 
-        set_names(corpus) %>% 
-        mutate(row_name = x) %>% 
-        pivot_longer(-row_name, names_to = "corpus", values_to = "lv") %>% 
-        mutate(is_neighbour = lv <= neighbour_threshold) %>% 
-        filter(row_name!=corpus) %>% 
-        group_by(row_name) %>% 
-        summarise(
-            neighbour_dens = sum(is_neighbour, na.rm = TRUE),
-            neighbour_list = list(corpus[is_neighbour]),
-            .groups = "drop"
-        ) %>% 
-        rename(token = row_name)
-    
-    return(neighbours)
-}
+
 
 
 logit_to_prob <- function(x, variable) ifelse(grepl("intercept", tolower(variable)), plogis(x), x/4)
