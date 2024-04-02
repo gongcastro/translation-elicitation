@@ -1,0 +1,83 @@
+---
+title: "Translation Elicitation"
+subtitle: "Lab notes"
+format: html
+---
+
+```{r}
+#| label: setup
+library(targets)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggdist)
+
+tar_load(stimuli)
+```
+
+## Stimuli
+
+### Lexical frequency
+
+```{r}
+stimuli |>
+    ggplot(aes(group, freq_2, group = NA)) +
+    geom_dots(aes(order = group),
+              layout = "swarm", side = "both") +
+    labs(x = "Average cross-linguistic phonological similarity",
+         y = "Lexical frequency (log10)") +
+    scale_y_continuous(transform = "log10")
+```
+
+### Cross-linguistic phonological similarity (cognateness)
+
+```{r}
+stimuli |>
+    ggplot(aes(lv, group = NA)) +
+    facet_wrap(~group) +
+    geom_histogram() +
+    labs(x = "Average cross-linguistic phonological similarity",
+         y = "Lexical frequency (log10)")
+```
+
+### Cross-linguistic neighbourhood density
+
+```{r}
+#| label: fig-clnd
+#| fig-cap: "Cross-language neighbourhood density"
+stimuli |>
+    mutate(total = n(), .by = group) |> 
+    count(group, neigh_n, total) |> 
+    mutate(n = n/total) |> 
+    ggplot(aes(neigh_n, n)) +
+    facet_wrap(~group) +
+    geom_col(colour = "white") +
+    labs(x = "Number of cross-language phonological neighbours",
+         y = "Proportion of items")
+```
+
+### Cross-linguistic neighbourhood similarity
+
+```{r}
+#| label: fig-clnd
+#| fig-cap: "Cross-language neighbourhood similarity"
+stimuli |>
+    ggplot(aes(group, neigh_sim, group = NA)) +
+    geom_dots(aes(order = group),
+              layout = "swarm", side = "both") +
+    labs(x = "Group",
+         y = "Average cross-linguistic phonological similarity")
+```
+
+### Audio duration
+
+```{r}
+#| label: fig-clnd
+#| fig-cap: "Cross-language neighbourhood similarity"
+stimuli |>
+    ggplot(aes(group, duration, group = NA)) +
+    geom_dots(aes(order = group),
+              layout = "swarm", side = "both") +
+    labs(x = "Audio duration (s)",
+         y = "Average cross-linguistic phonological similarity")
+```
