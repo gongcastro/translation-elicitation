@@ -16,12 +16,10 @@ suppressWarnings({
 })
 
 # load functions
-source("R/utils.R", encoding = "UTF-8")
-source("R/stimuli.R", encoding = "UTF-8")
-source("R/experiment.R", encoding = "UTF-8")
-source("R/questionnaire.R", encoding = "UTF-8")
-source("R/merged.R", encoding = "UTF-8")
-source("R/models.R", encoding = "UTF-8")
+invisible({
+    lapply(list.files("R", pattern = ".R$", full.names = TRUE), 
+           \(x) source(x, encoding = "UTF-8"))
+})
 
 # set number of cores to use with brms
 options(mc.cores = 4,
@@ -29,37 +27,59 @@ options(mc.cores = 4,
 
 
 list(
-    # stimuli ------------------------------------------------------------------
-    tar_target(stimuli_path, "stimuli/trials.xlsx", format = "file"),
+    tar_target(ipa_dict_eng_path, "data-raw/ipa-dict/en_UK.txt"),
+    tar_target(ipa_dict_spa_path, "data-raw/ipa-dict/es_ES.txt"),
+    tar_target(ipa_dict, import_ipa_dict(ipa_dict_eng_path, ipa_dict_spa_path)),
     
+    tar_target(subtlex_eng_path, "data/subtlex/SUBTLEX-UK.xlsx"),
+    tar_target(subtlex_spa_path, "data/subtlex/SUBTLEX-ESP.xlsx"),
+    tar_target(subtlex, import_subtlex(subtlex_eng_path, subtlex_spa_path)),
+    
+    # CLEARPOND database
+    tar_target(cp_c_path_eng, "data-raw/clearpond/englishCPdatabase2.txt", format = "file"),
+    tar_target(cp_h_path_eng, "data-raw/clearpond/clearpondHeaders_EN.txt", format = "file"),
+    tar_target(cp_c_path_spa, "data-raw/clearpond/spanishCPdatabase2.txt", format = "file"),
+    tar_target(cp_h_path_spa, "data-raw/clearpond/clearpondHeaders_SP.txt", format = "file"),
+    
+    tar_target(clearpond, import_clearpond(cp_c_path_eng,
+                                           cp_c_path_spa,
+                                           cp_h_path_eng,
+                                           cp_h_path_spa)),
+    
+    # stimuli ------------------------------------------------------------------
+    tar_target(trial_list_path, file.path("stimuli", "trials.xlsx"),
+               format = "file"),
+    tar_target(trial_list, get_trial_list(trial_list_path)),
     # exclude some stimuli:
     # corona: problematic after COVID-19
     # moneda: two possible correct responses (money, coin)
     # lengua: two correct responses (language, tongue)
     # porc: two possible correct responses (pork, pig)
     # ola: homophone with translation of "hello" ("hola")
-    tar_target(stimuli_exclude, c("corona", "moneda", "lengua", "porc", "ola")),
-    
+    # galeta: two possible correct responses (biscuit, cookie)
+    tar_target(stimuli_exclude, 
+               c("corona", "moneda", "lengua", "porc", "ola", "biscuit")),
     # get data on cross-language Levenshtein distance
-    tar_target(levenshtein, get_levenshtein(stimuli_path = stimuli_path)),
+    tar_target(levenshtein, get_levenshtein(trial_list)),
     
     # get audio durations
     tar_target(audios_path, "stimuli/sounds"),
-    
-    tar_target(durations, get_duration(stimuli_path = stimuli_path, audios_path = audios_path)),
-    
-    tar_target(neighbours, get_neighbours(stimuli_path, "across")),
-    
+    tar_target(durations, get_duration(trial_list, audios_path)),
+
     # join all stimuli data
     tar_target(stimuli, 
-               get_stimuli(stimuli_path = stimuli_path, 
+               get_stimuli(trial_list = trial_list, 
                            levenshtein = levenshtein,
                            durations = durations,
-                           neighbours = neighbours,
+                           corpus = clearpond,
                            stimuli_exclude = stimuli_exclude)),
     
     # experiment responses -----------------------------------------------------
-    tar_target(exp_raw, get_exp_raw()),
+    tar_target(exp_raw_files_path, "data-raw/experiment/"),
+    tar_target(exp_raw_files,
+               list.files(exp_raw_files_path, full.names = TRUE),
+               format = "file"),
+    tar_target(exp_raw, get_exp_raw(exp_raw_files)),
     tar_target(exp_processed, get_exp_processed(exp_raw, stimuli)),
     tar_target(exp_participants, get_exp_participants(exp_processed)),
     tar_target(exp_responses, get_exp_responses(exp_participants, stimuli)),
