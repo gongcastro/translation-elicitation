@@ -65,7 +65,7 @@ list(
     # get audio durations
     tar_target(audios_path, "stimuli/sounds"),
     tar_target(durations, get_duration(trial_list, audios_path)),
-
+    
     # join all stimuli data
     tar_target(stimuli, 
                get_stimuli(trial_list = trial_list, 
@@ -85,7 +85,11 @@ list(
     tar_target(exp_responses, get_exp_responses(exp_participants, stimuli)),
     
     # questionnaire responses --------------------------------------------------
-    tar_target(quest_raw, get_quest_raw()),
+    tar_target(quest_raw_files_path, "data-raw/questionnaire/"),
+    tar_target(question_raw_files,
+               list.files(quest_raw_files_path, full.names = TRUE),
+               format = "file"),
+    tar_target(quest_raw, get_quest_raw(question_raw_files)),
     tar_target(quest_processed, get_quest_processed(quest_raw)),
     tar_target(quest_participants, get_quest_participants(quest_processed)),
     tar_target(quest_responses, get_quest_responses(quest_processed, quest_participants, stimuli)),
@@ -97,51 +101,41 @@ list(
     
     # models -------------------------------------------------------------------
     
-    tar_target(
-        model_prior,
-        c(prior(normal(0, 0.1), class = "Intercept"),
-          prior(normal(0, 0.1), class = "b"),
-          prior(exponential(3), class = "sd"),
-          prior(lkj(5), class = "cor"))
-    ),
+    tar_target(model_prior,
+               c(prior(normal(0, 0.1), class = "Intercept"),
+                 prior(normal(0, 0.1), class = "b"),
+                 prior(exponential(3), class = "sd"),
+                 prior(lkj(5), class = "cor"))),
     
     ## analysis 1
-    tar_target(
-        fit_1,
-        brm(
-            bf(correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + lv_std:group +  
-                   (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
-                   (1 + group | translation_id)),
-            data = dataset_1,
-            family = bernoulli("logit"),
-            prior = model_prior,
-            save_pars = save_pars(all = TRUE),
-            iter = 1000, chains = 4, seed = 888,
-            control = list(adapt_delta = 0.95),
-            save_model = "stan/fit_1.stan",
-            file = "results/fit_1",
-            sample_prior = "yes"
-        )
-    ),
+    tar_target(fit_1,
+               brm(bf(correct ~
+                          1 + freq_zipf_2_std + avg_sim_h_std*lv_std + group + lv_std:group +  
+                          (1 + freq_zipf_2_std + avg_sim_h_std*lv_std | participant_id) +
+                          (1 + group | translation_id)),
+                   data = dataset_1,
+                   family = bernoulli("logit"),
+                   prior = model_prior,
+                   save_pars = save_pars(all = TRUE),
+                   iter = 1000, chains = 4, seed = 888,
+                   control = list(adapt_delta = 0.95),
+                   save_model = file.path("stan", "fit_1.stan"),
+                   file = file.path("results", "fit_1"))),
     
     # analysis 2
-    tar_target(
-        fit_2,
-        brm(
-            bf(correct ~ 1 + freq_zipf_2_std + nd_std*lv_std + group + 
-                   (1 + freq_zipf_2_std + nd_std*lv_std | participant_id) +
-                   (1 + group | translation_id)),
-            data = dataset_2,
-            family = bernoulli("logit"),
-            prior = model_prior,
-            save_pars = save_pars(all = TRUE),
-            iter = 1000, chains = 4, seed = 888,
-            control = list(adapt_delta = 0.95),
-            save_model = "stan/fit_2.stan",
-            file = "results/fit_2",
-            sample_prior = "yes"
-        )
-    ),
+    tar_target(fit_2,
+               brm(bf(correct ~
+                          1 + freq_zipf_2_std + avg_sim_h_std*lv_std + group + 
+                          (1 + freq_zipf_2_std + avg_sim_h_std*lv_std | participant_id) +
+                          (1 + group | translation_id)),
+                   data = dataset_2,
+                   family = bernoulli("logit"),
+                   prior = model_prior,
+                   save_pars = save_pars(all = TRUE),
+                   iter = 1000, chains = 4, seed = 888,
+                   control = list(adapt_delta = 0.95),
+                   save_model = file.path("stan", "fit_2.stan"),
+                   file = file.path("results", "fit_2"))),
     
     
     # get model parameters

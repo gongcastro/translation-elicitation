@@ -220,7 +220,7 @@ get_exp_responses <- function(exp_participants, stimuli){
         drop_na(correct) |> 
         select(group, participant_id, word_1, response, correct)
     
-    out_path <- file.path("data", "exp_responses.csv")
+    out_path <- file.path("data", "experiment.csv")
     arrow::write_csv_arrow(exp_responses, out_path)   
     cli_alert_success("Saved {.emph exp_responses} as {.file {out_path}}")
     
