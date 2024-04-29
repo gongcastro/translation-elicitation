@@ -1,13 +1,20 @@
 source("renv/activate.R")
 
-library(targets, quietly = TRUE)
+suppressMessages({
+    library(targets, quietly = TRUE)
+    library(cli)
+})
 
-tar_load_globals()
+options(repos = c(stan = "https://mc-stan.org/r-packages/",
+                  ropensci = "https://ropensci.r-universe.dev",
+                  CRAN = "https://cloud.r-project.org"),
+        scipen = 4)
 
-message("Run make() to update the project\nRun tar_load_all() to load all built targets")
+if (interactive()) {
+    cli_h1("Translation Elicitation")
+    cli_text("")
+    cli_text(R.version$version.string)
+    cli_text("Run {.code make()} to update the project")
+    cli_text("GitHub repository: {.url https://github.com/gongcastro/translation-elicitation}")
+}
 
-options(repos = c(
-    stan = "https://mc-stan.org/r-packages/",
-    ropensci = "https://ropensci.r-universe.dev",
-    CRAN = "https://cloud.r-project.org"
-))
