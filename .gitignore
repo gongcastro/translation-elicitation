@@ -22,6 +22,7 @@ data/experiment/processed
 data/questionnaire/
 data/stimuli/
 results/
+data-raw/
 
 psychopy/
 
