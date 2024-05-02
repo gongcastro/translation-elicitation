@@ -1,39 +1,34 @@
+#' Import list of trials and process
+#' 
 get_trial_list <- function(trial_list_path) {
     
     groups <- c("spa-ENG", "cat-ENG", "cat-SPA")
+    names(groups) <- groups
+    
+    import_trials <- function(groups, path) {
+        read_xlsx(path = path, 
+                  sheet = groups, 
+                  .name_repair = janitor::make_clean_names)
+    }
     
     trial_list <- groups |> 
-        map(\(x) read_xlsx(trial_list_path, sheet = x)) |> 
-        set_names(groups) |> 
-        bind_rows(.id = "group") |> 
-        janitor::clean_names() |> 
+        map_dfr(import_trials, trial_list_path, .id = "group") |> 
         select(group, word_1, word_2, ipa_flat_1, ipa_flat_2,
                sampa_1, sampa_2, practice_trial, file)  |> 
         mutate(across(matches("sampa"), \(x) gsub("[[:punct:]]", "", x)),
-               target_language = if_else(group=="cat-SPA", "Spanish", "English")) 
+               target_language = if_else(group=="cat-SPA", "Spanish", "English"),
+               practice_trial = as.logical(practice_trial)) 
     
     return(trial_list)
-}
-
-
-#' Get shared phonemes
-#' 
-get_shared_phonemes <- function(x, y){
-    px <- unlist(strsplit(x, split = ""))
-    py <- unlist(strsplit(y, split = ""))
-    return(length(intersect(px, py)))
 }
 
 #' Get Leveshtein similarity scores
 #' 
 get_levenshtein <- function(trial_list){
     out <- trial_list |> 
-        mutate(nphon = if_else(nchar(sampa_1) > nchar(sampa_2),
-                               nchar(sampa_1), 
-                               nchar(sampa_2)),
-               lv = stringdist::stringsim(sampa_1, sampa_2, method = "lv"),
+        mutate(lv = stringdist::stringsim(sampa_1, sampa_2, method = "lv"),
                lv_dist = stringdist::stringdist(sampa_1, sampa_2, method = "lv")) |> 
-        select(group, matches("word|sampa|nphon|lv"))
+        select(group, matches("word|sampa|lv"))
     
     return(out)
 }
@@ -173,7 +168,7 @@ get_stimuli <- function(trial_list, levenshtein, corpus,
                                             corpus = corpus_tmp,
                                             higher_frequency = TRUE),
                neigh_n = map_int(neigh_lst, length),
-               neigh_n_h = map_int(neigh_lst, length))
+               neigh_n_h = map_int(neigh_lst_h, length))
     # mutate(is_imputed = is.na(frequency_zipf)) |> 
     # # impute missing data
     # mice(m = 5, print = FALSE, method = "pmm", ) |> 

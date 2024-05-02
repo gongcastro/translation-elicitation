@@ -27,15 +27,8 @@ options(mc.cores = 4,
 
 
 list(
-    tar_target(ipa_dict_eng_path, "data-raw/ipa-dict/en_UK.txt"),
-    tar_target(ipa_dict_spa_path, "data-raw/ipa-dict/es_ES.txt"),
-    tar_target(ipa_dict, import_ipa_dict(ipa_dict_eng_path, ipa_dict_spa_path)),
-    
-    tar_target(subtlex_eng_path, "data/subtlex/SUBTLEX-UK.xlsx"),
-    tar_target(subtlex_spa_path, "data/subtlex/SUBTLEX-ESP.xlsx"),
-    tar_target(subtlex, import_subtlex(subtlex_eng_path, subtlex_spa_path)),
-    
     # CLEARPOND database
+    tar_target(cp_download, download_clearpond()),
     tar_target(cp_c_path_eng, "data-raw/clearpond/englishCPdatabase2.txt", format = "file"),
     tar_target(cp_h_path_eng, "data-raw/clearpond/clearpondHeaders_EN.txt", format = "file"),
     tar_target(cp_c_path_spa, "data-raw/clearpond/spanishCPdatabase2.txt", format = "file"),
@@ -95,6 +88,7 @@ list(
     tar_target(quest_responses, get_quest_responses(quest_processed, quest_participants, stimuli)),
     
     # merge datasets -----------------------------------------------------------
+    tar_target(participants, get_participants(exp_participants, quest_participants)),
     tar_target(dataset_1, get_dataset_1(exp_responses, quest_responses, stimuli)),
     tar_target(dataset_2, get_dataset_2(exp_responses, quest_responses, stimuli)),
     tar_target(dataset_3, get_dataset_3(exp_responses, quest_responses, stimuli)),
@@ -108,18 +102,54 @@ list(
                  prior(lkj(5), class = "cor"))),
     
     ## analysis 1
-    tar_target(fit_1,
-               brm(bf(correct ~
-                          1 + freq_zipf_2_std + avg_sim_h_std*lv_std + group + lv_std:group +  
-                          (1 + freq_zipf_2_std + avg_sim_h_std*lv_std | participant_id) +
-                          (1 + group | translation_id)),
+    tar_target(fit_0a,
+               brm(correct ~
+                       1  + neigh_n_h_std + lv_std + 
+                       (1 + neigh_n_h_std + lv_std | participant_id),
                    data = dataset_1,
                    family = bernoulli("logit"),
                    prior = model_prior,
                    save_pars = save_pars(all = TRUE),
                    iter = 1000, chains = 4, seed = 888,
                    control = list(adapt_delta = 0.95),
-                   save_model = file.path("stan", "fit_1.stan"),
+                   file_refit = "on_change",
+                   file = file.path("results", "fit_0a"))),
+    tar_target(fit_1a,
+               brm(correct ~
+                       1  + neigh_n_h_std * lv_std + 
+                       (1 + neigh_n_h_std * lv_std | participant_id),
+                   data = dataset_1,
+                   family = bernoulli("logit"),
+                   prior = model_prior,
+                   save_pars = save_pars(all = TRUE),
+                   iter = 1000, chains = 4, seed = 888,
+                   control = list(adapt_delta = 0.95),
+                   file_refit = "on_change",
+                   file = file.path("results", "fit_1a"))),
+    tar_target(fit_0,
+               brm(correct ~
+                       1 + freq_zipf_2_std + neigh_n_std + lv_std + 
+                       (1 + freq_zipf_2_std + neigh_n_std + lv_std | participant_id),
+                   data = dataset_1,
+                   family = bernoulli("logit"),
+                   prior = model_prior,
+                   save_pars = save_pars(all = TRUE),
+                   iter = 1000, chains = 4, seed = 888,
+                   control = list(adapt_delta = 0.95),
+                   file_refit = "on_change",
+                   file = file.path("results", "fit_0"))),
+    
+    tar_target(fit_1,
+               brm(correct ~
+                       1 + freq_zipf_2_std + neigh_n_std*lv_std +  
+                       (1 + freq_zipf_2_std + neigh_n_std*lv_std | participant_id),
+                   data = dataset_1,
+                   family = bernoulli("logit"),
+                   prior = model_prior,
+                   save_pars = save_pars(all = TRUE),
+                   iter = 1000, chains = 4, seed = 888,
+                   control = list(adapt_delta = 0.95),
+                   file_refit = "on_change",
                    file = file.path("results", "fit_1"))),
     
     # analysis 2

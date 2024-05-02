@@ -70,3 +70,5 @@ get_roc_curve <- function(newdata, object, ...) {
     
     return(roc_values)
 }
+
+logit_to_prob <- function(x, variable) ifelse(grepl("intercept", tolower(variable)), plogis(x), x/4)

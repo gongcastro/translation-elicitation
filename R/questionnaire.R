@@ -159,7 +159,7 @@ get_quest_participants <- function(quest_processed,
             between(age, min_age, max_age) &
                 n_trials_valid >= min_valid_trials*max_spa_trials &
                 !has_language_problems) & 
-                l_2 %!in% blocked_languages) |> # L2 is not a blocked one
+                !(l_2 %in% blocked_languages)) |> # L2 is not a blocked one
         select(group, participant_id, date, age, 
                l_2, l_2_oral_comp, l_2_writ_prod,
                cat_oral_comp, cat_writ_prod,
@@ -205,7 +205,8 @@ get_quest_responses <- function(quest_processed, quest_participants, stimuli) {
         dplyr::filter(participant_id %in% valid_participants,
                       valid_response) %>% 
         select(participant_id, group, word_1 = word, 
-               response = translation, knowledge, confidence, correct)
+               response = translation, knowledge, confidence, correct, 
+               response_type)
     
     out_path <- file.path("data", "questionnaire.csv")
     arrow::write_csv_arrow(quest_responses, out_path)   

@@ -69,7 +69,8 @@ get_exp_raw <- function(exp_raw_files){
                language_l2 = if_else(is.na(language_l2), "None", language_l2),
                language_l1 = if_else(str_detect(group, "ENG"), "ENG", "SPA"),
                across(matches("language_"), str_trim),
-               across(matches("language_"), \(x) if_else(x=="No", "None", x))) |> 
+               across(matches("language_"), \(x) if_else(x=="No", "None", x)),
+               across(matches("writ|oral"), as.integer)) |> 
         rename_with(\(x) gsub(pattern = "demo_|language_|setup_", replacement = "", x),
                     everything()) |>  
         select(-trial_id)
@@ -102,7 +103,7 @@ get_exp_processed <- function(exp_raw, stimuli){
                           word, age, sex, l1, l2, l2oral, l2written, catalan_oral,
                           catalan_written, spanish_oral, spanish_written,
                           country, city, vision, impairment, location, noise)) |> 
-        select(participant_id, group, date, age, word_1 = word, response, 
+        select(participant_id, group, date, age, gender = sex, word_1 = word, response, 
                l1, l2, l2oral, l2written, catalan_written, catalan_oral,
                spanish_oral, spanish_written,
                has_vision_problems = vision, has_language_problems = impairment) 
@@ -160,7 +161,7 @@ get_exp_participants <- function(exp_processed,
                     n_trials_valid >= min_valid_trials*max_spa_trials &
                     !has_language_problems) &
                 # L2 is not a blocked one
-                l2 %!in% blocked_languages) |> 
+                !(l2 %in% blocked_languages)) |> 
         rename(l_2 = l2,
                l_2_oral_comp = l2oral,
                l_2_writ_prod = l2written,
@@ -168,11 +169,12 @@ get_exp_participants <- function(exp_processed,
                cat_writ_prod = catalan_written,
                spa_oral_comp = spanish_oral,
                spa_writ_prod = spanish_written) |> 
-        select(group, participant_id, date, age, 
+        select(group, participant_id, date, age, gender,
                l_2, l_2_oral_comp, l_2_writ_prod,
                cat_oral_comp, cat_writ_prod,
                spa_oral_comp, spa_writ_prod,
-               valid_participant, n_trials, n_trials_valid) |>  
+               valid_participant, n_trials, n_trials_valid,
+               invalid_participant_trials, has_language_problems) |>  
         arrange(date)
     
     out_path <- file.path("data", "participants.rds")
@@ -218,12 +220,37 @@ get_exp_responses <- function(exp_participants, stimuli){
         arrange(trial_id, group) |> 
         mutate(group = as.factor(group)) |> 
         drop_na(correct) |> 
-        select(group, participant_id, word_1, response, correct)
+        select(group, participant_id, word_1, response, correct, response_type)
     
     out_path <- file.path("data", "experiment.csv")
     arrow::write_csv_arrow(exp_responses, out_path)   
     cli_alert_success("Saved {.emph exp_responses} as {.file {out_path}}")
     
     return(exp_responses)
+}
+
+#' Clean input text
+#' 
+clean_input_text <- function(x) {
+    {{ x }} %>% 
+        str_to_sentence() %>%
+        str_replace("Lshift|space|minus", "") %>%
+        as.character() %>% 
+        as_tibble(x = .) %>% 
+        mutate(. , value = case_when( 
+            nchar(value) > 12 ~ "Several",
+            value %in% c("Francés", "Frances", "Basic french") ~ "French",
+            value %in% c("Italiano", "Italino") ~ "Italian",
+            value %in% c("Alemán") ~ "German",
+            value %in% c("NrLondon") ~ "London",
+            value %in% c("Rnorthampton") ~ "London",
+            value %in% c("Newcastleminusuponminustyne") ~ "Newcastle upon Tyne",
+            value %in% c("Newcastlespaceuk") ~ "Newcastle",
+            value %in% c("Miltonkeynes") ~ "Milton Keynes",
+            value %in% c("Irthlingboroug") ~ "Irthlingborough",
+            value %in% c("spalding", "berkshire", "bedfordshire") ~ str_to_sentence(value),
+            value %in% c("No", "Cuál", "Space") ~ NA_character_,
+            TRUE ~ value)) %>% 
+        pull(value)
 }
 
