@@ -10,74 +10,588 @@ library(targets)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(ggdist)
+library(gt)
+library(gtExtras)
+library(patchwork)
+library(gghighlight)
+library(tidybayes)
+
+targets::tar_config_set(
+    store = here::here("_targets"),
+    script = here::here("_targets.R")
+)
 
 tar_load(stimuli)
+tar_load(exp_participants)
+tar_load(exp_responses)
+tar_load(quest_participants)
+tar_load(quest_responses)
+tar_load(dataset_1)
+tar_load(dataset_2)
+tar_load(dataset_3)
+tar_load(fit_1)
+
+theme_set(theme_ggdist() + 
+              theme(panel.grid.major.y = element_line(
+                  linetype = "dotted",
+                  colour = "grey")))
+
+
+# proportion adjusted from boundary values (Gelman, Hill & Vehtari, 2020)
+prop_adj <- function(x, n){
+    e <- (x+2)/(n+4)
+    return(e)
+}
+
+# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+prop_adj_se <- function(x, n) {
+    e <- (x+2)/(n+4)
+    se <- sqrt(e*(1-e)/(n+4))
+    return(se)
+}
+
+# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+prop_adj_ci <- function(x, n, .width = 0.95) {
+    e <- (x+2)/(n+4)
+    se <- sqrt(e*(1-e)/(n+4))
+    ci <-  e + qnorm(c((1-.width)/2, (1-(1-.width)/2)))*se
+    ci[1] <- ifelse(ci[1]<0, 0, ci[1]) # truncate at 0
+    ci[2] <- ifelse(ci[2]>1, 1, ci[2]) # truncate at 1
+    return(ci)
+}
 ```
 
-## Stimuli
+# Stimuli
 
-### Lexical frequency
-
-```{r}
-stimuli |>
-    ggplot(aes(group, freq_2, group = NA)) +
-    geom_dots(aes(order = group),
-              layout = "swarm", side = "both") +
-    labs(x = "Average cross-linguistic phonological similarity",
-         y = "Lexical frequency (log10)") +
-    scale_y_continuous(transform = "log10")
-```
-
-### Cross-linguistic phonological similarity (cognateness)
+## Audio duration
 
 ```{r}
-stimuli |>
-    ggplot(aes(lv, group = NA)) +
-    facet_wrap(~group) +
-    geom_histogram() +
-    labs(x = "Average cross-linguistic phonological similarity",
-         y = "Lexical frequency (log10)")
-```
-
-### Cross-linguistic neighbourhood density
-
-```{r}
-#| label: fig-clnd
-#| fig-cap: "Cross-language neighbourhood density"
-stimuli |>
-    mutate(total = n(), .by = group) |> 
-    count(group, neigh_n, total) |> 
-    mutate(n = n/total) |> 
-    ggplot(aes(neigh_n, n)) +
-    facet_wrap(~group) +
-    geom_col(colour = "white") +
-    labs(x = "Number of cross-language phonological neighbours",
-         y = "Proportion of items")
-```
-
-### Cross-linguistic neighbourhood similarity
-
-```{r}
-#| label: fig-clnd
-#| fig-cap: "Cross-language neighbourhood similarity"
-stimuli |>
-    ggplot(aes(group, neigh_sim, group = NA)) +
-    geom_dots(aes(order = group),
-              layout = "swarm", side = "both") +
-    labs(x = "Group",
-         y = "Average cross-linguistic phonological similarity")
-```
-
-### Audio duration
-
-```{r}
-#| label: fig-clnd
+#| label: fig-duration
 #| fig-cap: "Cross-language neighbourhood similarity"
 stimuli |>
     ggplot(aes(group, duration, group = NA)) +
     geom_dots(aes(order = group),
               layout = "swarm", side = "both") +
+    stat_summary(fun.data = mean_se,
+                 geom = "errorbar",
+                 colour = "red",
+                 linewidth = 1,
+                 width = 0.1) +
+    stat_summary(fun = mean,
+                 geom = "point",
+                 colour = "red",
+                 size = 2) +
     labs(x = "Audio duration (s)",
          y = "Average cross-linguistic phonological similarity")
+```
+
+### Lexical frequency
+
+Lexical frequency in the TARGET language (English or Spanish).
+
+```{r}
+#| label: frequency-2
+missing <- stimuli[is.na(stimuli$freq_zipf_2), "ipa_flat_1"]
+```
+
+Missing observations: `r paste0(missing, collapse = ", ")`.
+
+```{r}
+stimuli |>
+    drop_na(freq_zipf_2) |> 
+    ggplot(aes(group, freq_zipf_2, group = NA)) +
+    geom_dots(aes(order = group),
+              layout = "swarm", side = "both",
+              alpha = 0.5) +
+    stat_summary(fun.data = mean_se, color = "red",
+                 geom = "errorbar",
+                 width = 0.5,
+                 linewidth = 1) +
+    labs(x = "Average cross-linguistic phonological similarity",
+         y = "Lexical frequency (Zipf)")
+```
+
+## Phonological similarity between translation pairs (cognateness)
+
+```{r}
+stimuli |> 
+    mutate(t_label = paste0(ipa_flat_1, "-", ipa_flat_2)) |> 
+    ggplot(aes(group, lv)) +
+    facet_wrap(~group, scales = "free_x") +
+    stat_interval(size = 8) +
+    # geom_text(data = stimuli |>
+    #               mutate(t_label = paste0(ipa_flat_1, "-", ipa_flat_2)) |>
+    #               top_n(10, lv),
+    #           aes(label = t_label),
+    #           position = position_nudge(x = 0.1),
+    #           hjust = 0)
+    # geom_point() +
+    ggrepel::geom_text_repel(aes(label = t_label),
+                             seed = 1234, size = 3,
+                             direction = "y",
+                             box.padding = unit(0.2, "lines"),
+                             max.overlaps = 13,
+                             alpha = 0.55,
+                             segment.size = 0,
+                             segment.curvature = 1/4) +
+    labs(x = "Group",
+         y = "Cognateness\n(Levenshtein similarity)",
+         colour = "Proportion of translations") +
+    scale_y_continuous(labels = scales::percent) +
+    scale_color_brewer(palette = "Reds") +
+    theme(legend.position = "top",
+          axis.text.x = element_blank())
+```
+
+## Cross-linguistic neighbourhood density
+
+```{r}
+#| label: tbl-clnd
+#| fig-cap: "Cross-language neighbourhood density"
+stimuli |> 
+    arrange(group, desc(neigh_n)) |> 
+    group_by(group) |> 
+    top_n(n = 10, neigh_n) |> 
+    select(group, translation, avg_sim, neigh_n, neigh_lst) |> 
+    gt(rowname_col = "translation",
+       groupname_col = "group") |> 
+    fmt_percent(avg_sim) |> 
+    tab_style(cell_text(align = "left"), cells_body()) |> 
+    cols_label(neigh_n = "N neighbours",
+               avg_sim = "Average cross-language similarity",
+               neigh_lst = "List of neighbours")
+```
+
+## Cross-linguistic neighbourhood density (higher frequency than translation)
+
+```{r}
+#| label: tbl-clnd
+#| fig-cap: "Cross-language neighbourhood density (higher frequency than translation)"
+stimuli |> 
+    arrange(group, desc(neigh_n_h)) |> 
+    group_by(group) |> 
+    top_n(n = 10, neigh_n_h) |> 
+    select(group, translation, avg_sim_h, neigh_n_h, neigh_lst_h) |> 
+    gt(rowname_col = "translation",
+       groupname_col = "group") |> 
+    fmt_percent(avg_sim_h) |> 
+    tab_style(cell_text(align = "left"), cells_body()) |> 
+    cols_label(neigh_n_h = "N neighbours",
+               avg_sim_h = "Average cross-language similarity",
+               neigh_lst_h = "List of neighbours")
+```
+
+
+## Cross-linguistic neighbourhood similarity
+
+```{r}
+#| label: fig-clns
+#| fig-cap: "Cross-language neighbourhood similarity"
+stimuli |>
+    ggplot(aes(group, avg_sim, group = NA)) +
+    geom_dots(aes(order = group),
+              layout = "swarm", side = "both") +
+    stat_summary(fun.data = mean_se,
+                 geom = "errorbar",
+                 colour = "red",
+                 linewidth = 3/4,
+                 width = 0.1) +
+    stat_summary(fun = mean,
+                 geom = "point",
+                 colour = "red",
+                 size = 2) +
+    labs(x = "Group",
+         y = "Average cross-linguistic phonological similarity")
+```
+
+
+## Cognateness by average cross-linguistic similarity
+
+```{r}
+#| label: fig-cognateness-avg-sim
+stimuli |> 
+    ggplot(aes(lv, avg_sim)) +
+    geom_rug(colour = "grey") +
+    geom_point(alpha = 0.5,
+               shape = 1,
+               size = 2,
+               stroke = 1) +
+    geom_smooth(method = "lm",
+                colour = "red",
+                fill = "red") + 
+    labs(x = "Cognateness (Levenshtein distance)",
+         y = "Average cross-language similarity")
+```
+
+# Participants
+
+```{r}
+#| label: participants
+tbl_data <- list(Experiment = exp_participants,
+                 Questionnaire = quest_participants) |> 
+    bind_rows(.id = "source") |> 
+    summarise(n = n(),
+              n_excluded = sum(!valid_participant),
+              across(age, lst(mean, sd, min, max)),
+              knows_l2 = sum(l_2 != "None"),
+              l2_lst = lst(unique(l_2)[unique(l_2)!="None"]),
+              .by = c(group, source)) 
+
+tbl_data |> 
+    gt(groupname_col = "source", rowname_col = "group") |> 
+    fmt_number(matches("age")) |> 
+    fmt_integer(matches("min|max")) |> 
+    cols_merge_range(age_min, age_max) |> 
+    tab_spanner("Age", matches("age")) |> 
+    tab_spanner("Sample size", starts_with("n")) |> 
+    tab_spanner("L2", matches("l2")) |> 
+    cols_label(group = "Group",
+               source = "Source",
+               n = "N",
+               n_excluded = "Excluded",
+               age_mean = "M",
+               age_sd = "SD",
+               age_min = "Range",
+               knows_l2 = "N knows L2?",
+               l2_lst = "Which L2?") |> 
+    tab_style(cell_text(style = "italic"),
+              cells_column_labels()) |> 
+    tab_style(cell_text(weight = "bold"),
+              cells_column_spanners()) |> 
+    tab_style(cell_text(align = "left"),
+              list(cells_body(), cells_column_labels()))
+```
+
+
+## Target language proficiency
+
+```{r}
+tbl_data <- list(Experiment = exp_participants,
+                 Questionnaire = quest_participants) |> 
+    bind_rows(.id = "source") |> 
+    summarise(across(matches("writ|oral"),
+                     lst(mean, sd, min, max)),
+              .by = c(group, source)) |> 
+    select(-matches("l_2"))
+
+tbl_data |> 
+    gt(rowname_col = "group", groupname_col = "source") |> 
+    fmt_number(is.numeric) |> 
+    fmt_integer(matches("min|max")) |> 
+    fmt_missing(rows = everything(), columns = everything(),
+                missing_text = "--") |> 
+    cols_merge_range(cat_oral_comp_min, cat_oral_comp_max) |> 
+    cols_merge_range(spa_oral_comp_min, spa_oral_comp_max) |> 
+    cols_merge_range(cat_writ_prod_min, cat_writ_prod_max) |> 
+    cols_merge_range(spa_writ_prod_min, spa_writ_prod_max) |> 
+    tab_spanner("Catalan", matches("cat_")) |> 
+    tab_spanner("Spanish", matches(("spa_"))) |> 
+    tab_spanner("Oral comprehension", matches("oral")) |> 
+    tab_spanner("Written production", matches("writ")) |> 
+    cols_label(cat_oral_comp_mean = "M",
+               spa_oral_comp_mean = "M",
+               cat_writ_prod_mean = "M",
+               spa_writ_prod_mean = "M",
+               cat_oral_comp_sd = "SD",
+               spa_oral_comp_sd = "SD",
+               cat_writ_prod_sd = "SD",
+               spa_writ_prod_sd = "SD",
+               cat_oral_comp_min = "Range",
+               spa_oral_comp_min = "Range",
+               cat_writ_prod_min = "Range",
+               spa_writ_prod_min = "Range") |> 
+    tab_style(cell_text(style = "italic"),
+              cells_column_labels()) |> 
+    tab_style(cell_text(weight = "bold"),
+              cells_column_spanners()) |> 
+    tab_style(cell_text(align = "left"),
+              list(cells_body(), cells_column_labels()))
+```
+
+# Results
+
+```{r}
+#| label: tbl-dataset
+sem <- function(x) mean(x) / (sqrt(length(x)))
+
+dataset_2 |> 
+    add_count(source, group, participant_id, name = "trials") |> 
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, source, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              across(n_trials, lst(mean, sum, sd, min, max)),
+              n_participants = n_distinct(participant_id),
+              .by = c(group, source)) |> 
+    relocate(n_participants, matches("n_trials")) |> 
+    gt(rowname_col = "group",
+       groupname_col = "source") |> 
+    fmt_number(is.numeric, decimals = 2) |> 
+    gtExtras::gt_plt_dist(correct_list, type = "density") |> 
+    fmt_integer(c(matches("sum|min|max"), n_participants)) |> 
+    fmt_number(matches("correct"), scale_by = 100) |> 
+    tab_spanner("Valid trials", matches("n_trials")) |> 
+    tab_spanner("Accuracy (%)", matches("correct")) |> 
+    cols_merge_range(n_trials_min, n_trials_max) |> 
+    cols_merge_range(correct_min, correct_max) |> 
+    cols_label(n_trials_sum = "N trials",
+               n_participants = "N",
+               n_trials_mean = "Mean",
+               n_trials_sd = "SD",
+               n_trials_min = "Range",
+               correct_mean = "Mean",
+               correct_sd = "SD",
+               correct_sem = "SE",
+               correct_min = "Range",
+               correct_list = "") |> 
+    tab_style(cell_text(style = "italic"),
+              cells_column_labels()) |> 
+    tab_style(cell_text(weight = "bold"),
+              cells_column_spanners()) |> 
+    tab_style(cell_text(align = "left"),
+              list(cells_body(), cells_column_labels()))
+```
+
+
+## Questionnaire results
+
+```{r}
+quest_responses |> 
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, confidence, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(group, confidence)) |> 
+    ggplot(aes(confidence, correct_mean,
+               colour = group,
+               ymin = correct_mean - correct_sem,
+               ymax = correct_mean + correct_sem)) +
+    geom_errorbar(width = 0.5,
+                  linewidth = 3/4,
+                  position = position_dodge(width = 0.5)) +
+    geom_point(size = 2,
+               position = position_dodge(width = 0.5)) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(x = "Reported confidence (1-5)",
+         y = "Accuracy",
+         colour = "Group") +
+    
+    quest_responses |> 
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, knowledge, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(group, knowledge)) |> 
+    mutate(knowledge = if_else(knowledge, "Yes", "No")) |> 
+    ggplot(aes(knowledge, correct_mean,
+               colour = group,
+               ymin = correct_mean - correct_sem,
+               ymax = correct_mean + correct_sem)) +
+    geom_errorbar(width = 0.25,
+                  linewidth = 3/4,
+                  position = position_dodge(width = 0.5)) +
+    geom_point(size = 2,
+               position = position_dodge(width = 0.5)) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(x = "Reported word knowledge",
+         y = "Accuracy",
+         colour = "Group") +
+    theme(axis.text.y = element_blank(),
+          axis.title.y = element_blank()) +
+    
+    quest_responses |> 
+    mutate(knowledge = if_else(knowledge, "Yes", "No")) |> 
+    summarise(across(confidence, lst(mean, sem)),
+              .by = c(group, knowledge)) |> 
+    ggplot(aes(knowledge, confidence_mean,
+               colour = group,
+               ymin = confidence_mean - confidence_sem,
+               ymax = confidence_mean + confidence_sem)) +
+    geom_errorbar(width = 0.25,
+                  linewidth = 3/4,
+                  position = position_dodge(width = 0.5)) +
+    geom_point(size = 2,
+               position = position_dodge(width = 0.5)) +
+    labs(x = "Reported word knowledge",
+         y = "Resported confidence (1-5)",
+         colour = "Group") +
+    scale_y_continuous(labels = scales::percent) +
+    plot_layout(nrow = 1,
+                guides = "collect") &
+    theme(legend.position = "top")
+```
+
+
+```{r}
+#| label: fig-results-lv
+#| fig-cap: "Accuracy by cognateness."
+dataset_2 |> 
+    mutate(lv_std = cut_interval(lv_std, 10, labels = FALSE),
+           group = factor(group, levels = c("cat-ENG",
+                                            "spa-ENG",
+                                            "cat-SPA"))) |>
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, lv_std, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(group, lv_std)) |> 
+    ggplot(aes(lv_std, correct_mean, colour = group,
+               ymin = correct_mean-correct_sem,
+               ymax = correct_mean+correct_sem)) +
+    facet_wrap(~group) +
+    geom_errorbar(width = 0.25,
+                  linewidth = 3/4,
+                  position = position_dodge(width = 0.25)) +
+    geom_point(size = 2,
+                  position = position_dodge(width = 0.25)) +
+    labs(x = "SD Cognateness (Levenshtein distance)",
+         y = "Accuracy",
+         colour = "Group",
+         fill = "Group") +
+    scale_y_continuous(labels = scales::percent) +
+    theme(legend.position = "none")
+```
+
+
+```{r}
+#| label: fig-results-avg_sim
+#| fig-cap: "Accuracy by average cross-language similarity"
+dataset_2 |> 
+    mutate(avg_sim_std = cut_number(avg_sim_std, 10, labels = FALSE)) |>
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, avg_sim_std, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(group, avg_sim_std)) |> 
+    ggplot(aes(avg_sim_std, correct_mean, colour = group,
+               ymin = correct_mean-correct_sem,
+               ymax = correct_mean+correct_sem)) +
+    facet_wrap(~group) +
+    geom_errorbar(width = 0.25,
+                  linewidth = 3/4) +
+    geom_point(size = 2) +
+    labs(x = "SD Average cross-language similarity",
+         y = "Accuracy",
+         colour = "Group",
+         fill = "Group") +
+    scale_y_continuous(labels = scales::percent) +
+    theme(legend.position = "none")
+```
+
+
+```{r}
+#| label: fig-results-avg_sim
+#| fig-cap: "Accuracy by average cross-language similarity"
+dataset_2 |> 
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(group, neigh_n, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(group, neigh_n)) |> 
+    ggplot(aes(neigh_n, correct_mean, colour = group,
+               ymin = correct_mean-correct_sem,
+               ymax = correct_mean+correct_sem)) +
+    geom_point(size = 2) +
+    geom_smooth(aes(group = group),
+                method = "glm", 
+                method.args = list(family = "binomial"), 
+                se = FALSE) +
+    labs(x = "Cognateness (Levenshtein distance)",
+         y = "Accuracy",
+         colour = "Group",
+         fill = "Group")
+```
+## Model outputs
+
+### Analysis 1
+
+```{r}
+nd <- expand_grid(lv_std = seq(-3, 3, 0.1),
+                  avg_sim_h_std = 0,
+                  freq_zipf_2_std = 0)
+
+epreds <- add_epred_draws(nd, fit_0, re_formula = NA) |> 
+    # mean_qi() |> 
+    mutate(avg_sim_h_std = as.factor(avg_sim_h_std))
+
+dataset_1 |> 
+    summarise(n_trials = n(),
+              correct = sum(correct),
+              .by = c(lv_std, participant_id)) |> 
+    mutate(correct = prop_adj(correct, n_trials)) |> 
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
+              .by = c(lv_std)) |> 
+    ggplot(aes(lv_std, .epred)) +
+    stat_lineribbon(data = epreds) +
+    geom_point(aes(y = correct_mean)) +
+    scale_fill_brewer(palette = "Reds")
+```
+
+# Appendix
+
+## Appendix 1: List of trials
+
+### Catalan-English (cat-ENG)
+
+```{r}
+#| label: tbl-app-stim-cateng
+#| tbl-cap: "Catalan-English stimuli"
+tar_load(trial_list)
+
+trial_list_lst <- trial_list |> 
+    split(trial_list$group) |>
+    janitor::clean_names() |> 
+    map(select, matches("word_|ipa|sampa"))
+
+trial_list_lst$cat_eng |> 
+    gt() |> 
+    tab_spanner("Presented word (1)", ends_with("_1")) |> 
+    tab_spanner("Presented word (2)", ends_with("_2")) |> 
+    cols_label(word_1 = "Orthography",
+               ipa_flat_1 = "IPA",
+               sampa_1 = "X-SAMPA",
+               word_2 = "Orthography",
+               ipa_flat_2 = "IPA",
+               sampa_2 = "X-SAMPA")
+```
+
+
+### Spanish-English (spa-ENG)
+
+```{r}
+#| label: tbl-app-stim-cateng
+#| tbl-cap: "Spanish-English stimuli"
+trial_list_lst$spa_eng |> 
+    gt() |> 
+    tab_spanner("Presented word (1)", ends_with("_1")) |> 
+    tab_spanner("Presented word (2)", ends_with("_2")) |> 
+    cols_label(word_1 = "Orthography",
+               ipa_flat_1 = "IPA",
+               sampa_1 = "X-SAMPA",
+               word_2 = "Orthography",
+               ipa_flat_2 = "IPA",
+               sampa_2 = "X-SAMPA")
+```
+
+### Catalan-Spanish (cat-SPA)
+
+```{r}
+#| label: tbl-app-stim-catspa
+#| tbl-cap: "Catalan-Spanish stimuli"
+trial_list_lst$cat_spa |> 
+    gt() |> 
+    tab_spanner("Presented word (1)", ends_with("_1")) |> 
+    tab_spanner("Presented word (2)", ends_with("_2")) |> 
+    cols_label(word_1 = "Orthography",
+               ipa_flat_1 = "IPA",
+               sampa_1 = "X-SAMPA",
+               word_2 = "Orthography",
+               ipa_flat_2 = "IPA",
+               sampa_2 = "X-SAMPA")
 ```
