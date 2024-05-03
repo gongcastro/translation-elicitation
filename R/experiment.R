@@ -1,4 +1,5 @@
-# import data ------------------------------------------------------------------
+#' Import and preprocess raw data from Experiments 1 and 3
+#' 
 get_exp_raw <- function(exp_raw_files){
     # set parameters
     spanish_cities <- c("Lorca", "Albacete", "Cieza", "Cartagena", "Murcia", "España", "Málaga", "Oviedo", "Santander", "Granada")
@@ -78,7 +79,8 @@ get_exp_raw <- function(exp_raw_files){
     return(exp_raw)
 }
 
-# process responses ------------------------------------------------------------
+#' Process responses from Experiments 1 and 3
+#' 
 get_exp_processed <- function(exp_raw, stimuli){
     
     exp_processed <- exp_raw |> 
@@ -112,11 +114,11 @@ get_exp_processed <- function(exp_raw, stimuli){
 }
 
 
-# participant data -------------------------------------------------------------
+#' Get participant-level information from participants in Experiments 1 and 3
+#' 
 get_exp_participants <- function(exp_processed,
                                  min_valid_trials = 0.80,
-                                 min_age = 18,
-                                 max_age = 26,
+                                 age_range = c(18, 26),
                                  blocked_languages = c("Italian",
                                                        "Spanish",
                                                        "French")){
@@ -125,8 +127,6 @@ get_exp_participants <- function(exp_processed,
     
     valid_response_types <- c("correct", "typo", "wrong", "false_friend")
     correct_codes <- c("correct", "typo")
-    max_cat_trials <- 86 # max of Catalan trials
-    max_spa_trials <- 103 # max number of Spanish trials
     
     exp_participants <- file.path("data", "experiment", "processed", "02_coded.xlsx") |> 
         read_xlsx() |> 
@@ -146,35 +146,18 @@ get_exp_participants <- function(exp_processed,
         # add extra info
         inner_join(extra_info, by = join_by(participant_id, group)) |>  
         # participant is valid if has completed >= 80% trials (valid)
-        mutate(invalid_participant_trials = if_else(
-            group %in% c("cat-ENG", "cat-SPA"),
-            n_trials_valid < min_valid_trials*max_cat_trials, 
-            n_trials_valid < min_valid_trials*max_spa_trials),
-            valid_participant = if_else(
-                # if Catalan list, at least 68 valid trials
-                group %in% c("cat-ENG", "cat-SPA"),
-                between(age, min_age, max_age) & 
-                    n_trials_valid >= min_valid_trials*max_cat_trials &
-                    !has_language_problems,
-                # if Spanish list, at least 82 valid trials
-                between(age, min_age, max_age) &
-                    n_trials_valid >= min_valid_trials*max_spa_trials &
-                    !has_language_problems) &
-                # L2 is not a blocked one
-                !(l2 %in% blocked_languages)) |> 
-        rename(l_2 = l2,
-               l_2_oral_comp = l2oral,
-               l_2_writ_prod = l2written,
+        validate_participants(min_valid_trials, blocked_languages, age_range) |> 
+        rename(l2_oral_comp = l2oral,
+               l2_writ_prod = l2written,
                cat_oral_comp = catalan_oral,
                cat_writ_prod = catalan_written,
                spa_oral_comp = spanish_oral,
                spa_writ_prod = spanish_written) |> 
         select(group, participant_id, date, age, gender,
-               l_2, l_2_oral_comp, l_2_writ_prod,
+               l2, l2_oral_comp, l2_writ_prod,
                cat_oral_comp, cat_writ_prod,
                spa_oral_comp, spa_writ_prod,
-               valid_participant, n_trials, n_trials_valid,
-               invalid_participant_trials, has_language_problems) |>  
+               valid_status, n_trials, n_trials_valid) |>  
         arrange(date)
     
     out_path <- file.path("data", "participants.rds")
@@ -185,19 +168,11 @@ get_exp_participants <- function(exp_processed,
 }
 
 
-# process responses ------------------------------------------------------------
+#' Make dataset with responses from Experiments 1 and 3
+#' 
 get_exp_responses <- function(exp_participants, stimuli){
     
-    # filter valid participants
-    valid_participants <- exp_participants |> 
-        dplyr::filter(valid_participant) |> 
-        pull(participant_id)
-    
-    stimuli_tmp <- stimuli |> 
-        select(group, translation, translation_id, word_1, word_2, 
-               sampa_1, sampa_2, freq_zipf_2, 
-               lv, neigh_n, neigh_n_h, avg_sim, avg_sim_h) |> 
-        mutate(word_1 = replace_non_ascii(word_1))
+    stimuli_tmp <- clean_stimuli(stimuli)
     
     valid_response_types <- c("correct", "typo", "wrong", "false_friend")
     correct_codes <- c("correct", "typo")
@@ -210,17 +185,17 @@ get_exp_responses <- function(exp_participants, stimuli){
                valid_response = response_type %in% valid_response_types,
                correct = response_type %in% correct_codes,
                group = as.factor(group)) |> 
-        # filter in only valid participants, and valid responses
-        dplyr::filter(participant_id %in% valid_participants, 
-                      valid_response) |> 
         # this step filters out invalid presented words
-        inner_join(stimuli_tmp,join_by(group, word_1)) |> 
+        inner_join(stimuli_tmp, join_by(group, word_1)) |> 
+        left_join(select(exp_participants, participant_id, group, valid_status),
+                  by = join_by(participant_id, group)) |>         
         relocate(group, trial_id) |> 
         # typos are considered correct responses
         arrange(trial_id, group) |> 
-        mutate(group = as.factor(group)) |> 
+        mutate(valid_participant = valid_status=="Valid") |> 
         drop_na(correct) |> 
-        select(group, participant_id, word_1, response, correct, response_type)
+        select(group, participant_id, word_1, response, correct, 
+               response_type, valid_response, valid_participant)
     
     out_path <- file.path("data", "experiment.csv")
     arrow::write_csv_arrow(exp_responses, out_path)   

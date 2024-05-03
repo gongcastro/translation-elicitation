@@ -1,3 +1,38 @@
+#' Import CLEARPOND database
+#'
+import_clearpond <- function(cp_c_path_eng, 
+                             cp_c_path_spa,
+                             cp_h_path_eng,
+                             cp_h_path_spa) {
+    suppressWarnings({
+        header <- readLines(file.path(cp_h_path_eng), warn = FALSE)
+        eng <- read_tsv(file.path(cp_c_path_eng), 
+                        col_names = header,
+                        progress = FALSE, 
+                        show_col_types = FALSE) |> 
+            janitor::clean_names() 
+        
+        header <- readLines(file.path(cp_h_path_spa), warn = FALSE)
+        spa <- read_tsv(file.path(cp_c_path_spa), 
+                        col_names = header,
+                        progress = FALSE,
+                        show_col_types = FALSE) |> 
+            janitor::clean_names() 
+        
+        out <- bind_rows(lst("English" = eng,
+                             "Spanish" = spa),
+                         .id = "language") |>  
+            rename(sampa = phono,
+                   freq = frequency) |> 
+            mutate(sampa = str_remove_all(sampa, "\\."),
+                   freq_zipf = log10(1e6 * freq/n()) + 3,
+                   .by = c(language)) |> 
+            select(language, word, sampa, freq_zipf)
+    })
+    
+    return(out)
+}
+
 #' Import list of trials and process
 #' 
 get_trial_list <- function(trial_list_path) {

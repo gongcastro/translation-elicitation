@@ -8,72 +8,62 @@ get_participants <- function(exp_participants, quest_participants) {
     return(out)
 }
 
-#' Get dataset for analysis 2
-#'
-get_dataset_1 <- function(exp_responses, quest_responses, stimuli) {
+#' Get dataset for analysis
+#' 
+get_dataset <- function(experiment, exp_responses, quest_responses, stimuli) {
     
-    dataset_1 <- prepare_data(exp_responses, quest_responses, stimuli) |> 
-        dplyr::filter(group %in% c("cat-ENG", "spa-ENG"),
-                      source=="Experiment") |> 
-        drop_na()|> 
-        mutate(across(c(freq_zipf_2, neigh_n, neigh_n_h, avg_sim, avg_sim_h, lv),
-                      \(x) scale(x)[, 1],
-                      .names = "{.col}_std"),
-               group = as.factor(group))
+    if (!(experiment %in% 1:3)) {
+        cli_abort("{.code experiment} must be one of 1, 2, or 3")
+    }
     
-    # a priori contrasts for groups
-    contrasts(dataset_1$group) <- c(0.5, -0.5)
+    dataset <- prepare_data(exp_responses, quest_responses, stimuli)
     
-    return(dataset_1)
+    if (experiment==1) {
+        out <- dataset |> 
+            dplyr::filter(source=="Experiment", group != "cat-SPA") |> 
+            mutate(group = factor(group, levels = c("cat-ENG", "spa-ENG"))) 
+        contrasts(out$group) <- c(0.5, -0.5)
+    } else if (experiment==2) {
+        out <- dataset |> 
+            dplyr::filter(source=="Questionnaire") |> 
+            mutate(group = factor(group, levels = c("cat-ENG", "spa-ENG")))
+        contrasts(out$group) <- c(0.5, -0.5)
+    } else {
+        out <- dplyr::filter(dataset, group=="cat-SPA")
+    }
+    
+    if (nrow(out)==0) {
+        cli_abort("Dataset has no rows")
+    }
+    return(out)
 }
 
-#' Get dataset for analysis 2
+#' Merge data from Experiment and from Questionnaire and select relevant variables
 #'
-get_dataset_2 <- function(exp_responses, quest_responses, stimuli) {
-    
-    dataset_2 <- prepare_data(exp_responses, quest_responses, stimuli) |> 
-        dplyr::filter(source=="Questionnaire") |> 
-        drop_na() |> 
-        mutate(across(c(freq_zipf_2, neigh_n, neigh_n_h, avg_sim, avg_sim_h, lv),
-                      \(x) scale(x)[, 1],
-                      .names = "{.col}_std"),
-               group = as.factor(group))
-    
-    # a priori contrasts for groups
-    contrasts(dataset_2$group) <- c(0.5, -0.5)
-    
-    return(dataset_2)
-}
-
-#' Get dataset for analysis 3
-#'
-get_dataset_3 <- function(exp_responses, quest_responses, stimuli) {
-    
-    dataset_3 <- prepare_data(exp_responses, quest_responses, stimuli) |> 
-        dplyr::filter(group %in% c("cat-SPA")) |> 
-        drop_na() |> 
-        mutate(across(c(freq_zipf_2, neigh_n, neigh_n_h, avg_sim, avg_sim_h, lv),
-                      \(x) scale(x)[, 1],
-                      .names = "{.col}_std"),
-               across(c(group, source), as.factor))
-
-    return(dataset_3)
-}
-
 prepare_data <- function(exp_responses, quest_responses, stimuli) {
     
     stimuli_tmp <- clean_stimuli(stimuli)
     
-    out <- list(exp_responses, quest_responses) |>
-        set_names(c("Experiment", "Questionnaire")) |> 
+    relevant_vars <- c("source", "participant_id", "group", "word_1",
+                       "response", "correct", "response_type", 
+                       "confidence", "knowledge")
+    
+    out <- list(Experiment = exp_responses, 
+                Questionnaire = quest_responses) |>
         bind_rows(.id = "source") |> 
-        select(source, participant_id, group, word_1, response, correct,
-               response_type) |> 
-        left_join(stimuli_tmp, by = join_by(group, word_1))
+        dplyr::filter(valid_participant, valid_response) |> 
+        select(any_of(relevant_vars)) |> 
+        left_join(stimuli_tmp, by = join_by(group, word_1)) |> 
+        mutate(across(c(freq_zipf_2, neigh_n, neigh_n_h, avg_sim, avg_sim_h, lv),
+                      \(x) scale(x)[, 1],
+                      .names = "{.col}_std"),
+               group = as.factor(group)) 
     
     return(out)
 }
 
+#' Get relevant stimuli properties
+#' 
 clean_stimuli <- function(stimuli) {
     
     out <- stimuli |> 
