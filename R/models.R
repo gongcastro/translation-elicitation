@@ -43,12 +43,12 @@ get_epreds <- function(model, data, n = 100,
     
     knowledge <- unique(model$data$knowledge)
     confidence <- unique(model$data$confidence)
+    freq_zipf_2 <- mean(data$freq_zipf_2, na.rm = TRUE)
     group <- unique(model$data$group)
-    nd <- expand_grid(neigh_n_h, lv, knowledge, confidence, group)
+    nd <- expand_grid(freq_zipf_2, neigh_n_h, lv, knowledge, confidence, group)
     epreds <- tidybayes::add_epred_draws(nd, model, re_formula = NA, ...)
     
     return(epreds)
-    
 }
 
 

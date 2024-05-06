@@ -98,50 +98,49 @@ list(
     # models -------------------------------------------------------------------
     
     tar_target(model_prior,
-               c(prior(normal(0, 0.1), class = "Intercept"),
-                 prior(normal(0, 0.1), class = "b"),
+               c(prior(normal(0, 0.1), class = "b"),
                  prior(exponential(3), class = "sd"),
                  prior(lkj(5), class = "cor"))),
     
     # analysis of Experiment 1
     tar_target(exp_1_m0,
                get_model_fit("exp_1_m0",
-                             correct ~ neigh_n_h * lv + 
-                                 (1 + neigh_n_h * lv | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + 
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_1)),
     tar_target(exp_1_m1,
                get_model_fit("exp_1_m1",
-                             correct ~ neigh_n_h * lv + group + 
-                                 (1 + neigh_n_h * lv | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + group + 
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_1)),
     
     # analysis of Experiment 2
     tar_target(exp_2_m0,
                get_model_fit("exp_2_m0",
-                             correct ~ neigh_n_h * lv +
-                                 (1 + neigh_n_h * lv | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv +
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_2)),
     
     tar_target(exp_2_m1,
                get_model_fit("exp_2_m1",
-                             correct ~ neigh_n_h * lv * group + 
-                                 (1 + neigh_n_h * lv | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv * group + 
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_2)),
     
     tar_target(exp_2_m2,
                get_model_fit("exp_2_m2",
-                             correct ~ neigh_n_h * lv + confidence +  
-                                 (1 + neigh_n_h * lv + confidence | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + confidence +  
+                                 (1 + freq_zipf_2 + neigh_n_h * lv + confidence | participant_id),
                              prior = model_prior,
                              data = dataset_2)),
     tar_target(exp_2_m3,
                get_model_fit("exp_2_m3",
-                             correct ~ neigh_n_h * lv + knowledge +  
-                                 (1 + neigh_n_h + lv + knowledge | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + knowledge +  
+                                 (1 + freq_zipf_2 + neigh_n_h + lv + knowledge | participant_id),
                              prior = model_prior,
                              data = dataset_2)),
     
@@ -149,8 +148,8 @@ list(
     # analysis of Experiment 3
     tar_target(exp_3_m0,
                get_model_fit("exp_3_m0",
-                             correct ~ neigh_n_h * lv + 
-                                 (1 + neigh_n_h * lv | participant_id),
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + 
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_3)),
     
@@ -162,7 +161,10 @@ list(
     tar_target(exp_2_loos_2,
                loo_compare(map(lst(exp_2_m0, exp_2_m2), loo, .progress = TRUE))),
     tar_target(exp_2_loos_3,
-               loo_compare(map(lst(exp_2_m0, exp_2_m3), loo, .progress = TRUE)))
+               loo_compare(map(lst(exp_2_m0, exp_2_m3), loo, .progress = TRUE))),
+    
+    # render manuscript
+    tar_target(manuscript, quarto::quarto_render(file.path("manuscript", "manuscript.qmd")))
 )
 
 

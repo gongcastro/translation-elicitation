@@ -1,10 +1,23 @@
 ---
 title: "The role of cognateness in non-native spoken word recognition"
+link-citations: true
+editor: source
+lang: en
+freeze: true
+fig-dpi: 1000
+echo: false
+warning: false
+format: pdf
+csl: "_assets/apa7.csl"
+bibliography: "_assets/references.bib"
 ---
-
 
 ```{r}
 #| label: setup
+#| message: false
+#| warning: false
+#| include: false
+
 library(targets)
 library(dplyr)
 library(tidyr)
@@ -42,6 +55,7 @@ theme_set(theme_ggdist() +
                                                       linetype = "dotted")))
 
 ```
+
 
 # Introduction
 
@@ -111,6 +125,7 @@ Data collection took place from `r collection_dates[1]` to `r collection_dates[2
 
 ```{r tbl-participants}
 #| label: tbl-participants
+#| eval: false
 tbl_data <- participants |> 
     mutate(exp = case_when(
         source=="Experiment" & group!= "cat-SPA" ~ "Experiment 1",
@@ -148,6 +163,7 @@ tbl_data |>
     tab_style(cell_text(align = "left"),
               list(cells_body(), cells_column_labels()))
 ```
+
 
 ```{r}
 #| label: participants-excluded-1
@@ -218,9 +234,10 @@ For each Catalan and Spanish word, we calculated the number of *CLPN* by countin
 
 ```{r tbl-stimuli}
 #| label: tbl-stimuli
+#| eval: false
 stimuli |> 
     summarise(across(c(freq_zipf_2, lv, neigh_n_h),
-                     lst(mean, sd, min, max), 
+                     lst(mean, median, sd, min, max), 
                      na.rm = TRUE),
               .by = c(group)) |> 
     gt(rowname_col = "group") |> 
@@ -228,7 +245,8 @@ stimuli |>
     tab_spanner("Cognateness", matches("lv")) |> 
     tab_spanner("CLPN", matches("neigh")) |> 
     fmt_number(is.numeric) |> 
-    fmt_integer(c(neigh_n_h_min,
+    fmt_integer(c(neigh_n_h_median,
+                  neigh_n_h_min,
                   neigh_n_h_max)) |> 
     cols_merge_uncert(freq_zipf_2_mean, freq_zipf_2_sd) |> 
     cols_merge_uncert(lv_mean, lv_sd) |> 
@@ -236,14 +254,17 @@ stimuli |>
     cols_merge_range(freq_zipf_2_min, freq_zipf_2_max) |> 
     cols_merge_range(lv_min, lv_max) |> 
     cols_merge_range(neigh_n_h_min, neigh_n_h_max) |> 
-    cols_label(freq_zipf_2_mean = "Mean ± SD",
+    cols_label(freq_zipf_2_mean = "Mean",
                freq_zipf_2_sd = "SD",
+               freq_zipf_2_median = "Median",
                freq_zipf_2_min = "Range",
-               lv_mean = "Mean ± SD",
+               lv_mean = "Mean",
                lv_sd = "SD",
+               lv_median = "Median",
                lv_min = "Range",
-               neigh_n_h_mean = "Mean ± SD",
+               neigh_n_h_mean = "Mean",
                neigh_n_h_sd = "SD",
+               neigh_n_h_median = "Median",
                neigh_n_h_min = "Range") |> 
     tab_style(cell_text(weight = "bold"),
               cells_column_spanners()) |> 
@@ -251,6 +272,7 @@ stimuli |>
               cells_column_labels())
 
 ```
+
 
 
 ### Procedure
@@ -266,10 +288,12 @@ Each trial started with a yellow fixation point presented during one second on t
 #| echo: false
 #| message: false
 #| warning: false
+#| eval: false
 #| out-width: "80%"
 #| fig-cap: "Schematic representation of a trial in the experimental task."
 knitr::include_graphics(here::here("img", "design.png"))
 ```
+
 
 
 
@@ -290,6 +314,7 @@ Responses given by English participants to Catalan presented words were `r round
 
 ```{r}
 #| label: tbl-results
+#| eval: false
 tbl_data <- list("Experiment 1" = dataset_1,
                  "Experiment 2" = dataset_2,
                  "Experiment 3" = dataset_3) |> 
@@ -358,8 +383,7 @@ names(c1) <- janitor::make_clean_names(names(c1))
 
 @tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_lv$.lower, 3)`, `r round(c1$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c1$b_lv$.median, 3)`, 95% CrI = [`r round(c1$b_lv$.lower, 3)`, `r round(c1$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h$.lower, 3)`, `r round(c1$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h$.rope, 3)`). A model including *Group* as a main effect did not improve the predictive performance of the model ($\Delta_{ELPD}$ = `r round(exp_1_loos[2], 2)`, $SE$ = `r round(exp_1_loos[4], 2)`), indicating that participants in both groups performed equivalently. @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
 
-```{r}
-#| eva: false
+```{r tbl-dataset}
 #| label: tbl-dataset
 sem <- function(x) mean(x) / (sqrt(length(x)))
 # proportion adjusted from boundary values (Gelman, Hill & Vehtari, 2020)
@@ -394,7 +418,7 @@ tbl_data <- list("Experiment 1" = dataset_1,
               correct = sum(correct),
               .by = c(group, exp, participant_id)) |> 
     mutate(correct = prop_adj(correct, n_trials)) |> 
-    summarise(across(correct, lst(mean, sd, sem, min, max)),
+    summarise(across(correct, lst(mean, sd, sem, min, max, list)),
               across(n_trials, lst(mean, sum, sd, min, max)),
               n_participants = n_distinct(participant_id),
               .by = c(group, exp)) |> 
@@ -409,18 +433,18 @@ tbl_data |>
     fmt_number(matches("correct"), scale_by = 100) |> 
     tab_spanner("Valid trials", matches("n_trials")) |> 
     tab_spanner("Accuracy (%)", matches("correct")) |> 
-    cols_merge_uncert(n_trials_mean, n_trials_sd) |> 
     cols_merge_range(n_trials_min, n_trials_max) |> 
-    cols_merge_uncert(n_trials_mean, n_trials_sd) |> 
-    cols_merge_uncert(correct_mean, correct_sd) |> 
     cols_merge_range(correct_min, correct_max) |> 
     cols_label(n_trials_sum = "N trials",
                n_participants = "N",
-               n_trials_mean = "Mean ± SD",
+               n_trials_mean = "Mean",
+               n_trials_sd = "SD",
                n_trials_min = "Range",
-               correct_mean = "Mean ± SD",
+               correct_mean = "Mean",
+               correct_sd = "SD",
                correct_sem = "SE",
-               correct_min = "Range") |> 
+               correct_min = "Range",
+               correct_list = "") |> 
     tab_style(cell_text(style = "italic"),
               cells_column_labels()) |> 
     tab_style(cell_text(weight = "bold"),
@@ -428,154 +452,5 @@ tbl_data |>
     tab_style(cell_text(align = "left"),
               list(cells_body(), cells_column_labels()))
 ```
-
-
-```{r fig-epreds-1}
-#| label: fig-epreds-1
-#| fig-height: 3.5
-#| fig-width: 10
-get_epreds <- function(model, data, n = 100, 
-                       lv = seq(0, 1, length.out = 100), 
-                       neigh_n_h = c(0, 2, 4, 8, 16),
-                       ...) {
-    
-    knowledge <- unique(model$data$knowledge)
-    confidence <- unique(model$data$confidence)
-    freq_zipf_2 <- mean(data$freq_zipf_2, na.rm = TRUE)
-    group <- unique(model$data$group)
-    nd <- expand_grid(freq_zipf_2, neigh_n_h, lv, knowledge, confidence, group)
-    epreds <- tidybayes::add_epred_draws(nd, model, re_formula = NA, ...)
-    
-    return(epreds)
-}
-
-get_epreds(exp_1_m0, dataset_1) |> 
-    mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
-           neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
-                                              " neighbours"),
-                              ordered = TRUE)) |> 
-    ggplot(aes(lv, .epred)) +
-    facet_wrap(~neigh_n_h, nrow = 1) +
-    stat_lineribbon(aes(fill_ramp = after_stat(level)),
-                    linewidth = 1/2,
-                    .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
-         y = "p(Correct)",
-         colour = "Cross-language neighbourhood density",
-         fill = "Cross-language neighbourhood density",
-         linetype = "Cross-language neighbourhood density",
-         fill_ramp = "CrI (%)") +
-    scale_x_continuous(labels = scales::percent) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_fill_brewer(palette = "Reds") +
-    theme(legend.position = "none",
-          legend.box = "vertical") 
-```
-
-
-## Discussion
-
-# Experiment 2
-
-## Methods
-
-## Results
-
-```{r}
-c2 <- gather_draws(exp_2_m0, `b_.*`, `sd_.*`, regex = TRUE) |> 
-    summarise(across(.value, lst(.median = median, 
-                                 .lower = \(x) hdi(x)[1],
-                                 .upper = \(x) hdi(x)[2],
-                                 .rope = \(x) mean(between(x, -0.1, 0.1))),
-                     .names = "{fn}"))
-c2 <- split(c2, c2$.variable)
-names(c2) <- janitor::make_clean_names(names(c2)) 
-```
-
-@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_lv$.lower, 3)`, `r round(c2$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c2$b_lv$.median, 3)`, 95% CrI = [`r round(c2$b_lv$.lower, 3)`, `r round(c2$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h$.lower, 3)`, `r round(c2$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h$.rope, 3)`). A model including *Group* as a main effect did not improve the predictive performance of the model ($\Delta_{ELPD}$ = `r round(exp_2_loos_1[2], 2)`, $SE$ = `r round(exp_2_loos_1[4], 2)`), indicating that participants in both groups performed equivalently. @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
-
-```{r fig-epreds-2}
-#| label: fig-epreds-2
-#| fig-height: 3.5
-#| fig-width: 10
-get_epreds(exp_2_m0, dataset_2) |> 
-    mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
-           neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
-                                              " neighbours"),
-                              ordered = TRUE)) |> 
-    ggplot(aes(lv, .epred)) +
-    facet_wrap(~neigh_n_h, nrow = 1) +
-    stat_lineribbon(aes(fill_ramp = after_stat(level)),
-                    linewidth = 1/2,
-                    .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
-         y = "p(Correct)",
-         colour = "Cross-language neighbourhood density",
-         fill = "Cross-language neighbourhood density",
-         linetype = "Cross-language neighbourhood density",
-         fill_ramp = "CrI (%)") +
-    scale_x_continuous(labels = scales::percent) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_fill_brewer(palette = "Reds") +
-    theme(legend.position = "none",
-          legend.box = "vertical") 
-```
-
-## Discussion
-
-# Experiment 3
-
-## Methods
-
-Same as in Experiment 1.
-
-## Results
-
-```{r}
-c3 <- gather_draws(exp_3_m0, `b_.*`, `sd_.*`, regex = TRUE) |> 
-    summarise(across(.value, lst(.median = median, 
-                                 .lower = \(x) hdi(x)[1],
-                                 .upper = \(x) hdi(x)[2],
-                                 .rope = \(x) mean(between(x, -0.1, 0.1))),
-                     .names = "{fn}"))
-c3 <- split(c3, c3$.variable)
-names(c3) <- janitor::make_clean_names(names(c3)) 
-```
-
-@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_lv$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c3$b_lv$.median, 3)`, 95% CrI = [`r round(c3$b_lv$.lower, 3)`, `r round(c3$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h$.lower, 3)`, `r round(c3$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
-
-```{r exp3-epreds}
-#| label: fig-epreds-3
-#| fig-height: 3.5
-#| fig-width: 10
-get_epreds(exp_3_m0, dataset_3) |> 
-    mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
-           neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
-                                              " neighbours"),
-                              ordered = TRUE)) |> 
-    ggplot(aes(lv, .epred)) +
-    facet_wrap(~neigh_n_h, nrow = 1) +
-    stat_lineribbon(aes(fill_ramp = after_stat(level)),
-                    linewidth = 1/2,
-                    .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
-         y = "p(Correct)",
-         colour = "Cross-language neighbourhood density",
-         fill = "Cross-language neighbourhood density",
-         linetype = "Cross-language neighbourhood density",
-         fill_ramp = "CrI (%)") +
-    scale_x_continuous(labels = scales::percent) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_fill_brewer(palette = "Reds") +
-    theme(legend.position = "none",
-          legend.box = "vertical") 
-```
-
-## Discussion
-
-# References
 
 

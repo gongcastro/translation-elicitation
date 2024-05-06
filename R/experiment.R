@@ -128,7 +128,7 @@ get_exp_participants <- function(exp_processed,
     valid_response_types <- c("correct", "typo", "wrong", "false_friend")
     correct_codes <- c("correct", "typo")
     
-    exp_participants <- file.path("data", "experiment", "processed", "02_coded.xlsx") |> 
+    exp_participants <- file.path("data", "experiment-manual-coded.xlsx") |> 
         read_xlsx() |> 
         # code valid and correct responses
         mutate(participant_id = str_trunc(participant_id, width = 10, side = "right"),
@@ -160,7 +160,7 @@ get_exp_participants <- function(exp_processed,
                valid_status, n_trials, n_trials_valid) |>  
         arrange(date)
     
-    out_path <- file.path("data", "participants.rds")
+    out_path <- file.path("data", "participants.csv")
     arrow::write_csv_arrow(exp_participants, out_path)
     cli_alert_success("Saved {.emph exp_participants} as {.file {out_path}}")
     
@@ -178,7 +178,7 @@ get_exp_responses <- function(exp_participants, stimuli){
     correct_codes <- c("correct", "typo")
     
     # process responses
-    exp_responses <- file.path("data", "experiment", "processed", "02_coded.xlsx") |> 
+    exp_responses <- file.path("data", "experiment-manual-coded.xlsx") |> 
         read_xlsx() |> 
         rename(response = input_text, word_1 = word) |> 
         mutate(participant_id = str_trunc(participant_id, width = 10, side = "right"),

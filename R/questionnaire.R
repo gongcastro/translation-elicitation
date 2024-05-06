@@ -170,7 +170,7 @@ get_quest_responses <- function(quest_processed, quest_participants, stimuli) {
   valid_codes <- c("correct", "typo", "wrong", "false_friend")
   correct_codes <- c("correct", "typo")
   
-  responses_coded_path <- file.path("data-raw", "questionnaire", "04_responses-coded.csv")
+  responses_coded_path <- file.path("data", "questionnaire-manual-coded.csv")
   
   quest_responses <- read_csv(responses_coded_path, col_types = "cccclicc") |>  
     rename(participant_id = participant) |> 
