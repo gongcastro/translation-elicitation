@@ -1,0 +1,12 @@
+$$\begin{align}
+&\textbf{Likelihood:}  \\
+y_{i} &\sim \text{Bernoulli}(p_{i}) \\\\
+&\textbf{Linear model:}  \\
+\text{logit}(p_{i}) &= \beta_{0_j} + \beta_{1_j} \text{Frequency} + \beta_{2_j} \text{CLPN} + \beta_{3_j} \text{Cognateness} + \\
+& \beta_{4_j} (\text{CLPN}_i \times \text{Cognateness}) \\ \\
+\beta_{0-4_j} &\sim  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } j \\\\
+&\textbf{Prior:}  \\
+\mu_{\beta_{p}} &\sim \mathcal{N}(0, 0.1) \\
+\sigma_{\beta_{p}} &\sim \text{HalfCauchy}(0, 0.1) \\
+\rho_{p} &\sim \text{LKJCorr}(8)
+\end{align}$${#eq-model}

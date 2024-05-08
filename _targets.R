@@ -105,63 +105,33 @@ list(
     # analysis of Experiment 1
     tar_target(exp_1_m0,
                get_model_fit("exp_1_m0",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv + 
-                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
-                             prior = model_prior,
-                             data = dataset_1)),
-    tar_target(exp_1_m1,
-               get_model_fit("exp_1_m1",
                              correct ~ freq_zipf_2 + neigh_n_h * lv + group + 
                                  (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_1)),
     
+    
     # analysis of Experiment 2
     tar_target(exp_2_m0,
                get_model_fit("exp_2_m0",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv +
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + 
                                  (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_2)),
-    
-    tar_target(exp_2_m1,
-               get_model_fit("exp_2_m1",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv * group + 
-                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
-                             prior = model_prior,
-                             data = dataset_2)),
-    
-    tar_target(exp_2_m2,
-               get_model_fit("exp_2_m2",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv + confidence +  
-                                 (1 + freq_zipf_2 + neigh_n_h * lv + confidence | participant_id),
-                             prior = model_prior,
-                             data = dataset_2)),
-    tar_target(exp_2_m3,
-               get_model_fit("exp_2_m3",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv + knowledge +  
-                                 (1 + freq_zipf_2 + neigh_n_h + lv + knowledge | participant_id),
-                             prior = model_prior,
-                             data = dataset_2)),
-    
     
     # analysis of Experiment 3
     tar_target(exp_3_m0,
                get_model_fit("exp_3_m0",
-                             correct ~ freq_zipf_2 + neigh_n_h * lv + 
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + group + 
                                  (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
                              prior = model_prior,
                              data = dataset_3)),
-    
-    # model comparison
-    tar_target(exp_1_loos,
-               loo_compare(map(lst(exp_1_m0, exp_1_m1), loo, .progress = TRUE))),
-    tar_target(exp_2_loos_1,
-               loo_compare(map(lst(exp_2_m0, exp_2_m1), loo, .progress = TRUE))),
-    tar_target(exp_2_loos_2,
-               loo_compare(map(lst(exp_2_m0, exp_2_m2), loo, .progress = TRUE))),
-    tar_target(exp_2_loos_3,
-               loo_compare(map(lst(exp_2_m0, exp_2_m3), loo, .progress = TRUE))),
+    tar_target(exp_3_m1,
+               get_model_fit("exp_3_m1",
+                             correct ~ freq_zipf_2 + neigh_n_h * lv + group +
+                                 (1 + freq_zipf_2 + neigh_n_h * lv | participant_id),
+                             prior = model_prior,
+                             data = filter(dataset_3, !knowledge))),
     
     # render manuscript
     tar_target(manuscript, quarto::quarto_render(file.path("manuscript", "manuscript.qmd")))

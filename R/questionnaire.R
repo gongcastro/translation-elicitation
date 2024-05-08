@@ -14,7 +14,7 @@ get_quest_raw <- function(quest_raw_files){
     dplyr::filter(response_type=="IP Address") |> 
     rename(any_of(colnames_dict())) |> 
     select(participant_id, language, date, finished, consent, captcha,
-           age, sex, education,
+           age, gender, education,
            l1, l2, l3, l2_oral_comp, l2_writ_prod, l3_oral_comp, l3_writ_prod,
            cat_oral_comp, cat_writ_prod, spa_oral_comp, spa_writ_prod, 
            living_spa, living_cat, has_language_problems,
@@ -55,7 +55,8 @@ colnames_dict <- function() {
     city = "what_city_do_you_live_in",
     env_location = "where_are_you_completing_this_study_selected_choice",
     env_noise = "how_noisy_is_the_environment_in_which_you_are_completing_this_experiment",
-    has_vision_problems = "do_you_have_normal_or_corrected_to_normal_vision")
+    has_vision_problems = "do_you_have_normal_or_corrected_to_normal_vision",
+    gender = "sex")
 }
 
 #' Process responses from Experiment 2
@@ -130,7 +131,7 @@ get_quest_participants <- function(quest_processed,
   max_cat_trials <- 86 # max of Catalan trials
   max_spa_trials <- 103 # max number of Spanish trials
   
-  responses_coded_path <- file.path("data-raw", "questionnaire", "04_responses-coded.csv")
+  responses_coded_path <- file.path("data", "questionnaire-manual-coded.csv")
   
   quest_participants <- read_csv(responses_coded_path,
                                  col_types = "cccclicc")  |> 
@@ -149,7 +150,7 @@ get_quest_participants <- function(quest_processed,
               .by = participant_id) |>  
     inner_join(extra_info, by = join_by(participant_id)) |>
     validate_participants(min_valid_trials, blocked_languages, age_range) |> 
-    select(group, participant_id, date, age, 
+    select(group, participant_id, date, age, gender,
            l2, l2_oral_comp, l2_writ_prod,
            cat_oral_comp, cat_writ_prod,
            spa_oral_comp, spa_writ_prod,

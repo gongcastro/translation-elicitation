@@ -24,12 +24,12 @@ get_dataset <- function(experiment, exp_responses, quest_responses, stimuli) {
             mutate(group = factor(group, levels = c("cat-ENG", "spa-ENG"))) 
         contrasts(out$group) <- c(0.5, -0.5)
     } else if (experiment==2) {
+        out <- dplyr::filter(dataset, group=="cat-SPA")
+    } else {
         out <- dataset |> 
             dplyr::filter(source=="Questionnaire") |> 
             mutate(group = factor(group, levels = c("cat-ENG", "spa-ENG")))
         contrasts(out$group) <- c(0.5, -0.5)
-    } else {
-        out <- dplyr::filter(dataset, group=="cat-SPA")
     }
     
     if (nrow(out)==0) {
@@ -53,7 +53,7 @@ prepare_data <- function(exp_responses, quest_responses, stimuli) {
         bind_rows(.id = "source") |> 
         dplyr::filter(valid_participant, valid_response) |> 
         select(any_of(relevant_vars)) |> 
-        left_join(stimuli_tmp, by = join_by(group, word_1)) |> 
+        inner_join(stimuli_tmp, by = join_by(group, word_1)) |> 
         mutate(across(c(freq_zipf_2, neigh_n, neigh_n_h, avg_sim, avg_sim_h, lv),
                       \(x) scale(x)[, 1],
                       .names = "{.col}_std"),

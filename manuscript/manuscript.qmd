@@ -33,9 +33,8 @@ tar_load(dataset_2)
 tar_load(dataset_3)
 tar_load(exp_1_m0)
 tar_load(exp_2_m0)
-tar_load(exp_3_m0)
-tar_load(exp_1_loos)
-tar_load(exp_2_loos_1)
+tar_load(exp_3_m1)
+
 
 theme_set(theme_ggdist() + 
               theme(panel.grid.major.y = element_line(colour = "grey",
@@ -107,7 +106,7 @@ participants_age <- participants_1 |>
 n_female <- table(participants_1$gender)
 ```
 
-Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. We collected data from `r n_participants` British English native participants living in United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). 
+Participants were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits), and gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection.  Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. We collected data from `r n_participants` British English native participants living in United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). 
 
 ```{r tbl-participants}
 #| label: tbl-participants
@@ -149,27 +148,6 @@ tbl_data |>
               list(cells_body(), cells_column_labels()))
 ```
 
-```{r}
-#| label: participants-excluded-1
-excluded_lang <- participants_1 |> 
-    filter(l2_writ_prod > 3 |
-               l2_oral_comp > 3 |
-               cat_oral_comp > 3 | 
-               cat_writ_prod > 3 |
-               spa_oral_comp > 3 |
-               spa_writ_prod > 3) |> 
-    nrow()
-
-excluded_impairment <- participants_1 |> 
-    filter(valid_status=="Language impairment") |> 
-    nrow()
-
-excluded_ntrials <- participants_1 |> 
-    filter(valid_status=="Insufficient trials") |> 
-    nrow()
-```
-
-Participants were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits), and gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. We excluded data from participants that (a) self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), (b) were diagnosed with a language (*n* = `r excluded_impairment`), or (c) did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`).
 
 ### Stimuli
 
@@ -275,7 +253,56 @@ knitr::include_graphics(here::here("img", "design.png"))
 
 ### Data analysis
 
-```{r}
+We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Cognateness*, and *CLPN*, and the two-way interaction between *Cognateness* and *CLPN*. We also included participant-level random intercepts and slopes for the the main effects and the interaction. Eq. 1 shows a formal description of the model.
+
+
+![Eq. 1](_assets/img/model.PNG)
+
+To test the practical relevance of each predictor we followed [@kruschke2018bayesian]. We first specified a region of practical equivalence (*ROPE*) around zero ([-0.1, +0.1], in the logit scale). This area indicates the values of the regression coefficients that we considered as equivalent to zero. We then computed the 95% posterior credible intervals (CrI) of the regression coefficients of interest. Finally, we calculated the proportion of the 95% CrI that fell inside the ROPE. This proportion indicates the probability that the true value of the coefficient is equivalent to zero.
+
+All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages [@wickham2019tidyverse] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
+
+
+## Results
+
+```{r dataset-1}
+#| label: dataset-1
+dataset <- exp_responses |> 
+    filter(group!="cat-SPA") |> 
+    group_split(group) |> 
+    set_names(c("spa-ENG", "cat-ENG")) |> 
+    janitor::clean_names() 
+
+dataset <- split(exp_responses, exp_responses$group)
+names(dataset) <- janitor::make_clean_names(names(dataset))
+r_validity <- map(dataset, 
+                  \(x) janitor::clean_names(table(x$response_type)))
+n_participants <- map(dataset, \(x) n_distinct(x$participant_id))
+
+excluded_lang <- participants_1 |> 
+    filter(l2_writ_prod > 3 |
+               l2_oral_comp > 3 |
+               cat_oral_comp > 3 | 
+               cat_writ_prod > 3 |
+               spa_oral_comp > 3 |
+               spa_writ_prod > 3) |> 
+    nrow()
+
+excluded_impairment <- participants_1 |> 
+    filter(valid_status=="Language impairment") |> 
+    nrow()
+
+excluded_ntrials <- participants_1 |> 
+    filter(valid_status=="Insufficient trials") |> 
+    nrow()
+
+dataset_clean <- exp_responses |> 
+    filter(group!="cat-SPA") |> 
+    dplyr::filter(valid_participant, valid_response) |> 
+    group_split(group) |> 
+    set_names(c("spa-ENG", "cat-ENG")) |> 
+    janitor::clean_names() 
+
 lengths <- dataset_1 |> 
     mutate(len = nchar(response)) |> 
     summarise(across(len,
@@ -286,9 +313,9 @@ lengths <- split(lengths, lengths$group)
 names(lengths) <- janitor::make_clean_names(names(lengths))
 ```
 
-Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, Range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, Range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
+We collected data for a total of `r format(nrow(dataset$cat_eng) + nrow(dataset$spa_eng), big.mark = ",")` trials completed by `r n_participants$cat_eng + n_participants$spa_eng` unique participants. Of those trials, `r format(nrow(dataset$cat_eng), big.mark = ",")` were provided by `r n_participants$cat_eng` unique participants who listened to Catalan words, and `r format(nrow(dataset$spa_eng), big.mark = ",")` trials were provided by `r n_participants$spa_eng` unique participants who listened to Spanish words. We excluded trials in which participants did not enter any text (*n* = `r r_validity$cat_eng["blank"]`), in which a response in a language other than English was provided (e.g., `agua`, *n* = `r r_validity$cat_eng["language"]`), in which participants did not provide a whole word (e.g., `f`, *n* = `r r_validity$cat_eng["incomplete"]`), and in which participants added comments to the experimenter (e.g., `unsure`, (*n* = `r r_validity$cat_eng["other"]`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a language (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`). After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_eng) + nrow(dataset_clean$cat_eng), big.mark = ",")` trials provided by `r n_distinct(dataset_clean$cat_eng$participant_id) + n_distinct(dataset_clean$cat_eng$participant_id)` unique participants. Of those trials, `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` were provided by `r n_distinct(dataset_clean$cat_eng$participant_id)` unique participants who listened to Catalan words, and `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` trials were provided by `r n_distinct(dataset_clean$spa_eng$participant_id)` unique participants who listened to Spanish words. Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, Range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, Range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
 
-```{r}
+```{r tbl-results}
 #| label: tbl-results
 tbl_data <- list("Experiment 1" = dataset_1,
                  "Experiment 2" = dataset_2,
@@ -335,16 +362,6 @@ tbl_data |>
 ```
 
 
-
-We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Cognateness*, and *CLPN*, and the two-way interaction between *Cognateness* and *CLPN*. We also included participant-level random intercepts and slopes for the the main effects and the interaction. @eq-model shows a formal description of the model.
-
-To test the practical relevance of each predictor we followed [@krushke2018bayesian]. We first specified a region of practical equivalence (*ROPE*) around zero. This area indicates the values of the regression coefficients that we considered as equivalent to zero. We then computed the 95% posterior credible intervals (CrI) of the regression coefficients of interest. Finally, we calculated the proportion of the 95% CrI that fell inside the ROPE. This proportion indicates the probability that the true value of the coefficient is equivalent to zero. 
-
-All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages [@wickham2019tidyverse] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
-
-
-## Results
-
 ```{r}
 c1 <- gather_draws(exp_1_m0, `b_.*`, `sd_.*`, regex = TRUE) |> 
     summarise(across(.value, lst(.median = median, 
@@ -356,26 +373,29 @@ c1 <- split(c1, c1$.variable)
 names(c1) <- janitor::make_clean_names(names(c1)) 
 ```
 
-@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_lv$.lower, 3)`, `r round(c1$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c1$b_lv$.median, 3)`, 95% CrI = [`r round(c1$b_lv$.lower, 3)`, `r round(c1$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h$.lower, 3)`, `r round(c1$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h$.rope, 3)`). A model including *Group* as a main effect did not improve the predictive performance of the model ($\Delta_{ELPD}$ = `r round(exp_1_loos[2], 2)`, $SE$ = `r round(exp_1_loos[4], 2)`), indicating that participants in both groups performed equivalently. @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
+@tbl-results shows a summary of participants' accuracy across Experiments 1, 2, and 3. MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Participants translating Catalan words and participants translating Spanish words performed equivalently, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c1$b_group1$.median, 3)`, 95% CrI = [`r round(c1$b_group1$.lower, 3)`, `r round(c1$b_group1$.upper, 3)`], *p*(ROPE) = `r round(c1$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_lv$.lower, 3)`, `r round(c1$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c1$b_lv$.median, 3)`, 95% CrI = [`r round(c1$b_lv$.lower, 3)`, `r round(c1$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h$.lower, 3)`, `r round(c1$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*. @fig-coefs shows a graphic summary of the posterior distribution of the regression coefficients of interest.
 
-```{r}
-#| eva: false
+```{r tbl-dataset}
 #| label: tbl-dataset
 sem <- function(x) mean(x) / (sqrt(length(x)))
-# proportion adjusted from boundary values (Gelman, Hill & Vehtari, 2020)
+
+#' Proportion adjusted from boundary values (Gelman, Hill & Vehtari, 2020)
+#' 
 prop_adj <- function(x, n){
     e <- (x+2)/(n+4)
     return(e)
 }
 
-# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+#' Adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+#' 
 prop_adj_se <- function(x, n) {
     e <- (x+2)/(n+4)
     se <- sqrt(e*(1-e)/(n+4))
     return(se)
 }
 
-# adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+#' Adjusted standard error of proportion (Gelman, Hill & Vehtari, 2020)
+#' 
 prop_adj_ci <- function(x, n, .width = 0.95) {
     e <- (x+2)/(n+4)
     se <- sqrt(e*(1-e)/(n+4))
@@ -398,7 +418,7 @@ tbl_data <- list("Experiment 1" = dataset_1,
               across(n_trials, lst(mean, sum, sd, min, max)),
               n_participants = n_distinct(participant_id),
               .by = c(group, exp)) |> 
-    relocate(n_participants, matches("n_trials"))
+    relocate(n_participants, matches("correct"))
 
 tbl_data |> 
     gt(rowname_col = "group",
@@ -407,8 +427,8 @@ tbl_data |>
     #gtExtras::gt_plt_dist(correct_list, type = "density") |> 
     fmt_integer(c(matches("sum|min|max"), n_participants)) |> 
     fmt_number(matches("correct"), scale_by = 100) |> 
-    tab_spanner("Valid trials", matches("n_trials")) |> 
     tab_spanner("Accuracy (%)", matches("correct")) |> 
+    tab_spanner("Valid trials", matches("n_trials")) |> 
     cols_merge_uncert(n_trials_mean, n_trials_sd) |> 
     cols_merge_range(n_trials_min, n_trials_max) |> 
     cols_merge_uncert(n_trials_mean, n_trials_sd) |> 
@@ -432,11 +452,11 @@ tbl_data |>
 
 ```{r fig-epreds-1}
 #| label: fig-epreds-1
-#| fig-height: 3.5
+#| fig-height: 6
 #| fig-width: 10
 get_epreds <- function(model, data, n = 100, 
                        lv = seq(0, 1, length.out = 100), 
-                       neigh_n_h = c(0, 2, 4, 8, 16),
+                       neigh_n_h = c(0, 2, 4, 8, 12),
                        ...) {
     
     knowledge <- unique(model$data$knowledge)
@@ -452,14 +472,14 @@ get_epreds <- function(model, data, n = 100,
 get_epreds(exp_1_m0, dataset_1) |> 
     mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
            neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
+                              levels = paste0(c(0, 2, 4, 8, 12),
                                               " neighbours"),
                               ordered = TRUE)) |> 
     ggplot(aes(lv, .epred)) +
-    facet_wrap(~neigh_n_h, nrow = 1) +
+    facet_grid(group~neigh_n_h) +
     stat_lineribbon(aes(fill_ramp = after_stat(level)),
                     linewidth = 1/2,
-                    .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
+                    .width = c(0.95, 0.89, 0.78, 0.67, 0.50)) +
     labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
          y = "p(Correct)",
          colour = "Cross-language neighbourhood density",
@@ -476,11 +496,97 @@ get_epreds(exp_1_m0, dataset_1) |>
 
 ## Discussion
 
+In the present experiment, we investigated the extent to which cognateness (phonological similarity between translation equivalents) is sufficient for successful word translation, in the absence of semantic knowledge. We tested two groups of monolingual British English natives in a translation task that involved words in Catalan or Spanish, two languages participants reported having no familiarity with. Participants benefited strongly from cognateness, when the correct translation of the presented words in Catalan or Spanish had few English phonological neighbours with higher lexical frequency. This suggests that, in the absence of distractors, even naïve participants can efficiently use phonological similarity to succeed in a translation task. Our results suggest that word-to-word connections at the phonological level might play a strong role during L2 speech comprehension, specially in low-proficiency listeners.
+
 # Experiment 2
 
 ## Methods
 
+### Participants
+
+```{r participants-numbers-2}
+#| label: participants-numbers-2
+participants_2 <- exp_participants |> 
+    filter(group=="cat-SPA")
+
+collection_dates <- participants_2 |> 
+    pull(date) |> 
+    range() |> 
+    format("%B %dth, %Y")
+
+n_participants <- n_distinct(participants_2)
+n_participants_group <- table(participants_2$group)
+participants_age <- participants_2 |> 
+    summarise(across(age, lst(mean, sd, min, max))) 
+n_female <- table(participants_2$gender)
+```
+
+Participants in Spain were contacted via announcements in Faculties, and were compensated 5€ or an Amazon voucher for the same value. Participants gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was approved by the Drug Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar (2020/9080/I). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. We collected data from `r n_participants` Spanish native participants living in Spain (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). 
+
+
+
+### Stimuli
+
+Same list of Catalan stimuli as in Experiment 1.
+
+### Procedure
+
+Same as in Experiment 1.
+
+### Data analysis
+
+Same approach as in Experiment 1.
+
 ## Results
+
+
+```{r dataset-2}
+#| label: dataset-2
+dataset <- exp_responses |> 
+    filter(group=="cat-SPA") |> 
+    group_split(group) |> 
+    set_names(c("cat-SPA")) |> 
+    janitor::clean_names() 
+
+dataset <- split(exp_responses, exp_responses$group)
+names(dataset) <- janitor::make_clean_names(names(dataset))
+r_validity <- map(dataset, 
+                  \(x) janitor::clean_names(table(x$response_type)))
+n_participants <- map(dataset, \(x) n_distinct(x$participant_id))
+
+excluded_lang <- participants_2 |> 
+    filter(l2_writ_prod > 3 |
+               l2_oral_comp > 3 |
+               cat_oral_comp > 3 | 
+               cat_writ_prod > 3 |
+               spa_oral_comp > 3 |
+               spa_writ_prod > 3) |> 
+    nrow()
+
+excluded_impairment <- participants_1 |> 
+    filter(valid_status=="Language impairment") |> 
+    nrow()
+
+excluded_ntrials <- participants_1 |> 
+    filter(valid_status=="Insufficient trials") |> 
+    nrow()
+
+dataset_clean <- exp_responses |> 
+    filter(group=="cat-SPA") |> 
+    dplyr::filter(valid_participant, valid_response) |> 
+    group_split(group) |> 
+    set_names(c("cat-SPA")) |> 
+    janitor::clean_names() 
+
+lengths <- dataset_2 |> 
+    mutate(len = nchar(response)) |> 
+    summarise(across(len,
+                     lst(mean, median, sd, min, max)),
+              .by = c(group)) 
+```
+
+We collected data for a total of `r format(nrow(dataset$cat_spa) + nrow(dataset$cat_spa), big.mark = ",")` trials completed by `r n_participants$cat_spa` unique participants. We excluded trials in which participants did not enter any text (*n* = `r r_validity$cat_spa["blank"]`), in which a response in a language other than English was provided (e.g., `agua`, *n* = `r r_validity$cat_spa["language"]`), in which participants did not provide a whole word (e.g., `f`, *n* = `r r_validity$cat_spa["incomplete"]`), and in which participants added comments to the experimenter (e.g., `unsure`, (*n* = `r r_validity$cat_spa["other"]`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a language (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`). After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_spa), big.mark = ",")` trials provided by `r n_distinct(dataset_clean$cat_spa$participant_id) + n_distinct(dataset_clean$cat_spa$participant_id)` unique participants. Of those trials, `r format(nrow(dataset_clean$cat_spa), big.mark = ",")` were provided by `r n_distinct(dataset_clean$cat_spa$participant_id)` unique participants who listened to Catalan words, and `r format(nrow(dataset_clean$cat_spa), big.mark = ",")` trials were provided by `r n_distinct(dataset_clean$cat_spa$participant_id)` unique participants who listened to Spanish words. Responses given by participants were `r round(lengths$len_mean, 2)` characters long on average (*Median* = `r round(lengths$len_median, 2)`, *SD* = `r round(lengths$len_sd, 2)`, Range = `r round(lengths$len_min, 2)`-`r round(lengths$len_max, 2)`).
+
 
 ```{r}
 c2 <- gather_draws(exp_2_m0, `b_.*`, `sd_.*`, regex = TRUE) |> 
@@ -493,7 +599,7 @@ c2 <- split(c2, c2$.variable)
 names(c2) <- janitor::make_clean_names(names(c2)) 
 ```
 
-@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_lv$.lower, 3)`, `r round(c2$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c2$b_lv$.median, 3)`, 95% CrI = [`r round(c2$b_lv$.lower, 3)`, `r round(c2$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h$.lower, 3)`, `r round(c2$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h$.rope, 3)`). A model including *Group* as a main effect did not improve the predictive performance of the model ($\Delta_{ELPD}$ = `r round(exp_2_loos_1[2], 2)`, $SE$ = `r round(exp_2_loos_1[4], 2)`), indicating that participants in both groups performed equivalently. @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
+@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_lv$.lower, 3)`, `r round(c2$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c2$b_lv$.median, 3)`, 95% CrI = [`r round(c2$b_lv$.lower, 3)`, `r round(c2$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h$.lower, 3)`, `r round(c2$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
 
 ```{r fig-epreds-2}
 #| label: fig-epreds-2
@@ -502,7 +608,7 @@ names(c2) <- janitor::make_clean_names(names(c2))
 get_epreds(exp_2_m0, dataset_2) |> 
     mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
            neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
+                              levels = paste0(c(0, 2, 4, 8, 12),
                                               " neighbours"),
                               ordered = TRUE)) |> 
     ggplot(aes(lv, .epred)) +
@@ -525,16 +631,237 @@ get_epreds(exp_2_m0, dataset_2) |>
 
 ## Discussion
 
+Experiment 2 was an extension of Experiment 1 to a population of monolinguals whose native language is typologically similar to the presented language. Particularly, we presented Catalan words to Spanish native speakers who were reportedly unfamiliar with Catalan. Our results indicate a similar pattern of results as those in Experiment 1: participants were able to provide correct translations of presented Catalan words, provided that the Catalan words shared some degree of phonological similarity with their Spanish translation, and that the number of phonological neighbours with higher lexical frequency was reduced. In contrasts with the results in Experiment 1, the positive impact of phonological similarity on participants' performance in Experiment 2 was more resilient to the interference of phonological neighbours. English natives in Experiment 1 provided significantly less accuracy responses when more than four phonological neighbors were present (even when translating high-similarity words), compared to when only one or neighbour were present. Spanish participants in Experiment 2 benefited from phonological similarity, even when eight neighbours were present. Spanish participants' performance declined after 8 neighbours, and was evident at 12 neighbours. Overall, this suggests that participants in Experiment 2, who were natives of a typologically similar language (Spanish) to the presented language (Catalan) benefited more strongly from phonological similarity than participants in Experiment 1, who were natives of typologically less similar language (English) to the presented language (Catalan, Spanish).
+
+Participants from both Experiment 1 and 2 benefited strongly from phonological similarity to correctly translate words from a non-native, reportedly unfamiliar language. This pattern of results holds for most of the presented stimuli, but some low-similarity Catalan and Spanish words were responded to surprisingly accurately by English listeners. Given that participants were reportedly unfamiliar with both languages, it was expected that participants would be very unlikely to provide correct translations for words sharing little to no phonological similarity to their correct translation. @tbl-surprises a list of Catalan and Spanish words to which participants provided responses with $\geq$ 10 average accuracy.
+
+```{r tbl-surprises}
+#| label: tbl-surprises
+#| tbl-cap: "List of items with unexpectedly high accuracy: the Levenshtein similarityscore betwen th presented word (in Catalan or Spanish) and their correct Enlgish or Spanish translation is zero, but participants, who are reportedly unfamiliar with the presented language, were on average >10% likely to guess the correct translation."
+tbl_data <- list("Experiment 1" = dataset_1,
+                 "Experiment 2" = dataset_2) |>
+    bind_rows(.id = "exp") |> 
+    summarise(n = n(),
+              correct = sum(correct),
+              .by = c(exp, group, lv, translation)) |> 
+    mutate(accuracy = prop_adj(correct, n),
+           accuracy_se = prop_adj_se(correct, n)) |>    
+    dplyr::filter(lv==0, accuracy >= 0.1) |> 
+    select(exp, translation, group, accuracy, accuracy_se) |> 
+    arrange(exp, group, desc(accuracy))
+
+tbl_data |> 
+    gt(rowname_col = "translation",
+       groupname_col = c("exp", "group")) |> 
+    fmt_number(is.numeric, scale_by = 100) |> 
+    cols_label(accuracy = "Accuracy (%)", accuracy_se = "SE")
+```
+
+
+It is likely that participants had prior knowledge of these words despite having reported little to no familiarity with the presented language (Catalan or Spanish). One possibility is that participants had previously encountered these words embedded in English linguistic input. Spanish words percolate English speech with relative frequency, via different sources such as popular culture, songs, TV programs, etc. In addition, words from languages other than Spanish, but with high similarity to the Spanish words (e.g., cognates from Italian or French) might appear in English speech as well. Such prior knowledge might not be specific to the low-similarity words highlighted before. Participants may also have had prior knowledge about higher-similarity words, which could have contributed to participants responding to such words more accurately than without such prior knowledge. In the case of higher-similarity words, it is more difficult to disentangle the extent to which participants' accuracy is a function of pure phonological similarity, or prior knowledge they had about the meaning of Spanish words. To investigate this issue, we run Experiment 3.
+
+[ADD HERE LEXICAL FREQUENCY OF CATALAN AND SPANISH WORDS IN ENGLISH, AND OF CATALAN WORDS IN SPANISH]
+
+
 # Experiment 3
+
+Experiment 3 is a replication of Experiment 1, in which we collected additional data about participants' prior familiarity with the presented Catalan and Spanish words, in addition to the same translation task presented to participants in Experiment 1.
 
 ## Methods
 
+### Participants
+
+
+```{r participants-numbers-3}
+#| label: participants-numbers-3
+participants_3 <- quest_participants |> 
+    filter(group!="cat-SPA")
+
+collection_dates <- participants_3 |> 
+    pull(date) |> 
+    range() |> 
+    format("%B %dth, %Y")
+
+n_participants <- n_distinct(participants_3)
+n_participants_group <- table(participants_3$group)
+participants_age <- participants_3 |> 
+    summarise(across(age, lst(mean, sd, min, max))) 
+n_female <- table(participants_3$gender)
+```
+
+Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. We collected data from `r n_participants` British English native participants living in United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). 
+
+
+```{r}
+#| label: participants-excluded-3
+excluded_lang <- participants_3 |> 
+    filter(l2_writ_prod > 3 |
+               l2_oral_comp > 3 |
+               cat_oral_comp > 3 | 
+               cat_writ_prod > 3 |
+               spa_oral_comp > 3 |
+               spa_writ_prod > 3) |> 
+    nrow()
+
+excluded_impairment <- participants_3 |> 
+    filter(valid_status=="Language impairment") |> 
+    nrow()
+
+excluded_ntrials <- participants_3 |> 
+    filter(valid_status=="Insufficient trials") |> 
+    nrow()
+```
+
+Participants were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits), and gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. We excluded data from participants that (a) self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), (b) were diagnosed with a language (*n* = `r excluded_impairment`), or (c) did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`).
+
+### Stimuli
+
 Same as in Experiment 1.
+
+### Procedure
+
+[TO BE COMPLETED]
+
+### Data analysis
+
+Same approach as in Experiment 1.
+
+
 
 ## Results
 
+
+```{r dataset-3}
+#| label: dataset-3
+dataset <- quest_responses |> 
+    filter(group!="cat-SPA") |> 
+    group_split(group) |> 
+    set_names(c("spa-ENG", "cat-ENG")) |> 
+    janitor::clean_names() 
+
+dataset <- split(quest_responses, quest_responses$group)
+names(dataset) <- janitor::make_clean_names(names(dataset))
+r_validity <- map(dataset, 
+                  \(x) janitor::clean_names(table(x$response_type)))
+n_participants <- map(dataset, \(x) n_distinct(x$participant_id))
+
+excluded_lang <- participants_3 |> 
+    filter(l2_writ_prod > 3 |
+               l2_oral_comp > 3 |
+               cat_oral_comp > 3 | 
+               cat_writ_prod > 3 |
+               spa_oral_comp > 3 |
+               spa_writ_prod > 3) |> 
+    nrow()
+
+excluded_impairment <- participants_3 |> 
+    filter(valid_status=="Language impairment") |> 
+    nrow()
+
+excluded_ntrials <- participants_3 |> 
+    filter(valid_status=="Insufficient trials") |> 
+    nrow()
+
+dataset_clean <- quest_responses |> 
+    filter(group!="cat-SPA") |> 
+    dplyr::filter(valid_participant, valid_response) |> 
+    group_split(group) |> 
+    set_names(c("spa-ENG", "cat-ENG")) |> 
+    janitor::clean_names() 
+```
+
+We collected data for a total of `r format(nrow(dataset$cat_eng) + nrow(dataset$spa_eng), big.mark = ",")` trials completed by `r n_participants$cat_eng + n_participants$spa_eng` unique participants. Of those trials, `r format(nrow(dataset$cat_eng), big.mark = ",")` were provided by `r n_participants$cat_eng` unique participants who listened to Catalan words, and `r format(nrow(dataset$spa_eng), big.mark = ",")` trials were provided by `r n_participants$spa_eng` unique participants who listened to Spanish words. We excluded trials in which participants did not enter any text (*n* = `r dataset$cat_eng$blank`), in which a response in a language other than English was provided (e.g., `agua`, *n* = `r dataset$cat_eng$language`), in which participants did not provide a whole word (e.g., `f`, *n* = `r dataset$cat_eng$incomplete`), and in which participants added comments to the experimenter (e.g., `unsure`, (*n* = `r dataset$cat_eng$other`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a language (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`). After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_eng) + nrow(dataset_clean$cat_eng), big.mark = ",")` trials provided by `r n_distinct(dataset_clean$cat_eng$participant_id) + n_distinct(dataset_clean$cat_eng$participant_id)` unique participants. Of those trials, `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` were provided by `r n_distinct(dataset_clean$cat_eng$participant_id)` unique participants who listened to Catalan words, and `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` trials were provided by `r n_distinct(dataset_clean$spa_eng$participant_id)` unique participants who listened to Spanish words.
+
+
 ```{r}
-c3 <- gather_draws(exp_3_m0, `b_.*`, `sd_.*`, regex = TRUE) |> 
+lengths <- dataset_3 |> 
+    mutate(len = map_int(strsplit(response, ""), length)) |> 
+    summarise(across(len,
+                     lst(mean, median, sd, min, max)),
+              .by = c(group)) 
+lengths <- split(lengths, lengths$group)
+
+names(lengths) <- janitor::make_clean_names(names(lengths))
+```
+
+Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, Range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, Range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
+
+MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Overall, participants reported prior knowledge more often for that Spanish words with unexpectedly high accuracy (see Discussion in Experiment 2) than for words with expected accuracy (see @fig-knowledge). Participants reported prior knowledge of Catalan words with unexpected accuracy as often as those with expected accuracy. This suggests that participants in Experiment 1 may have relied, to some extent, on their prior knowledge about form-meaning mappings to correctly translate some Spanish words. To isolate such an effect of prior Spanish knowledge, we run the same analysis as in Experiment 1 on the newly collected translations from Experiment 3, now excluding responses to words in which participants reported prior knowledge.
+
+```{r fig-knowledge}
+#| label: fig-knowledge
+#| fig-width: 7
+#| fig-height: 5
+#| fig-cap: "Catalan/Spanish prior word knowledge as reported by English native participants in Experiment 3. (A) Average proportion of participants that reported prior knowledge for words with surprisingly high accuracy (no phonological similarity with the correct translation, accuracy higher than 10%), and for words with expected accuracy (low similarity-low accuracy, or high similarity-high accuracy). (B) Average accuracy for words with expected and unexpected accuracy."
+dataset_3 |> 
+    mutate(surprise = translation %in% tbl_data$translation) |> 
+    summarise(knowledge = mean(knowledge),
+              .by = c(translation, group, surprise)) |> 
+    select(translation, group, surprise, knowledge) |> 
+    mutate(surprise = if_else(
+        surprise,
+        "Unexpectedly high accuracy\n(no phonological similarity)",
+        "Expected accuracy")) |> 
+    ggplot(aes(knowledge, group, shape = group)) +
+    facet_wrap(~surprise, ncol = 1, switch = "y") +
+    stat_summary(fun = mean,
+                 size = 2,
+                 geom = "point") +
+    stat_summary(fun.data = mean_se,
+                 geom = "errorbar",
+                 width = 0.1) +
+    labs(x = "Prior knowledge reported",
+         y = "Group") +
+    scale_x_continuous(labels = scales::percent) +
+    
+    dataset_3 |> 
+    mutate(surprise = translation %in% tbl_data$translation) |> 
+    mutate(surprise = if_else(
+        surprise,
+        "Unexpectedly high accuracy\n(no phonological similarity)",
+        "Expected accuracy")) |> 
+    summarise(correct = sum(correct),
+              n = n(),
+              .by = c(translation, group, surprise, knowledge)) |> 
+    mutate(accuracy = prop_adj(correct, n)) |> 
+    select(translation, group, accuracy, surprise, knowledge) |> 
+    ggplot(aes(accuracy, group, shape = group)) +
+    facet_wrap(~surprise, ncol = 1, switch = "y") +
+    stat_summary(fun = mean,
+                 size = 2,
+                 position = position_dodge(width = 0.75),
+                 geom = "point") +
+    stat_summary(fun.data = mean_se,
+                 geom = "errorbar",
+                 width = 0.1,
+                 position = position_dodge(width = 0.75)) +
+    labs(x = "Accuracy",
+         y = "Group") +
+    scale_x_continuous(labels = scales::percent,
+                       limits = c(0, 1)) +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          strip.text = element_blank()) +
+    
+    plot_layout(nrow = 1, guides = "collect") &
+    plot_annotation(tag_levels = "A") &
+    labs(colour = "Group",
+         shape = "Group") &
+    theme(panel.border = element_rect(fill = NA,
+                                      colour = "grey",
+                                      linewidth = 1),
+          axis.line = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "top",
+          panel.grid.major.x = element_line(colour = "grey",
+                                            linetype = "dotted"),
+          panel.grid.major.y = element_blank()) 
+```
+
+```{r}
+c3 <- gather_draws(exp_3_m1, `b_.*`, `sd_.*`, regex = TRUE) |> 
     summarise(across(.value, lst(.median = median, 
                                  .lower = \(x) hdi(x)[1],
                                  .upper = \(x) hdi(x)[2],
@@ -544,37 +871,98 @@ c3 <- split(c3, c3$.variable)
 names(c3) <- janitor::make_clean_names(names(c3)) 
 ```
 
-@tbl-results-1 shows a summary of participants' accuracy across Experiments 1, 2, and 3. Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_lv$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c3$b_lv$.median, 3)`, 95% CrI = [`r round(c3$b_lv$.lower, 3)`, `r round(c3$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h$.lower, 3)`, `r round(c3$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
+Participants translating Catalan words and participants translating Spanish words, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c3$b_group1$.median, 3)`, 95% CrI = [`r round(c3$b_group1$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_lv$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c3$b_lv$.median, 3)`, 95% CrI = [`r round(c3$b_lv$.lower, 3)`, `r round(c3$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h$.lower, 3)`, `r round(c3$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
 
-```{r exp3-epreds}
+
+```{r fig-epreds-3}
 #| label: fig-epreds-3
-#| fig-height: 3.5
+#| fig-height: 6
 #| fig-width: 10
-get_epreds(exp_3_m0, dataset_3) |> 
+get_epreds(exp_3_m1, dataset_3) |> 
     mutate(neigh_n_h = paste0(neigh_n_h, " neighbours"),
            neigh_n_h = factor(neigh_n_h,
-                              levels = paste0(c(0, 2, 4, 8, 16),
+                              levels = paste0(c(0, 2, 4, 8, 12),
                                               " neighbours"),
                               ordered = TRUE)) |> 
     ggplot(aes(lv, .epred)) +
-    facet_wrap(~neigh_n_h, nrow = 1) +
+    facet_grid(group~neigh_n_h) +
     stat_lineribbon(aes(fill_ramp = after_stat(level)),
                     linewidth = 1/2,
                     .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
     labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
          y = "p(Correct)",
-         colour = "Cross-language neighbourhood density",
-         fill = "Cross-language neighbourhood density",
-         linetype = "Cross-language neighbourhood density",
          fill_ramp = "CrI (%)") +
     scale_x_continuous(labels = scales::percent) +
     scale_y_continuous(labels = scales::percent) +
     scale_fill_brewer(palette = "Reds") +
-    theme(legend.position = "none",
+    theme(legend.position = "top",
           legend.box = "vertical") 
 ```
 
 ## Discussion
+
+# Joint analyses
+
+Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
+
+```{r fig-coefs}
+#| label: fig-coefs
+#| fig-width: 9
+#| fig-height: 5
+var_labels <- c("b_Intercept" = "Intercept",
+                "b_freq_zipf_2" = "Frequency",
+                "b_lv" = "Cognateness",
+                "b_neigh_n_h" = "CLPN",
+                "b_neigh_n_h:lv" = "Cognateness × CLPN",
+                "b_group1" = "cat-ENG vs. spa-ENG") 
+
+list(exp_1_m0, exp_2_m0, exp_3_m1) |> 
+    set_names(paste0("Experiment ", 1:3)) |> 
+    map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |> 
+    dplyr::filter(.variable != "b_Intercept") |> 
+    mutate(.value = .value/4,
+           .variable = factor(.variable, 
+                              levels = names(var_labels),
+                              labels = var_labels)) |> 
+    ggplot(aes(.value, reorder(exp, desc(exp)))) +
+    facet_wrap(~.variable, scales = "free_x") +
+    annotate(geom = "rect",
+             xmin = -0.1/4,
+             xmax = 0.1/4,
+             ymin = -Inf,
+             ymax = Inf,
+             fill = "grey",
+             alpha = 3/4,
+             colour = NA) +
+    geom_vline(xintercept = 0, 
+               colour = "grey",
+               linewidth = 3/4) +
+    stat_slab(aes(fill = after_stat(level)), 
+              point_interval = mode_hdi, 
+              .width = c(0.95, 0.89, 0.67, 1),
+              outline_bars = TRUE,
+              colour = "white",
+              linewidth = 0.1,
+              breaks = 20,
+              normalize = "panels") +
+    stat_spike(at = "median",
+               size = 1,
+               aes(linetype = "Median"),
+               normalize = "panels") +
+    labs(x = "Estimate", y = "Experiment",
+         colour = "CrI",
+         fill = "CrI",
+         linetype = "") +
+    scale_fill_brewer(palette = "Reds") +
+    theme(legend.position = c(1, 0),
+          legend.box = "horizontal",
+          legend.justification = c(1, 0),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank())
+```
+
+
+# General discussion
 
 # References
 

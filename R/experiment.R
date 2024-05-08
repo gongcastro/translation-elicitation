@@ -116,12 +116,7 @@ get_exp_processed <- function(exp_raw, stimuli){
 
 #' Get participant-level information from participants in Experiments 1 and 3
 #' 
-get_exp_participants <- function(exp_processed,
-                                 min_valid_trials = 0.80,
-                                 age_range = c(18, 26),
-                                 blocked_languages = c("Italian",
-                                                       "Spanish",
-                                                       "French")){
+get_exp_participants <- function(exp_processed, ...){
     
     extra_info <- distinct(exp_processed, participant_id, .keep_all = TRUE)
     
@@ -146,7 +141,7 @@ get_exp_participants <- function(exp_processed,
         # add extra info
         inner_join(extra_info, by = join_by(participant_id, group)) |>  
         # participant is valid if has completed >= 80% trials (valid)
-        validate_participants(min_valid_trials, blocked_languages, age_range) |> 
+        validate_participants() |> 
         rename(l2_oral_comp = l2oral,
                l2_writ_prod = l2written,
                cat_oral_comp = catalan_oral,
@@ -195,7 +190,7 @@ get_exp_responses <- function(exp_participants, stimuli){
         mutate(valid_participant = valid_status=="Valid") |> 
         drop_na(correct) |> 
         select(group, participant_id, word_1, response, correct, 
-               response_type, valid_response, valid_participant)
+               response_type, valid_status, valid_response, valid_participant)
     
     out_path <- file.path("data", "experiment.csv")
     arrow::write_csv_arrow(exp_responses, out_path)   

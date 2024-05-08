@@ -19,6 +19,7 @@ format:
     filters: 
       - "_extensions/andrewheiss/wordcount/citeproc.lua"
       - "_extensions/andrewheiss/wordcount/wordcount.lua"
+  docx: default
 
 title: "The role of cognateness in non-native spoken word recognition"
 short-title: "Cognate beginnings"
