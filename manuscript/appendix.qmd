@@ -1,70 +1,51 @@
 
+## Appendix 1: MCMC diagnostics
 
-# Appendix 1: MCMC diagnostics
+```{r fig-appendix-diagnostics}
+#| label: fig-appendix-diagnostics
+#| fig-width: 9
+#| fig-height: 9
+var_labels <- c("b_Intercept" = "Intercept",
+                "b_freq_zipf_2" = "Frequency",
+                "b_lv" = "Cognateness",
+                "b_neigh_n_h" = "CLPN",
+                "b_neigh_n_h:lv" = "Cognateness × CLPN",
+                "b_group1" = "cat-ENG vs. spa-ENG") 
 
-```{r appendix-diagnostics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-suppressWarnings({
-  bayesplot_theme_set(
-    new = theme_custom() + 
-      theme(
-        axis.text.x = element_text(size = 8), 
-        axis.text.y = element_text(size = 8),
-        strip.text = element_text(size = 10),
-        legend.key = element_rect(colour = NA, fill = "white")
-      )
-  )
-})
-
-
-
-color_scheme_set("brightblue")
-pars <- c("b_Intercept", "b_frequency_zipf", "b_pthn", "b_lv", "b_pthn:lv")
-pars_labels <- c(
-  "Intercept",
-  "Frequency (+1 SD)",
-  "PTHN \u00d7 Levenshtein", 
-  "Levenshtein (+1 SD)",
-  "PTHN (+1 SD)"
-)
+list(exp_1_m0, exp_2_m0, exp_3_m1) |> 
+    set_names(paste0("Experiment ", 1:3)) |> 
+    map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |> 
+    dplyr::filter(.variable != "b_Intercept") |> 
+    mutate(.value = .value/4,
+           .variable = factor(.variable, 
+                              levels = names(var_labels),
+                              labels = var_labels)) |> 
+    ggplot(aes(.iteration, .value, colour = factor(.chain))) +
+    facet_grid(.variable~exp, scales = "free") +
+    geom_line() +
+    labs(x = "Iteration",
+         y = "Value",
+         colour = "Chain",
+         fill = "Chain",
+         linetype = "Chain") +
+    scale_colour_brewer(palette = "Reds") +
+    theme(legend.position = "top",
+          legend.box = "horizontal",
+          panel.border = element_rect(fill = NA,
+                                      colour = "grey"),
+          legend.justification = c(1, 0),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank())
 ```
 
 
-## Pairs plot
-
-```{r appendix-mcmc, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-posterior_cp <- as.array(model_fits$fit_4)
-np_cp <- nuts_params(model_fits$fit_4)
-
-plot_pairs <- mcmc_pairs(
-  posterior_cp, pars = pars,
-  off_diag_args = list(size = 0.75),
-  diag_args = list(facet_args = list(labeller = label_value(labels = pars_labels)))
-)
-
-plot_pairs
-```
 
 ## Trace and Rank plots
 
 ```{r appendix-trace, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-(mcmc_trace(model_fits$fit_4, pars) + legend_none()) /
-  mcmc_rank_overlay(model_fits$fit_4, pars = pars) +
+(bayesplot::mcmc_trace(exp_1_m0, names(var_labels)) + bayesplot::legend_none()) /
+  bayesplot::mcmc_rank_overlay(exp_1_m0, pars = names(var_labels)) +
   plot_layout(guides = "collect") &
-  theme(
-    legend.position = "top"
-  )
-```
-
-## Gelman-Rubin convergence criterion (R-hat)
-
-```{r appendix-rhat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-rhats <- rhat(model_fits$fit_4)
-ratios <- neff_ratio(model_fits$fit_4)
-
-mcmc_rhat_hist(rhats, binwidth = 0.00025, color = "white") + 
-  mcmc_neff_hist(ratios, binwidth = 0.1) +
-  plot_layout(guides = "keep", ncol = 1) &
   theme(
     legend.position = "top"
   )

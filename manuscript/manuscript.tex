@@ -590,46 +590,52 @@ participants living in United Kingdom (\emph{Mean} = 21.76 years,
 
 \captionsetup{labelsep=none}
 
-\begin{longtable}{l|rrrrrrc}
+\setlength{\LTpost}{0mm}
+
+\begin{longtable}{l|rrrc}
 
 \caption{\label{tbl-participants}}
 
 \tabularnewline
 
 \toprule
-\multicolumn{1}{l}{} & \multicolumn{2}{c}{Sample size} & \multicolumn{3}{c}{Age} & \multicolumn{2}{c}{L2} \\ 
-\cmidrule(lr){2-3} \cmidrule(lr){4-6} \cmidrule(lr){7-8}
-\multicolumn{1}{l}{} & N & Excluded & M & SD & Range & N knows L2? & Which L2? \\ 
+\multicolumn{1}{l}{} &  & \multicolumn{2}{c}{Age} &  \\ 
+\cmidrule(lr){3-4}
+\multicolumn{1}{l}{} & N\textsuperscript{\textit{1}} & Mean ± SD  & Range & L2 \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 1} \\ 
+\multicolumn{5}{l}{Experiment 1} \\ 
 \midrule\addlinespace[2.5pt]
-spa-ENG & 35 & 8 & $21.80$ & $2.08$ & $18$–$26$ & 1 & Russian \\ 
-cat-ENG & 36 & 4 & $21.72$ & $2.25$ & $18$–$25$ & 5 & German, Punjabi, French, Italian, Several \\ 
+spa-ENG & 35 (8) & $21.80$ ± $2.08$ & $18$–$26$ & Russian (1) \\ 
+cat-ENG & 36 (4) & $21.72$ ± $2.25$ & $18$–$25$ & French (1), German (1), Italian (1), Punjabi (1), Several (1) \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 2} \\ 
+\multicolumn{5}{l}{Experiment 2} \\ 
 \midrule\addlinespace[2.5pt]
-cat-SPA & 33 & 12 & $21.85$ & $3.00$ & $18$–$33$ & 12 & Italian, French, German \\ 
+cat-SPA & 33 (12) & $21.85$ ± $3.00$ & $18$–$33$ & French (9), German (1), Italian (2) \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 3} \\ 
+\multicolumn{5}{l}{Experiment 3} \\ 
 \midrule\addlinespace[2.5pt]
-spa-ENG & 32 & 1 & $21.72$ & $2.59$ & $18$–$26$ & 3 & Japanese, German \\ 
-cat-ENG & 32 & 0 & $22.31$ & $2.39$ & $18$–$26$ & 2 & Cantonese, Irish \\ 
+spa-ENG & 32 (1) & $21.72$ ± $2.59$ & $18$–$26$ & German (2), Japanese (1) \\ 
+cat-ENG & 32 (0) & $22.31$ ± $2.39$ & $18$–$26$ & Cantonese (1), Irish (1) \\ 
 \bottomrule
 
 \end{longtable}
+
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Number of included participants (number of excluded participants.)\\
+\end{minipage}
 
 \subsubsection{Stimuli}\label{stimuli}
 
 We arranged two lists of input words to be presented to participants in
 the auditory modality: one in Catalan and one in Spanish. Words in the
-Catalan list were 5.02 phonemes long on average (\emph{SD} = 1.49,
-\emph{Range} = 2-8), and the orthographic form of their English
-translations (which participants had to type), were 5.12 characters long
-on average (\emph{SD} = 1.56, \emph{Range} = 3-9. Words in the Spanish
-list were 5.52 phonemes long on average (\emph{SD} = 1.47, \emph{Range}
-= 3-9), and the orthographic form of their English translations (which
-participants had to type), were 5.29 characters long on average
-(\emph{SD} = 1.77, \emph{Range} = 3-12.
+Catalan list were 5.02 phonemes long on average (\emph{SD} = 1.49, Range
+= 2-8), and the orthographic forms of their English translations (which
+participants had to type) were 5.12 characters long on average
+(\emph{SD} = 1.56, Range = 3-9. Words in the Spanish list were 5.52
+phonemes long on average (\emph{SD} = 1.47, Range = 3-9), and the
+orthographic form of their English translations (which participants had
+to type), were 5.29 characters long on average (\emph{SD} = 1.77, Range
+= 3-12.
 
 Participants listened to one audio file in each trial, each containing a
 single word presented in isolation. The audio files were the same ones
@@ -641,33 +647,31 @@ Catalan and Spanish words were recorded at 44,100 Hz in separate files
 in the same session, and then de-noised using Audacity and normalised at
 peak intensity using Praat (\citeproc{ref-broersma2021praat}{Broersma \&
 Weenink, 2021}). The average duration of the Catalan audio files was
-1.24 (\emph{SD} = 0.19, \emph{Range} = 0.8-1.58). The average duration
-of the Catalan audio files was 1.16 (\emph{SD} = 0.15, \emph{Range} =
-0.78-1.53).
+1.24 (\emph{SD} = 0.19, Range = 0.8-1.58). The average duration of the
+Catalan audio files was 1.16 (\emph{SD} = 0.15, Range = 0.78-1.53).
 
 For each translation pair, we defined three predictors of interest: the
 lexical frequency of the correct translation (\emph{Frequency}), the
 phonological similarity between the presented (Catalan or Spanish) word
-and their correct English translation (\emph{Cognateness}), and
+and their correct English translation (\emph{Cognateness}), and the
 presented word's number of cross-language phonological neighbours
 (\emph{CLPN}).
 
-We included \emph{Frequency} under the hypothesis that, keeping other
-predictors constant, participants would translate higher-frequency words
-more accurately and faster than lower-frequency words. Lexical
-frequencies of correct translations were extracted from SUBTLEX-UK
-(\citeproc{ref-van2014subtlex}{Van Heuven et al., 2014}), and
-transformed to Zipf scores (\citeproc{ref-van2014subtlex}{Van Heuven et
-al., 2014}). Words in the stimuli list without a lexical frequency value
-were excluded from data analysis (2 in the Catalan list, 5 in the
-Spanish list).
+We included \emph{Frequency} as a nuance predictor, under the hypothesis
+that---keeping other predictors constant---participants would translate
+higher-frequency words more accurately and faster than lower-frequency
+words. Lexical frequencies of correct translations were extracted from
+SUBTLEX-UK (\citeproc{ref-van2014subtlex}{Van Heuven et al., 2014}), and
+transformed to Zipf scores. Words in the stimuli list without a lexical
+frequency value were excluded from data analysis (2 in the Catalan list,
+5 in the Spanish list).
 
 We calculated \emph{Cognatenesss}, our main predictor of interest, by
 computing the Levenshtein similarity between the X-SAMPA transcriptions
 of each pair of translations using the \texttt{stringdist} R package
 (\citeproc{ref-van2014stringdist}{van der Loo, 2014}). The Levenshtein
-distance computes the edit distance between two character strings (in
-this case, phoneme transcriptions) by counting the number of additions,
+distance computes the edit distance between two character strings---in
+this case, phoneme transcriptions---by counting the number of additions,
 deletions, and substitutions necessary to make both strings identical
 (\citeproc{ref-levenshtein1966binary}{Levenshtein et al., 1966}). We
 divided this edit distance by the number of characters included in the
@@ -683,10 +687,10 @@ correspond to higher similarity between phonological transcriptions, and
 values closer to zero correspond to lower similarity between
 phonological transcriptions. For example, the \emph{table}
 (teɪbəl)-\emph{mesa} (mesa) translation pair had a 17\% similarity,
-while the \emph{train} (trEIn)-\emph{tren} (tɾEn) translation pair had a
-60\% similarity. Figure 1 summarises the lexical frequency, phonological
-neighbourhood density and phonological overlap of the words included in
-the Catalan and the Spanish lists.
+while the \emph{train} (\texttt{trEIn})-\emph{tren} (tɾEn) translation
+pair had a 60\% similarity. Figure 1 summarises the lexical frequency,
+phonological neighbourhood density and phonological overlap of the words
+included in the Catalan and the Spanish lists.
 
 For each Catalan and Spanish word, we calculated the number of
 \emph{CLPN} by counting the number of English words with same or higher
@@ -695,14 +699,12 @@ format) different in up to one phoneme from that of the presented
 Catalan or Spanish word. Lexical frequencies and phonological
 transcriptions were extracted from the multilingual database CLEARPOND
 (\citeproc{ref-marian2012clearpond}{Marian et al., 2012})\footnote{{[}Phonological
-  trnascriptions in CLEARPOND were generated from eSPEAK,
+  transcriptions in CLEARPOND were generated from eSPEAK,
   \url{http://espeak.sourceforge.net/}{]}}.
-
-\captionsetup{labelsep=none}
 
 \begin{longtable}{l|rrrrrr}
 
-\caption{\label{tbl-stimuli}}
+\caption{\label{tbl-stimuli}Stimuli properties.}
 
 \tabularnewline
 
@@ -714,6 +716,9 @@ transcriptions were extracted from the multilingual database CLEARPOND
 spa-ENG & $5.88$ ± $0.57$ & $4.43$–$7.24$ & $0.13$ ± $0.18$ & $0.00$–$0.75$ & $0.19$ ± $0.79$ & $0$–$5$ \\ 
 cat-ENG & $5.89$ ± $0.59$ & $4.43$–$7.27$ & $0.16$ ± $0.18$ & $0.00$–$0.67$ & $0.76$ ± $2.53$ & $0$–$15$ \\ 
 cat-SPA & $5.79$ ± $0.63$ & $4.48$–$7.70$ & $0.38$ ± $0.26$ & $0.00$–$1.00$ & $0.87$ ± $2.08$ & $0$–$12$ \\ 
+\midrule 
+\midrule 
+\textbf{Mean} & $5.85$ & — & $0.225$ & — & $0.606$ & — \\ 
 \bottomrule
 
 \end{longtable}
@@ -746,27 +751,46 @@ participants were prompted to write their answer by a
 screen in real time to provide visual feed-back to participants.
 Participants were allowed to correct their answer. Then, participants
 pressed the \texttt{RETURN/ENTER} key to confirm their answer and start
-and new trial. We excluded trials where the participant's answer was not
-a valid word in the target language or no answer was given. Trials in
-which the response was mistyped by only one character were counted as
-correct (e.g., ``pengiun'' instead of ``penguin''), as long as the
-response did not correspond to a distinct word. Trials in which
-participants took longer than 10 seconds to respond were also excluded.
-Participants contributed a total of 9152 valid trials (5694 in Catalan,
-3458 in Spanish). The task took approximately 15 minutes to be
-completed.
+and new trial.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=0.8\textwidth,height=\textheight]{../img/design.png}
+{\centering \includegraphics{_assets/img/design.png}
 
 }
 
-\caption{Schematic representation of a trial in the experimental task.}
+\caption{Schematic representation of a trial in the experimental task}
 
 \end{figure}%
 
 \subsubsection{Data analysis}\label{data-analysis}
+
+\paragraph{Data processing}\label{data-processing}
+
+After data collection, participants answers were manually coded into the
+following categories: \emph{Correct}, \emph{Typo}, \emph{Wrong},
+\emph{False friend}, \emph{Other}. Responses were coded as
+\emph{Correct} if the provided string of characters was identical to the
+orthographic form of the correct translation. Trials were coded as
+\emph{Typo} if the participant provided a string of characters only one
+edit distance (addition, deletion, or substitution) apart from the
+orthographic form of the correct translation (e.g., ``pengiun'' instead
+of ``penguin''), as long as the response did not correspond to a
+distinct English word. Responses were coded as \emph{False friend} if
+the participant provided a phonologically similar incorrect translation.
+Responses were coded as \emph{Other} (see Data analysis section for more
+details). Both \emph{Correct} and \emph{Typo} responses were considered
+as correct, while \emph{Wrong} and \emph{False friend} responses were
+considered as incorrect. \emph{Other} responses were excluded from data
+analysis.
+
+Trials in which participants took longer than 10 seconds to respond were
+also excluded. Participants contributed a total of 9152 valid trials
+(5694 in Catalan, 3458 in Spanish). The task took approximately 15
+minutes to be completed.
+
+\paragraph{Modelling approach and statistical
+inference}\label{modelling-approach-and-statistical-inference}
 
 We modelled the probability of participants guessing the correct
 translation of each presented word using a generalised multilevel
@@ -822,8 +846,9 @@ participants added comments to the experimenter (e.g., \texttt{unsure},
 self-rated their oral and/or written skills in Catalan and Spanish, or
 any other second language as four or higher in a five-point scale
 (\emph{n} = 2), were diagnosed with a language (\emph{n} = 1), or did
-not contribute more than 80\% of valid trials (\emph{n} = 9). After
-applying trial-level and participant-level inclusion criteria, the
+not contribute more than 80\% of valid trials (\emph{n} = 9).
+
+After applying trial-level and participant-level inclusion criteria, the
 resulting dataset included 5,204 trials provided by 54 unique
 participants. Of those trials, 2,602 were provided by 27 unique
 participants who listened to Catalan words, and 2,604 trials were
@@ -836,30 +861,39 @@ characters long on average (\emph{Median} = 5, \emph{SD} = 1.97, Range =
 
 \captionsetup{labelsep=none}
 
-\begin{longtable}{l|rrrr}
+\begin{longtable}{l|rrrrrrrr}
 
 \caption{\label{tbl-results}}
 
 \tabularnewline
 
 \toprule
-\multicolumn{1}{l}{} & \multicolumn{2}{c}{Correct responses} & \multicolumn{2}{c}{Incorrect responses} \\ 
-\cmidrule(lr){2-3} \cmidrule(lr){4-5}
-\multicolumn{1}{l}{} & Correct & Typo & Wrong translation & False friend \\ 
+\multicolumn{1}{l}{} & \multicolumn{4}{c}{Correct responses} & \multicolumn{4}{c}{Incorrect responses} \\ 
+\cmidrule(lr){2-5} \cmidrule(lr){6-9}
+\multicolumn{1}{l}{} & Correct & (\%) & Typo & (\%) & Wrong & (\%) & False friend & (\%) \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{5}{l}{Experiment 1} \\ 
+\multicolumn{9}{l}{Experiment 1} \\ 
 \midrule\addlinespace[2.5pt]
-cat-ENG & $429$ ($16.47\%$) & $11$ ($0.42\%$) & $2,082$ ($79.95\%$) & $82$ ($3.15\%$) \\ 
-spa-ENG & $374$ ($14.37\%$) & $2$ ($0.08\%$) & $2,117$ ($81.36\%$) & $109$ ($4.19\%$) \\ 
+cat-ENG & $429$ & ($16.47$) & $11$ & ($0.42$) & $2,082$ & ($79.95$) & $82$ & ($3.15$) \\ 
+spa-ENG & $374$ & ($14.37$) & $2$ & ($0.08$) & $2,117$ & ($81.36$) & $109$ & ($4.19$) \\ 
+\midrule 
+\emph{Sum} & $803$ & — & $13$ & — & $4,199$ & — & $191$ & — \\ 
+\emph{Mean} & — & $15.42$ & — & $0.25$ & — & $80.66$ & — & $3.67$ \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{5}{l}{Experiment 2} \\ 
+\multicolumn{9}{l}{Experiment 2} \\ 
 \midrule\addlinespace[2.5pt]
-cat-SPA & $780$ ($46.93\%$) & $20$ ($1.20\%$) & $736$ ($44.28\%$) & $126$ ($7.58\%$) \\ 
+cat-SPA & $780$ & ($46.93$) & $20$ & ($1.20$) & $736$ & ($44.28$) & $126$ & ($7.58$) \\ 
+\midrule 
+\emph{Sum} & $780$ & — & $20$ & — & $736$ & — & $126$ & — \\ 
+\emph{Mean} & — & $46.93$ & — & $1.20$ & — & $44.28$ & — & $7.58$ \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{5}{l}{Experiment 3} \\ 
+\multicolumn{9}{l}{Experiment 3} \\ 
 \midrule\addlinespace[2.5pt]
-cat-ENG & $477$ ($18.01\%$) & $7$ ($0.26\%$) & $1,986$ ($75.00\%$) & $178$ ($6.72\%$) \\ 
-spa-ENG & $590$ ($19.53\%$) & $6$ ($0.20\%$) & $2,294$ ($75.94\%$) & $131$ ($4.34\%$) \\ 
+cat-ENG & $477$ & ($18.01$) & $7$ & ($0.26$) & $1,986$ & ($75.00$) & $178$ & ($6.72$) \\ 
+spa-ENG & $590$ & ($19.53$) & $6$ & ($0.20$) & $2,294$ & ($75.94$) & $131$ & ($4.34$) \\ 
+\midrule 
+\emph{Sum} & $1,067$ & — & $13$ & — & $4,280$ & — & $309$ & — \\ 
+\emph{Mean} & — & $18.77$ & — & $0.23$ & — & $75.47$ & — & $5.53$ \\ 
 \bottomrule
 
 \end{longtable}
@@ -889,30 +923,39 @@ coefficients of interest.
 
 \captionsetup{labelsep=none}
 
-\begin{longtable}{l|rrrrrrr}
+\begin{longtable}{l|rrrrrrrrr}
 
 \caption{\label{tbl-dataset}}
 
 \tabularnewline
 
 \toprule
-\multicolumn{1}{l}{} &  & \multicolumn{3}{c}{Accuracy (\%)} & \multicolumn{3}{c}{Valid trials} \\ 
-\cmidrule(lr){3-5} \cmidrule(lr){6-8}
-\multicolumn{1}{l}{} & N & Mean ± SD & SE & Range & Mean ± SD & N trials & Range \\ 
+\multicolumn{1}{l}{} &  & \multicolumn{4}{c}{Accuracy (\%)} & \multicolumn{4}{c}{Valid trials} \\ 
+\cmidrule(lr){3-6} \cmidrule(lr){7-10}
+\multicolumn{1}{l}{} & N & Mean & SD & SE & Range & Mean & N trials & SD & Range \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 1} \\ 
+\multicolumn{10}{l}{Experiment 1} \\ 
 \midrule\addlinespace[2.5pt]
-spa-ENG & $27$ & $15.86$ ± $5.20$ & $3.05$ & $8.82$–$28.71$ & $96.37$ ± $2.88$ ± $2.88$ & $2,602$ & $87$–$98$ \\ 
-cat-ENG & $32$ & $18.48$ ± $4.89$ & $3.27$ & $10.84$–$32.56$ & $81.38$ ± $3.17$ ± $3.17$ & $2,604$ & $71$–$83$ \\ 
+spa-ENG & $27$ & $15.86$ & $5.20$ & $3.05$ & $8.82$–$28.71$ & $96.37$ & $2,602$ & $2.88$ & $87$–$98$ \\ 
+cat-ENG & $32$ & $18.48$ & $4.89$ & $3.27$ & $10.84$–$32.56$ & $81.38$ & $2,604$ & $3.17$ & $71$–$83$ \\ 
+\midrule 
+\emph{Sum} & $59$ & — & — & — & — & — & $5,206$ & — & $158$ \\ 
+\emph{Mean} & — & $17.17$ & $5.05$ & $3.16$ & — & $8,887.27$ & — & $302.71$ & — \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 2} \\ 
+\multicolumn{10}{l}{Experiment 2} \\ 
 \midrule\addlinespace[2.5pt]
-cat-SPA & $21$ & $48.30$ ± $5.29$ & $10.54$ & $38.27$–$58.97$ & $79.14$ ± $3.14$ ± $3.14$ & $1,662$ & $72$–$82$ \\ 
+cat-SPA & $21$ & $48.30$ & $5.29$ & $10.54$ & $38.27$–$58.97$ & $79.14$ & $1,662$ & $3.14$ & $72$–$82$ \\ 
+\midrule 
+\emph{Sum} & $21$ & — & — & — & — & — & $1,662$ & — & $72$ \\ 
+\emph{Mean} & — & $48.30$ & $5.29$ & $10.54$ & — & $7,914.29$ & — & $313.51$ & — \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{8}{l}{Experiment 3} \\ 
+\multicolumn{10}{l}{Experiment 3} \\ 
 \midrule\addlinespace[2.5pt]
-spa-ENG & $31$ & $20.92$ ± $8.29$ & $3.76$ & $5.88$–$44.12$ & $97.45$ ± $1.80$ ± $1.80$ & $3,021$ & $88$–$98$ \\ 
-cat-ENG & $32$ & $19.74$ ± $4.94$ & $3.49$ & $10.34$–$27.91$ & $82.75$ ± $0.44$ ± $0.44$ & $2,648$ & $82$–$83$ \\ 
+spa-ENG & $31$ & $20.92$ & $8.29$ & $3.76$ & $5.88$–$44.12$ & $97.45$ & $3,021$ & $1.80$ & $88$–$98$ \\ 
+cat-ENG & $32$ & $19.74$ & $4.94$ & $3.49$ & $10.34$–$27.91$ & $82.75$ & $2,648$ & $0.44$ & $82$–$83$ \\ 
+\midrule 
+\emph{Sum} & $63$ & — & — & — & — & — & $5,669$ & — & $170$ \\ 
+\emph{Mean} & — & $20.33$ & $6.62$ & $3.62$ & — & $9,010.08$ & — & $112.22$ & — \\ 
 \bottomrule
 
 \end{longtable}
@@ -921,11 +964,18 @@ cat-ENG & $32$ & $19.74$ ± $4.94$ & $3.49$ & $10.34$–$27.91$ & $82.75$ ± $0.
 
 \centering{
 
-\captionsetup{labelsep=none}\includegraphics{manuscript_files/figure-pdf/fig-epreds-1-1.pdf}
+\includegraphics{manuscript_files/figure-pdf/fig-epreds-1-1.pdf}
 
 }
 
-\caption{\label{fig-epreds-1}}
+\caption{\label{fig-epreds-1}Posterior model-predicted mean accuracy in
+Experiment 1. Predictions were generated from 4,000 posterior samples,
+extracted for different values of \emph{CLPN} (0, 2, 4, 8, 12) and
+\emph{Cognateness} (1-100). Predictions are plotted separately for
+English participants translating Catalan words, and for English
+participants translating Spanish words. Lines indicate mean predictions,
+and intervals indicate 95\%, 89\%, 78\%, 67\%, and 50\% credible
+intervals (CrI).}
 
 \end{figure}%
 
@@ -936,21 +986,31 @@ cognateness (phonological similarity between translation equivalents) is
 sufficient for successful word translation, in the absence of semantic
 knowledge. We tested two groups of monolingual British English natives
 in a translation task that involved words in Catalan or Spanish, two
-languages participants reported having no familiarity with. Participants
-benefited strongly from cognateness, when the correct translation of the
-presented words in Catalan or Spanish had few English phonological
-neighbours with higher lexical frequency. This suggests that, in the
-absence of distractors, even naïve participants can efficiently use
-phonological similarity to succeed in a translation task. Our results
-suggest that word-to-word connections at the phonological level might
-play a strong role during L2 speech comprehension, specially in
-low-proficiency listeners.
+languages participants reported having no prior familiarity with.
+Participants benefited strongly from cognateness, when the correct
+translation of the presented words in Catalan or Spanish had few English
+phonological neighbours with higher lexical frequency. This suggests
+that, in the absence of distractors, even naïve participants can
+efficiently use phonological similarity to succeed in a translation
+task. Our results suggest that word-to-word connections at the
+phonological level might play a strong role during L2 speech
+comprehension, specially in low-proficiency listeners.
 
 \section{Experiment 2}\label{experiment-2}
 
-\subsection{Methods}\label{methods-1}
+Results in Experiment 1 suggest that English natives were able to
+exploit the phonological similarity between unfamiliar words in Catalan
+and Spanish to provide accurate translations to English. English, a
+Germanic language, is relatively distant from Catalan and Spanish, two
+Romance languages. English shares fewer cognates with Catalan and
+Spanish than it does with typologically closer languages, like Dutch and
+German. In Experiment 2, we investigated whether listeners of an
+unfamiliar but typologically closer language benefit more strongly from
+phonological similarity when performing the same task as in Experiment
+1. To this aim, we presented Spanish participants, who reported
+little-to-no prior familiarity with Catalan, with Catalan words.
 
-\subsubsection{Participants}\label{participants-1}
+\subsection{Methods}\label{methods-1}
 
 Participants in Spain were contacted via announcements in Faculties, and
 were compensated 5€ or an Amazon voucher for the same value.
@@ -961,19 +1021,8 @@ Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar
 (2020/9080/I). Data collection took place from June 08th, 2020 to June
 28th, 2020. We collected data from 33 Spanish native participants living
 in Spain (\emph{Mean} = 21.85 years, \emph{SD} = 3, Range = 18-33, 28, 5
-female).
-
-\subsubsection{Stimuli}\label{stimuli-1}
-
-Same list of Catalan stimuli as in Experiment 1.
-
-\subsubsection{Procedure}\label{procedure-1}
-
-Same as in Experiment 1.
-
-\subsubsection{Data analysis}\label{data-analysis-1}
-
-Same approach as in Experiment 1.
+female). Stimuli were the same list of Catalan stimuli as in Experiment
+1. Procedure and data analysis were identical as in Experiment 1.
 
 \subsection{Results}\label{results-1}
 
@@ -996,17 +1045,15 @@ provided by 21 unique participants who listened to Spanish words.
 Responses given by participants were 5.6 characters long on average
 (\emph{Median} = 5, \emph{SD} = 1.6, Range = 2-12).
 
-\textbf{?@tbl-results-1} shows a summary of participants' accuracy
-across Experiments 1, 2, and 3. MCMC chains in the model showed strong
-evidence of convergence (\(\hat{R}<1.01\)) (see Appendix 2 for more
-detailed model diagnostics). Overall, participants responded less
-accurately to words with more CLPNs than to words with fewer CLPNs,
-regardless of the amount of phonological similarity between the
-presented word and its translation. This is indicated by the size of the
-regression coefficient of the two-way interaction between
-\emph{Cognateness} and \emph{CLPN} (\(\beta\) = -0.409, 95\% CrI =
-{[}-0.895, 0.111{]}, \emph{p}(ROPE) = 0.081). As anticipated,
-participants' performance benefited from an increase in
+MCMC chains in the model showed strong evidence of convergence
+(\(\hat{R}<1.01\)) (see Appendix 2 for more detailed model diagnostics).
+Overall, participants responded less accurately to words with more CLPNs
+than to words with fewer CLPNs, regardless of the amount of phonological
+similarity between the presented word and its translation. This is
+indicated by the size of the regression coefficient of the two-way
+interaction between \emph{Cognateness} and \emph{CLPN} (\(\beta\) =
+-0.409, 95\% CrI = {[}-0.895, 0.111{]}, \emph{p}(ROPE) = 0.081). As
+anticipated, participants' performance benefited from an increase in
 \emph{Cognateness} (\(\beta\) = 9.274, 95\% CrI = {[}8.473, 10.269{]},
 \emph{p}(ROPE) = 0), while the number of \emph{CLND} had the opposite
 effect (\(\beta\) = -0.069, 95\% CrI = {[}-0.353, 0.192{]},
@@ -1018,11 +1065,18 @@ different values of \emph{Cognateness} and \emph{CLPN}.
 
 \centering{
 
-\captionsetup{labelsep=none}\includegraphics{manuscript_files/figure-pdf/fig-epreds-2-1.pdf}
+\includegraphics{manuscript_files/figure-pdf/fig-epreds-2-1.pdf}
 
 }
 
-\caption{\label{fig-epreds-2}}
+\caption{\label{fig-epreds-2}Posterior model-predicted mean accuracy in
+Experiment 1. Predictions were generated from 4,000 posterior samples,
+extracted for different values of \emph{CLPN} (0, 2, 4, 8, 12) and
+\emph{Cognateness} (1-100). Predictions are plotted separately for
+English participants translating Catalan words, and for English
+participants translating Spanish words. Lines indicate mean predictions,
+and intervals indicate 95\%, 89\%, 78\%, 67\%, and 50\% credible
+intervals (CrI).}
 
 \end{figure}%
 
@@ -1147,8 +1201,6 @@ presented to participants in Experiment 1.
 
 \subsection{Methods}\label{methods-2}
 
-\subsubsection{Participants}\label{participants-2}
-
 Data collection took place from October 22th, 2022 to October 23th,
 2022. We collected data from 64 British English native participants
 living in United Kingdom (\emph{Mean} = 22.02 years, \emph{SD} = 2.49,
@@ -1161,23 +1213,47 @@ ethical standards of the Declaration of Helsinki and the protocol was by
 the University of Oxford Medical Sciences Inter-Divisional Research
 Ethics Committee (IDREC) (R60939/RE007). Participants were asked to
 complete the experiment using a laptop in a quiet place with good
-internet connection. We excluded data from participants that (a)
-self-rated their oral and/or written skills in Catalan and Spanish, or
-any other second language as four or higher in a five-point scale
-(\emph{n} = 2), (b) were diagnosed with a language (\emph{n} = 0), or
-(c) did not contribute more than 80\% of valid trials (\emph{n} = 1).
+internet connection. Stimuli were the same list of Catalan stimuli as in
+Experiment 1.
 
-\subsubsection{Stimuli}\label{stimuli-2}
+The experiment was implemented online using Qualtrics (Qualtrics, Provo,
+UT). This platform was chosen to allow easier presentation of survey
+questions aimed to probe prior understanding of the presented words and
+participants' confidence ratings of their answers. With the exception of
+these additional questions, we attempted to replicate the procedure of
+Experiment 1 as closely as possible. The Spanish and Catalan audio
+stimuli used were identical the materials in Experiment 1. Participants
+were randomly assigned to the Catalan or Spanish lists. The Catalan list
+had 83 trials and the Spanish list had 99 trials. Participants first
+completed the consent form followed by the questionnaire about
+demographic status, language background and set up. They then proceeded
+to the experimental task.
 
-Same as in Experiment 1.
+On each trial, participants listened to the audio stimulus by clicking
+on the play button. For comparability to the PsychoPy version,
+participants were only allowed to play the audio one time. Participants
+were explicitly told that they would be only allowed to listen once. The
+play button vanished after one playthrough. Participants then had to
+answer three questions based on the audio they had heard on that trial.
+These questions were presented on the same page, directly below the
+audio player. They were first asked whether or not they knew the
+presented word (multiple choice---yes/no). Regardless of their answer on
+the first question, participants were asked what they thought the
+translation of the word was in English (or their best guess), and
+instructed to type their answer in the provided text box. Finally, they
+were asked to rate how confident they were in their answer on a scale of
+0 to 7, where 7 was ``very confident'' and 0 was ``not confident''.
+There was no time limit on the response phase. All questions had to be
+answered to proceed to the next trial.
 
-\subsubsection{Procedure}\label{procedure-2}
-
-{[}TO BE COMPLETED{]}
-
-\subsubsection{Data analysis}\label{data-analysis-2}
-
-Same approach as in Experiment 1.
+Participants first completed 5 practice trials with English words as the
+audio stimulus (ambulance, cucumber, elephant, pear, turtle). The words
+were recorded by a female native speaker of English. These trials acted
+as attention checks, as participants should always answer ``yes'' to the
+first question on prior word knowledge and be able to accurately
+transcribe the word they heard. Following the practice phase,
+participants completed the test phase where they heard either Spanish
+words or Catalan words.
 
 \subsection{Results}\label{results-2}
 
@@ -1194,12 +1270,15 @@ participants added comments to the experimenter (e.g., \texttt{unsure},
 self-rated their oral and/or written skills in Catalan and Spanish, or
 any other second language as four or higher in a five-point scale
 (\emph{n} = 2), were diagnosed with a language (\emph{n} = 0), or did
-not contribute more than 80\% of valid trials (\emph{n} = 1). After
-applying trial-level and participant-level inclusion criteria, the
+not contribute more than 80\% of valid trials (\emph{n} = 1).
+
+After applying trial-level and participant-level inclusion criteria, the
 resulting dataset included 6,290 trials provided by 62 unique
 participants. Of those trials, 3,145 were provided by 31 unique
 participants who listened to Catalan words, and 2,743 trials were
 provided by 32 unique participants who listened to Spanish words.
+
+INSERT PRIOR KNOWLEDGE FILTER
 
 Responses given by English participants to Catalan presented words were
 5.52 characters long on average (\emph{Median} = 5, \emph{SD} = 1.75,
@@ -1262,11 +1341,18 @@ different values of \emph{Cognateness} and \emph{CLPN}.
 
 \centering{
 
-\captionsetup{labelsep=none}\includegraphics{manuscript_files/figure-pdf/fig-epreds-3-1.pdf}
+\includegraphics{manuscript_files/figure-pdf/fig-epreds-3-1.pdf}
 
 }
 
-\caption{\label{fig-epreds-3}}
+\caption{\label{fig-epreds-3}Posterior model-predicted mean accuracy in
+Experiment 2. Predictions were generated from 4,000 posterior samples,
+extracted for different values of \emph{CLPN} (0, 2, 4, 8, 12) and
+\emph{Cognateness} (1-100). Predictions are plotted separately for
+English participants translating Catalan words, and for English
+participants translating Spanish words. Lines indicate mean predictions,
+and intervals indicate 95\%, 89\%, 78\%, 67\%, and 50\% credible
+intervals (CrI).}
 
 \end{figure}%
 
