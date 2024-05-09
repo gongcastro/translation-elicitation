@@ -2,7 +2,7 @@
 
 -   [ ] Add lexical frequency distribution of Spanish words in English corpus (intersection between English and Spanish CLEARPOND corpora)
 
--   [ ] Add methods write up for Experiment 2 (Questionnaire)
+-   [x] Add methods write up for Experiment 3 (Questionnaire)
 
 -   [ ] Use LaTeX package `tipa` for IPA transcriptions
 
