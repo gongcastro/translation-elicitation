@@ -17,7 +17,7 @@
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
 \fi
-\usepackage{lmodern}
+\usepackage[]{Times}
 \ifPDFTeX\else  
     % xetex/luatex font selection
   \setmainfont[]{Latin Modern Roman}
@@ -118,6 +118,7 @@
 \usepackage{array}
 \usepackage{tipa}
 \usepackage{booktabs}
+\DeclareTextFontCommand\textphonetic{\ipafont}
 \usepackage{arxiv}
 \usepackage{orcidlink}
 \usepackage{amsmath}
@@ -570,7 +571,9 @@ on the joint data sets of Experiments 1 to 3.
 \subsection{Methods}\label{methods}
 
 All materials, data, and code used in this study are hosted in the Open
-Science Framework \url{https://osf.io/9fjxm/} and a GitHub repository
+Science Framework
+\href{https://osf.io/9fjxm/?view_only=aab7636ce1af48cf832596a7ea9101c5/}{https://osf.io/9fjxm/}
+and a GitHub repository
 \url{https://github.com/gongcastro/translation-elicitation.git}, along
 with additional notes.
 
