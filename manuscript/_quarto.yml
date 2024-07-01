@@ -2,13 +2,13 @@ project:
   render:
     - manuscript.qmd
 abstract: |
-  Understanding spoken words in a non-native language is easier when their translations into the listener's native language are phonologically similar. Phonological similarity plays a more important role in the language performance of low-proficiency bilinguals, compared to that of high-proficiency bilinguals. This suggests that low-proficiency bilinguals may points to the latter as relying more strongly on cross-language word-to-word links (lexical route), while high-proficiency bilinguals rely more on word-concept associations (conceptual route) than on cross-language word-to-word links (lexical route). Disentangling bilinguals' reliance on the conceptual and lexical and conceptual routes during translation is challenging, given that both sources of information are present during spoken word comprehensionto some extent in both high- and low-proficiency bilinguals. In this study, we tested English and Spanish native speakers in a translation elicitation task, in which they listened to words in an unfamiliar language (Spanish or Catalan for English natives, and Catalan for Spanish natives), and then had to translate them to their native language. Given their lack of previous knowledge on the unfamiliar tested language, phonological similarity between the presented words and their correct translations was the only cue available for participants to succeed in the task. This allowed us to explore the informativeness of the lexical route for word translation, in the absence of information from the conceptual route. Our results indicate that participants benefited from the phonological similarity between translation equivalents: the more similar the word they listened to and its translational equivalent, the higher the probability of a correct translation. These results point to cross-language word-to-word links as providing rich information during word translation.
+  Understanding spoken words in a non-native language is easier when their translations into the listener's native language are phonologically similar. Phonological similarity plays a more important role in the language performance of low-proficiency bilinguals, compared to that of high-proficiency bilinguals. This suggests that low-proficiency bilinguals may points to the latter as relying more strongly on cross-language word-to-word links (lexical route), while high-proficiency bilinguals rely more on word-concept associations (conceptual route) than on cross-language word-to-word links (lexical route). Disentangling bilinguals' reliance on the conceptual and lexical and conceptual routes during translation is challenging, given that both sources of information are present during spoken word comprehension to some extent in both high- and low-proficiency bilinguals. In this study, we tested English and Spanish native speakers in a translation elicitation task, in which they listened to words in an unfamiliar language (Spanish or Catalan for English natives, and Catalan for Spanish natives), and then had to translate them to their native language. Given their lack of previous knowledge on the unfamiliar tested language, phonological similarity between the presented words and their correct translations was the only cue available for participants to succeed in the task. This allowed us to explore the informativeness of the lexical route for word translation, in the absence of information from the conceptual route. Our results indicate that participants benefited from the phonological similarity between translation equivalents: the more similar the word they listened to and its translational equivalent, the higher the probability of a correct translation. These results point to cross-language word-to-word links as providing rich information during word translation.
 format:
   arxiv-pdf:
     keep-tex: true  
     linenumbers: true
     doublespacing: false
-    runninghead: "Cognateness and non-native word recognition"
+    runninghead: "Cognateness and native word recognition"
     include-in-header: 
       text: |
         \usepackage{tipa}
@@ -21,9 +21,10 @@ format:
       - "_extensions/andrewheiss/wordcount/citeproc.lua"
       - "_extensions/andrewheiss/wordcount/wordcount.lua"
     fontfamily: "Times"
-  docx: default
+  docx:
+    reference-doc: _assets/template.docx
 
-title: "The role of cognateness in non-native spoken word recognition"
+title: "The role of cognateness in native spoken word recognition"
 short-title: "Cognate beginnings"
 author:
   - name: Gonzalo Garcia-Castro
