@@ -23,6 +23,10 @@ format:
     fontfamily: "Times"
   docx:
     reference-doc: _assets/template.docx
+  typst:
+    template-partials: 
+      - _assets/typst-template.typ
+
 
 title: "The role of cognateness in native spoken word recognition"
 short-title: "Cognate beginnings"
@@ -63,7 +67,7 @@ keywords:
   - non-native speech processing
   - lexical access
 csl: "_assets/apa7.csl"
-bibliography: "_assets/references.bib"
+bibliography: "_assets/TranslationElicitation.bib"
 link-citations: true
 editor: source
 lang: en

@@ -1,5 +1,5 @@
 ---
-title: "The role of cognateness in native spoken word recognition"
+title: "The role of Similarity in native spoken word recognition"
 ---
 
 
@@ -46,7 +46,7 @@ theme_set(theme_ggdist() +
 
 Listening to non-native speech is costlier than listening to native speech, even for highly proficient bilinguals, and especially in acoustically adverse situations [@lecumberri2010non; @takata1990english]. One of the sources of this increased difficulty is the partial mismatch between the phonology of the native and the non-native languages: some acoustic features embedded in the non-native speech signal do not overlap perfectly with any phonemic category in the listener's native language. For example, imagine a Spanish native with no previous familiarity with any other language listening to French for the first time. This listener may encounter the word /pɔʁt/ (*porte*), translation of door in French. The voiced uvular fricative consonant /ʁ/ and the open-mid back rounded vowel /ɔ/ do not exist in Spanish as phonemic categories. These discrepancies can nonetheless be perceived as allophonic variations the native (Spanish) phonemes /ɾ/ and /o/ [@best2001discrimination], leading to the non-native speech signal engaging lexical processing mechanisms [@weber2004lexical]. Even if unfamiliar with the word-form /pɔʁt/, the Spanish monolingual is likely to activate the phonological representation of its Spanish translation /pweɾta/ (*puerta*), ultimately accessing the right semantic representation. Although the phonetic mismatch between the non-native word and its translation can have a noticeable toll on comprehension [@cutler2004patterns], the fact that word recognition can take place at all in such circumstances illustrates that non-native listeners---even low-proficiency ones---are rarely completely naïve to the language they are listening to.
 
-Imagine now that the same Spanish listener hears English for the first time and encounters the word /dɔː/ (*door*). This time, phonological similarity is of little help: /pweɾta/ and /dɔː/ do not share any phonemes. It would come as a surprise if the listener was able to translate the English word successfully. Non-native listeners rely on the phonological similarity between the word-forms presented in the input and their translations. Luckily for them, most languages share such kind of similarity. This is frequently due to their typological closeness and/or socio-historical events involving the speakers of these languages (e.g., migration, social contact). For example, Romance languages such as Spanish and Catalan share many form-similar translation equivalents (also known as *cognates*) [@schepens2012distributions], as in the case of *puerta* and *porta* (door in Spanish and Catalan, respectively). This type of cross-linguistic similarity has been extremely informative for the study of bilingual lexical processing: words that share high form-similarity with their translations are processed faster and more accurately than words sharing lower phonological similarity. This phenomenon has provided strong evidence in favour of the language-non selective hypothesis of bilingual lexical access, which states that bilinguals activate lexical representations in both languages, even during monolingual situations. This facilitation effect has been reported for comprehension [@thierry2007brain; @midgley2011effects; @dijkstra2010cross], production [@costa2000cognate], learning [@de2000hard; @lotto1998effects; @valente2018does; @elias2022cross], and translation [@christoffels2006memory]. The role that cross-linguistic phonological similarity might play in monolingual lexical access during non-native speech comprehension is unclear. How much phonological similarity is enough for a monolingual to understand a word from a non-native language? How does phonological similarity interact with other determinants of word recognition?
+Imagine now that the same Spanish listener hears English for the first time and encounters the word /dɔː/ (*door*). This time, phonological similarity is of little help: /pweɾta/ and /dɔː/ do not share any phonemes. It would come as a surprise if the listener was able to translate the English word successfully. Non-native listeners rely on the phonological similarity between the word-forms presented in the input and their translations. Luckily for them, most languages share such kind of similarity. This is frequently due to their typological closeness and/or socio-historical events involving the speakers of these languages (e.g., migration, social contact). For example, Romance languages such as Spanish and Catalan share many form-similar translation equivalents (also known as *cognates*) [@schepens2012distributions], as in the case of *puerta* and *porta* (door in Spanish and Catalan, respectively). This type of cross-linguistic similarity has been extremely informative for the study of bilingual lexical processing: words that share high form-similarity with their translations are processed faster and more accurately than words sharing lower phonological similarity. This phenomenon has provided strong evidence in favour of the language-non selective hypothesis of bilingual lexical access, which states that bilinguals activate lexical representations in both languages, even during monolingual situations. This facilitation effect has been reported for comprehension [@thierry2007brain; @midgley2011effects; @dijkstra2010cross], production [@costa2000cognate], learning [@de2000hard; @lotto1998effects; @valente2018does; @elias2022crosslanguage], and translation [@christoffels2006memory]. The role that cross-linguistic phonological similarity might play in monolingual lexical access during non-native speech comprehension is unclear. How much phonological similarity is enough for a monolingual to understand a word from a non-native language? How does phonological similarity interact with other determinants of word recognition?
 
 In the present study, we investigate the extent to which monolinguals can exploit phonological similarity when listening to words in an unfamiliar languages, in order to achieve comprehension, while taking into account other lexically-relevant variables interact with the lexical processing mechanisms involved. We used a translation elicitation task in which participants listened to words from an unfamiliar language, and then tried to guess their translation in their native language. We will henceforth refer to the auditory-presented words heard by participants on each trial as *presented words*, and the correct translation for the presented words as *target translations*. We explored listeners' reliance on phonological similarity to succeed in the task by manipulating the amount of phonological similarity between the presented words and their target translations. Since participants were unfamiliar with the presented language, they could only be able to use word-to-word connections to succeed in the translation of words in an unfamiliar language. We therefore predicted that, if the information provided by the phonological form of the unfamiliar presented words is sufficient for translation, participants' performance should increase when the translation pairs are phonologically more similar.
 
@@ -170,11 +170,11 @@ names(stim_exc_freq) <- janitor::make_clean_names(names(stim_exc_freq))
 stim_exc_freq_n <- sum(map_int(stim_exc_freq, "n"))
 ```
 
-For each translation pair, we defined three predictors of interest: the lexical frequency of the correct translation (*Frequency*), the phonological similarity between the presented (Catalan or Spanish) word and their correct English translation (*Cognateness*), and the presented word's number of cross-language phonological neighbours (*CLPN*).
+For each translation pair, we defined three predictors of interest: the lexical frequency of the correct translation (*Frequency*), the phonological similarity between the presented (Catalan or Spanish) word and their correct English translation (*Similarity*), and the presented word's number of cross-language phonological neighbours (*CLPN*).
 
 We included *Frequency* as a nuance predictor, under the hypothesis that---keeping other predictors constant---participants would translate higher-frequency words more accurately and faster than lower-frequency words. Lexical frequencies of correct translations were extracted from SUBTLEX-UK [@van2014subtlex], and transformed to Zipf scores. Words in the stimuli list without a lexical frequency value were excluded from data analysis (`r stim_exc_freq$cat_eng$n` in the Catalan list, `r stim_exc_freq$spa_eng$n` in the Spanish list).
 
-We calculated *Cognatenesss*, our main predictor of interest, by computing the Levenshtein similarity between the X-SAMPA transcriptions of each pair of translations using the `stringdist` R package [@van2014stringdist]. The Levenshtein distance computes the edit distance between two character strings---in this case, phoneme transcriptions---by counting the number of additions, deletions, and substitutions necessary to make both strings identical [@levenshtein1966binary]. We divided this edit distance by the number of characters included in the longest X-SAMPA transcription of the translation pair. This results in a proportion score, in which values closer to zero correspond to lower Levenshtein distances between phonological transcriptions (i.e., higher similarity), and values closer to 1 correspond to higher Levenshtein distances (i.e., lower similarity). This transformation also help account for the fact that the Levenshtein distance tends to increase with the length of the transcriptions. For interpretability, we subtracted this proportion from one, so that values closer to one correspond to higher similarity between phonological transcriptions, and values closer to zero correspond to lower similarity between phonological transcriptions. For example, the *table* (/teɪbəl/)-*mesa* (/mesa/) translation pair had a `r scales::percent(stringsim(enc2utf8("teɪbəl"), enc2utf8("mesa")))` similarity, while the *train* (`trEIn`)-*tren* (t`r knitr::asis_output("\U027E")`En) translation pair had a `r scales::percent(stringsim(enc2utf8("trEIn"), enc2utf8("tɾEn")))` similarity. Figure 1 summarises the lexical frequency, phonological neighbourhood density and phonological overlap of the words included in the Catalan and the Spanish lists.
+We calculated *Similaritys*, our main predictor of interest, by computing the Levenshtein similarity between the X-SAMPA transcriptions of each pair of translations using the `stringdist` R package [@van2014stringdist]. The Levenshtein distance computes the edit distance between two character strings---in this case, phoneme transcriptions---by counting the number of additions, deletions, and substitutions necessary to make both strings identical [@levenshtein1966binary]. We divided this edit distance by the number of characters included in the longest X-SAMPA transcription of the translation pair. This results in a proportion score, in which values closer to zero correspond to lower Levenshtein distances between phonological transcriptions (i.e., higher similarity), and values closer to 1 correspond to higher Levenshtein distances (i.e., lower similarity). This transformation also help account for the fact that the Levenshtein distance tends to increase with the length of the transcriptions. For interpretability, we subtracted this proportion from one, so that values closer to one correspond to higher similarity between phonological transcriptions, and values closer to zero correspond to lower similarity between phonological transcriptions. For example, the *table* (/teɪbəl/)-*mesa* (/mesa/) translation pair had a `r scales::percent(stringsim(enc2utf8("teɪbəl"), enc2utf8("mesa")))` similarity, while the *train* (`trEIn`)-*tren* (t`r knitr::asis_output("\U027E")`En) translation pair had a `r scales::percent(stringsim(enc2utf8("trEIn"), enc2utf8("tɾEn")))` similarity. Figure 1 summarises the lexical frequency, phonological neighbourhood density and phonological overlap of the words included in the Catalan and the Spanish lists.
 
 For each Catalan and Spanish word, we calculated the number of *CLPN* by counting the number of English words with same or higher lexical frequency, and whose phonological transcription (in X-SAMPA format) different in up to one phoneme from that of the presented Catalan or Spanish word. Lexical frequencies and phonological transcriptions were extracted from the multilingual database CLEARPOND [@marian2012clearpond]^[[Phonological transcriptions in CLEARPOND were generated from eSPEAK, [http://espeak.sourceforge.net/](http://espeak.sourceforge.net/)]].
 
@@ -189,7 +189,7 @@ stimuli |>
               .by = c(group)) |> 
     gt(rowname_col = "group") |> 
     tab_spanner("Frequency", matches("freq")) |> 
-    tab_spanner("Cognateness", matches("lv")) |> 
+    tab_spanner("Similarity", matches("lv")) |> 
     tab_spanner("CLPN", matches("neigh")) |> 
     fmt_number(is.numeric) |> 
     fmt_integer(c(neigh_n_h_min,
@@ -240,13 +240,32 @@ Trials in which participants took longer than 10 seconds to respond were also ex
 
 #### Modelling approach and statistical inference
 
-We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Cognateness*, and *CLPN*, and the two-way interaction between *Cognateness* and *CLPN*. We also included participant-level random intercepts and slopes for the the main effects and the interaction. Eq. 1 shows a formal description of the model.
+We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Similarity*, and *CLPN*, and the two-way interaction between *Similarity* and *CLPN*. We also included participant-level random intercepts and slopes for the the main effects and the interaction. Eq. 1 shows a formal description of the model.
 
+::: {.content-visible when-format="docx"}
 ![Eq. 1](_assets/img/model.PNG)
+:::
+
+::: {.content-visible when-format="pdf"}
+$$
+\begin{aligned}
+&\textbf{Likelihood}  \\
+y_{i} \sim & \text{Bernoulli}(p_{i}) \\ \\
+&\textbf{Parameters}  \\
+\text{Logit}(p_{i}) = &  \beta_{0[p,w]} + \beta_{1[p]} \text{Frequency}_{i} + \beta_{2[p]} \text{PTHN}_i + \beta_{3[p]} \text{Similarity}_i + \beta_{4[p]} (\text{PTHN}_i \times \text{Similarity}_i) \\
+\beta_{0-6[p,w]} \sim & \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \text{ and  word } w \text{ in 1, ..., } W \\
+\beta_{1-6[p]} \sim &  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \\ \\
+&\textbf{Prior}  \\
+\mu_{\beta_{p,w}}  \sim &  \mathcal{N}(0, 0.1) \\
+\sigma_{\beta_{p}},  \sigma_{\beta_{w}} \sim & \text{HalfCauchy}(0, 0.1) \\
+\rho_{p}, \rho_{w} \sim & \text{LKJCorr}(8) \\
+\end{aligned}
+$$
+:::
 
 To test the practical relevance of each predictor we followed [@kruschke2018bayesian]. We first specified a region of practical equivalence (*ROPE*) around zero ([-0.1, +0.1], in the logit scale). This area indicates the values of the regression coefficients that we considered as equivalent to zero. We then computed the 95% posterior credible intervals (CrI) of the regression coefficients of interest. Finally, we calculated the proportion of the 95% CrI that fell inside the ROPE. This proportion indicates the probability that the true value of the coefficient is equivalent to zero.
 
-All analyses were performed in R environment [@rcore2019r]. We used the tidyverse family of R packages [@wickham2019tidyverse] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
+All analyses were performed in R environment [@rcoreteam2013language]. We used the tidyverse family of R packages [@wickham2019welcome] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for mode details on the models).
 
 
 ## Results
@@ -376,7 +395,7 @@ c1 <- split(c1, c1$.variable)
 names(c1) <- janitor::make_clean_names(names(c1)) 
 ```
 
-@tbl-results shows a summary of participants' accuracy across Experiments 1, 2, and 3. MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Participants translating Catalan words and participants translating Spanish words performed equivalently, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c1$b_group1$.median, 3)`, 95% CrI = [`r round(c1$b_group1$.lower, 3)`, `r round(c1$b_group1$.upper, 3)`], *p*(ROPE) = `r round(c1$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_lv$.lower, 3)`, `r round(c1$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c1$b_lv$.median, 3)`, 95% CrI = [`r round(c1$b_lv$.lower, 3)`, `r round(c1$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h$.lower, 3)`, `r round(c1$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*. @fig-coefs shows a graphic summary of the posterior distribution of the regression coefficients of interest.
+@tbl-dataset shows a summary of participants' accuracy across Experiments 1, 2, and 3. MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Participants translating Catalan words and participants translating Spanish words performed equivalently, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c1$b_group1$.median, 3)`, 95% CrI = [`r round(c1$b_group1$.lower, 3)`, `r round(c1$b_group1$.upper, 3)`], *p*(ROPE) = `r round(c1$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_lv$.lower, 3)`, `r round(c1$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c1$b_lv$.median, 3)`, 95% CrI = [`r round(c1$b_lv$.lower, 3)`, `r round(c1$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h$.lower, 3)`, `r round(c1$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*. @fig-coefs shows a graphic summary of the posterior distribution of the regression coefficients of interest.
 
 ```{r tbl-dataset}
 #| label: tbl-dataset
@@ -468,7 +487,7 @@ tbl_data |>
 #| label: fig-epreds-1
 #| fig-height: 6
 #| fig-width: 10
-#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Cognateness* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
+#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
 get_epreds <- function(model, data, n = 1000, 
                        lv = seq(0, 1, length.out = 100), 
                        neigh_n_h = c(0, 2, 4, 8, 12),
@@ -495,7 +514,7 @@ get_epreds(exp_1_m0, dataset_1) |>
     stat_lineribbon(aes(fill_ramp = after_stat(level)),
                     linewidth = 1/2,
                     .width = c(0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
+    labs(x = "Similarity\n(Levenshtein distance with correct translation)",
          y = "p(Correct)",
          colour = "Cross-language neighbourhood density",
          fill = "Cross-language neighbourhood density",
@@ -511,7 +530,7 @@ get_epreds(exp_1_m0, dataset_1) |>
 
 ## Discussion
 
-In the present experiment, we investigated the extent to which cognateness (phonological similarity between translation equivalents) is sufficient for successful word translation, in the absence of semantic knowledge. We tested two groups of monolingual British English natives in a translation task that involved words in Catalan or Spanish, two languages participants reported having no prior familiarity with. Participants benefited strongly from cognateness, when the correct translation of the presented words in Catalan or Spanish had few English phonological neighbours with higher lexical frequency. This suggests that, in the absence of distractors, even naïve participants can efficiently use phonological similarity to succeed in a translation task. Our results suggest that word-to-word connections at the phonological level might play a strong role during L2 speech comprehension, specially in low-proficiency listeners.
+In the present experiment, we investigated the extent to which the phonological similarity between translation equivalents is sufficient for successful word translation, in the absence of semantic knowledge. We tested two groups of monolingual British English natives in a translation task that involved words in Catalan or Spanish, two languages participants reported having no prior familiarity with. Participants benefited strongly from phonological similarity when the correct translation of the presented words in Catalan or Spanish had few English phonological neighbours with higher lexical frequency. This suggests that, in the absence of distractors, even naïve participants can efficiently use phonological similarity to succeed in a translation task. Our results suggest that word-to-word connections at the phonological level might play a strong role during L2 speech comprehension, specially in low-proficiency listeners.
 
 # Experiment 2
 
@@ -599,11 +618,11 @@ c2 <- split(c2, c2$.variable)
 names(c2) <- janitor::make_clean_names(names(c2)) 
 ```
 
-MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_lv$.lower, 3)`, `r round(c2$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c2$b_lv$.median, 3)`, 95% CrI = [`r round(c2$b_lv$.lower, 3)`, `r round(c2$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h$.lower, 3)`, `r round(c2$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
+MCMC chains in the model showed strong evidence of convergence ($\hat{R}<1.01$) (see Appendix 2 for more detailed model diagnostics). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_lv$.lower, 3)`, `r round(c2$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c2$b_lv$.median, 3)`, 95% CrI = [`r round(c2$b_lv$.lower, 3)`, `r round(c2$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h$.lower, 3)`, `r round(c2$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*.
 
 ```{r fig-epreds-2}
 #| label: fig-epreds-2
-#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Cognateness* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
+#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
 #| fig-height: 3.5
 #| fig-width: 10
 get_epreds(exp_2_m0, dataset_2) |> 
@@ -617,7 +636,7 @@ get_epreds(exp_2_m0, dataset_2) |>
     stat_lineribbon(aes(fill_ramp = after_stat(level)),
                     linewidth = 1/2,
                     .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
+    labs(x = "Similarity\n(Levenshtein distance with correct translation)",
          y = "p(Correct)",
          colour = "Cross-language neighbourhood density",
          fill = "Cross-language neighbourhood density",
@@ -865,12 +884,12 @@ c3 <- split(c3, c3$.variable)
 names(c3) <- janitor::make_clean_names(names(c3)) 
 ```
 
-Participants translating Catalan words and participants translating Spanish words, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c3$b_group1$.median, 3)`, 95% CrI = [`r round(c3$b_group1$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Cognateness* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_lv$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Cognateness* ($\beta$ = `r round(c3$b_lv$.median, 3)`, 95% CrI = [`r round(c3$b_lv$.lower, 3)`, `r round(c3$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h$.lower, 3)`, `r round(c3$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Cognateness* and *CLPN*.
+Participants translating Catalan words and participants translating Spanish words, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c3$b_group1$.median, 3)`, 95% CrI = [`r round(c3$b_group1$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_lv$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_lv$.lower, 3)`, `r round(c3$b_neigh_n_h_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_lv$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c3$b_lv$.median, 3)`, 95% CrI = [`r round(c3$b_lv$.lower, 3)`, `r round(c3$b_lv$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv$.rope, 3)`), while the number of *CLND* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h$.lower, 3)`, `r round(c3$b_neigh_n_h$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*.
 
 
 ```{r fig-epreds-3}
 #| label: fig-epreds-3
-#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 2. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Cognateness* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
+#| fig-cap: "Posterior model-predicted mean accuracy in Experiment 2. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
 #| fig-height: 6
 #| fig-width: 10
 get_epreds(exp_3_m1, dataset_3) |> 
@@ -884,7 +903,7 @@ get_epreds(exp_3_m1, dataset_3) |>
     stat_lineribbon(aes(fill_ramp = after_stat(level)),
                     linewidth = 1/2,
                     .width = c(0.99, 0.95, 0.89, 0.78, 0.67, 0.50)) +
-    labs(x = "Cognateness\n(Levenshtein distance with correct translation)",
+    labs(x = "Similarity\n(Levenshtein distance with correct translation)",
          y = "p(Correct)",
          fill_ramp = "CrI (%)") +
     scale_x_continuous(labels = scales::percent) +
@@ -906,9 +925,9 @@ Across Experiments 1 and 3, we found strong evidence that participants efficient
 #| fig-height: 5
 var_labels <- c("b_Intercept" = "Intercept",
                 "b_freq_zipf_2" = "Frequency",
-                "b_lv" = "Cognateness",
+                "b_lv" = "Similarity",
                 "b_neigh_n_h" = "CLPN",
-                "b_neigh_n_h:lv" = "Cognateness × CLPN",
+                "b_neigh_n_h:lv" = "Similarity × CLPN",
                 "b_group1" = "cat-ENG vs. spa-ENG") 
 
 list(exp_1_m0, exp_2_m0, exp_3_m1) |> 
