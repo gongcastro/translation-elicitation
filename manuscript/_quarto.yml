@@ -8,7 +8,7 @@ format:
     keep-tex: true  
     linenumbers: true
     doublespacing: false
-    runninghead: "Cognateness and native word recognition"
+    runninghead: "Cognateness and recognition of foreign words"
     include-in-header: 
       text: |
         \usepackage{tipa}
@@ -28,8 +28,8 @@ format:
       - _assets/typst-template.typ
 
 
-title: "The role of cognateness in native spoken word recognition"
-short-title: "Cognate beginnings"
+title: "The role of cognateness in recognition of spoken words in a foreign language"
+short-title: "Cognateness and recognition of foreign words"
 author:
   - name: Gonzalo Garcia-Castro
     corresponding: true
@@ -67,7 +67,7 @@ keywords:
   - non-native speech processing
   - lexical access
 csl: "_assets/apa7.csl"
-bibliography: "_assets/TranslationElicitation.bib"
+bibliography: "_assets/references.bib"
 link-citations: true
 editor: source
 lang: en
