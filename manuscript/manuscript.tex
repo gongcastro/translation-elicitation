@@ -133,6 +133,8 @@
 \usepackage{tipa}
 \usepackage{booktabs}
 \DeclareTextFontCommand\textphonetic{\ipafont}
+\usepackage[utf8]{inputenc}
+\usepackage{CJKutf8}
 \usepackage{arxiv}
 \usepackage{orcidlink}
 \usepackage{amsmath}
@@ -199,7 +201,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
-  pdftitle={The role of cognateness in recognition of spoken words in a foreign language},
+  pdftitle={The role of cognateness in native spoken word recognition},
   pdfauthor={Gonzalo Garcia-Castro; Serene Siow; Kim Plunkett; Nuria Sebastian-Galles},
   pdflang={en},
   pdfkeywords={cognate, spoken word
@@ -217,8 +219,7 @@ processing, lexical access},
 \newcommand{\runninghead}{A Preprint }
 \renewcommand{\runninghead}{Cognateness and recognition of foreign
 words }
-\title{The role of cognateness in recognition of spoken words in a
-foreign language}
+\title{The role of cognateness in native spoken word recognition}
 \author{\textbf{Gonzalo
 Garcia-Castro}~\orcidlink{0000-0002-8553-4209}\\Center for Brain and
 Cognition\\Universitat Pompeu Fabra\\Barcelona,
@@ -235,36 +236,6 @@ Cognition\\Universitat Pompeu Fabra\\Barcelona,
 \date{}
 \begin{document}
 \maketitle
-\begin{abstract}
-Understanding spoken words in a non-native language is easier when their
-translations into the listener's native language are phonologically
-similar. Phonological similarity plays a more important role in the
-language performance of low-proficiency bilinguals, compared to that of
-high-proficiency bilinguals. This suggests that low-proficiency
-bilinguals may points to the latter as relying more strongly on
-cross-language word-to-word links (lexical route), while
-high-proficiency bilinguals rely more on word-concept associations
-(conceptual route) than on cross-language word-to-word links (lexical
-route). Disentangling bilinguals' reliance on the conceptual and lexical
-and conceptual routes during translation is challenging, given that both
-sources of information are present during spoken word comprehension to
-some extent in both high- and low-proficiency bilinguals. In this study,
-we tested English and Spanish native speakers in a translation
-elicitation task, in which they listened to words in an unfamiliar
-language (Spanish or Catalan for English natives, and Catalan for
-Spanish natives), and then had to translate them to their native
-language. Given their lack of previous knowledge on the unfamiliar
-tested language, phonological similarity between the presented words and
-their correct translations was the only cue available for participants
-to succeed in the task. This allowed us to explore the informativeness
-of the lexical route for word translation, in the absence of information
-from the conceptual route. Our results indicate that participants
-benefited from the phonological similarity between translation
-equivalents: the more similar the word they listened to and its
-translational equivalent, the higher the probability of a correct
-translation. These results point to cross-language word-to-word links as
-providing rich information during word translation.
-\end{abstract}
 {\bfseries \emph Keywords}
 \def\sep{\textbullet\ }
 cognate \sep spoken word
@@ -275,126 +246,126 @@ lexical access
 
 \section{Introduction}\label{introduction}
 
-Learning a new language is a non-trivial task, a large part of which is
-acquiring a new set of word-forms to correspond to existing semantic
-representations in their lexicon. Imagine that a Spanish listener hears
-English for the first time and encounters the word /\textipa{"dO:}/
-(\emph{door}). Their knowledge of the phonological form in their native
-language is of little help: /\textipa{"pweR.ta}/ and /\textipa{"dO:}/ do
-not share any phonemes. It would come as a surprise if the listener was
-able to translate the English word successfully without having first
-learnt the word. However, there are some elements in language that may
-help the learner in acquiring words in a new language. Many languages
-share some degree of similarity. This may be due to typological
-closeness and/or socio-historical events involving the speakers of these
-languages (e.g., migration, social contact). For example, Romance
-languages such as Spanish and Catalan share many form-similar
-translation equivalents (also known as cognates)
-(\citeproc{ref-schepens2012distributions}{Schepens et al., 2012}), as in
-the case of \emph{puerta} and \emph{porta} (\emph{door} in Spanish and
-Catalan, respectively). Given no prior knowledge of either language, a
-Spanish native speaker is likely to be much more successful at correctly
-translating Catalan \emph{porta} than English \emph{door}, due to the
-phonological and orthographical similarity of the former to the
-equivalent in their native language. Second language learners have been
-found to learn cognates more easily than non-cognates
-(\citeproc{ref-hall2002automatic}{Hall, 2002};
-\citeproc{ref-otwinowska2019more}{Otwinowska \& Szewczyk, 2019}). This
-type of cross-linguistic similarity has also been extremely informative
-for the study of bilingual lexical processing: words that share high
-form-similarity with their translations are processed faster and more
-accurately than words sharing lower phonological similarity. This
-phenomenon has provided strong evidence in favour of the language-non
-selective hypothesis of bilingual lexical access, which states that
-bilinguals activate lexical representations in both languages, even
-during monolingual situations. This facilitation effect has been
-reported for comprehension (\citeproc{ref-dijkstra2010cross}{Dijkstra et
-al., 2010}; \citeproc{ref-midgley2011effects}{Midgley et al., 2011};
-\citeproc{ref-thierry2007brain}{Thierry \& Wu, 2007}), production
-(\citeproc{ref-costa2000cognate}{Costa et al., 2000}), learning
-(\citeproc{ref-de2000hard}{De Groot \& Keijzer, 2000};
-\citeproc{ref-elias2022crosslanguage}{Elias \& Degani, 2022};
-\citeproc{ref-lotto1998effects}{Lotto \& De Groot, 1998};
-\citeproc{ref-valente2018does}{Valente et al., 2018}), and translation
-(\citeproc{ref-christoffels2006memory}{Christoffels et al., 2006}).
+When some German speakers listened to the song \emph{The Power} by SNAP!
+(\emph{Coyote Ugly}, 2000), many of them misheard the line ``I've got
+the power'' as \emph{Agatha Bauer!} When Michael Jackson vocalised
+``ma-ma-coo-sah'' in his song \emph{Wanna Be Startin' Somethin'}
+(\emph{Thriller}, 1982), some Dutch speakers understood \emph{mama
+appelsap} {[}mama applejuice{]}. When Spanish speakers listen to the
+line ``Circumvent your thick ego'' from the song \emph{Pictures} by
+System of a Down (\emph{Steal this Album!}, 2002), they tend to hear
+\emph{Sácame de aquí, King-Kong} {[}take me out of here, King-Kong{]}.
+When Japanese speakers listen to the line ``I want to hold your hand''
+in the homonym song by The Beatles (\emph{Meet The Beatles}, 1964), they
+often mishear \emph{Aho na hōnyōhan} {[}stupid urinator{]}. Outrageous
+as these examples might sound to speakers of other languages, many
+readers may know a few cases in their own native language. This auditory
+illusion can feel quite real, and often inevitable after the first time
+it happens. In Japanese, this phenomenon takes the name \emph{Soramimi}
+(lit. ``empty ear''), after the \emph{Soramimi Hour}---a section of the
+program \emph{Tamori Club} hosted by comedian Morita Kazuyoshi
+(Tamori)---in which instances of this illusion were presented with
+comedy purposes. Soramimi is a particular case of \emph{homophonic
+translation}: words or phrases in one language are translated into
+similar-sounding words and phrases in a different language, without
+necessarily preserving the meaning. This phenomenon extends beyond song
+lyrics, and may occur anytime when listening to non-native speech. For
+instance, when listening to ``You know me?'' (\textipa{/ju: n@U mi:}/)
+in English, Japanese-native listeners tend to understand \emph{yunomi}
+(/\textipa{jUnomi}/), which is a type of Japanese teacup. Overall, the
+occurence of Soramimi---and more generally, homophonic
+translations---suggests that speech in an unfamiliar language has the
+potential to activate lexical representations in the native language.
 
-Event counting on this facilitation effect of form-similarity, listening
-to non-native speech is costlier than listening to native speech, even
-for highly proficient bilinguals, and especially in acoustically adverse
-situations (\citeproc{ref-lecumberri2010non}{Lecumberri et al., 2010};
-\citeproc{ref-takata1990english}{Takata \& Nábělek, 1990}). One of
-potential source of this increased difficulty is the partial mismatch
-between the phonology of the native and the non-native languages: some
-acoustic features embedded in the non-native speech signal do not
-overlap perfectly with any phonemic category in the listener's native
-language. For example, imagine a Spanish native with no previous
-familiarity with any other language listening to French for the first
-time. This listener may encounter the word /\textipa{"pOKt}/
+Although homophonic translations do not necessarily take place with the
+preservation of meaning---which often results in outrageous
+mistranslations like the ones aforementioned---homophonic translations
+sometimes may lead to the activation of the intended meaning (i.e., a
+correct translation). For example, imagine a Spanish native with no
+previous familiarity with any other language listening to French for the
+first time. This listener may encounter the word /\textipa{"pOKt}/
 (\emph{porte}), translation of door in French. When comparing the
-phonemic transcription to the transcription of the Spanish word
+phonemic transcription of the French to that of its Spanish translation
 /\textipa{"pweR.ta}/ (\emph{puerta}), one may be led to infer that these
 two words do not have much overlap. But one thing to note is that the
 voiced uvular fricative consonant /\textipa{K}/ and the open-mid back
 rounded vowel /\textipa{O}/, which do not exist in Spanish as phonemic
 categories, can be perceived as allophonic variations the native
-(Spanish) phonemes /\textipa{R}/ and /o/. A perceptual assimilation
-model has been proposed to account for how speakers may integrate
-non-native phonemes into their native phonemic categories based on
-goodness-of-fit (\citeproc{ref-best1988examination}{Best et al., 1988},
-\citeproc{ref-best2001discrimination}{2001}). Although phonetic mismatch
-between the non-native word and its translation can have a noticeable
-toll on comprehension Cutler et al.
-(\citeproc{ref-cutler2004patterns}{2004}), the Spanish monolingual may
+(Spanish) phonemes /\textipa{R}/ and /o/, as described by assimilation
+models of phoneme perception (\citeproc{ref-best1988examination}{Best et
+al., 1988}, \citeproc{ref-best2001discrimination}{2001}). Although this
+phonetic mismatch between the non-native word and its translation can
+have a noticeable toll on comprehension Cutler et al.
+(\citeproc{ref-cutler2004patterns}{2004}), the Spanish listener may
 still be able to activate the phonological representation of
 /\textipa{"pweR.ta}/ (\emph{puerta}) from hearing the word-form
 /\textipa{"pOKt}/ (\emph{porte}), ultimately allowing them to access the
-right semantic representation.
+correct semantic representation. Given enough phonological similarity
+between the non-native word and its translation in the native language,
+a naïve listener may succeed at word comprehension when listening to an
+unfamiliar language. Such phonological similarity between translation
+equivalents---known as \emph{cognateness}---is common across many
+languages, and is often due to typological closeness and/or
+socio-historical events involving the speakers of these languages (e.g.,
+migration, social contact). For example, Romance languages such as
+Spanish and Catalan share many form-similar translation equivalents
+(\citeproc{ref-schepens2012distributions}{Schepens et al., 2012}), as in
+the case of \emph{puerta} and \emph{porta} (\emph{door} in Spanish and
+Catalan, respectively). Given no prior knowledge of either language, a
+Spanish native speaker is likely to be much more successful at correctly
+translating Catalan \emph{porta} than English \emph{door}, due to the
+phonological and orthographic similarity of the former to the equivalent
+in their native language.
 
-While phonological similarity across translation equivalents can help
-with speech recognition, phonological similarity between words with
-different meanings can hinder the recognition process. In word
-retrieval, the presence of phonological neighbours (word-forms that
-differ from each other in one phoneme) may interfere with the activation
-and selection of the appropriate lexical representation in the native
-language. Words with denser phonological neighbourhoods are recognised
-more slowly and less accurately than words with sparser phonological
-neighbourhoods (\citeproc{ref-dufour2003lexical}{Dufour \& Peereman,
-2003}; \citeproc{ref-goldinger1989priming}{Goldinger et al., 1989};
-\citeproc{ref-hamburger1996phonological}{Hamburger \& Slowiaczek, 1996};
-\citeproc{ref-luce1990similarity}{Luce et al., 1990};
-\citeproc{ref-luce1998recognizing}{Luce \& Pisoni, 1998}). This is
-especially true if such neighbours share higher phonological similarity
-with the presented word, or are lexically more frequent than the target
-translation (\citeproc{ref-luce1998recognizing}{Luce \& Pisoni, 1998}).
-The inhibitory effect of phonological neighbourhoods has also been
-reported across languages. For instance, Weber \& Cutler
-(\citeproc{ref-weber2004lexical}{2004}) observed that bilinguals
-displayed lexical competition effects from words in their native
-language when performing a word-referent matching task in their L2. The
-assimilation of non-native phonemes into native categories
-(\citeproc{ref-best1988examination}{Best et al., 1988},
-\citeproc{ref-best2001discrimination}{2001}) was used to explain how
-lexical competitors in the native language can be activated even when
-the target words contain non-native phonemes. In the case of non-native
-speech recognition, the presence of cross-linguistic pairs which are
-phonologically similar but differ in meaning (e.g., false friends) may
-act as distractors during lexical access, obstructing the selection of
-the appropriate target translation in the listener's lexicon. For
-instance, Otwinowska \& Szewczyk
-(\citeproc{ref-otwinowska2019more}{2019}) reported that false friends
-were disadvantaged relative to non-cognates by Polish second language
-learners, in contrast to cognates which were known better. It is
-therefore important to investigate the joint effect of both cognates and
-false friends when investigating the effect cross-linguistic
-phonological similarity has on word recognition in a foreign language.
-This could shed light on available strategies and challenges associated
-with the early stages of second language acquisition.
+While Soramimi, and more generally homophonic translation, are popular
+and frequent phenomena, the psycholinguistic literature on the topic is
+relatively scarce, and has mostly focused on the phonological variables
+involved in the occurence of Soramimi. For instance, Otake
+(\citeproc{ref-otake2007interlingual}{2007}) analysed 194 instances of
+Soramimi, broadcasted between 1992 and 2007 by the TV show Soramimi
+hour. These instances consisted of homophonic translations of English
+song lyrics to Japanese words and phrases. The vast majority of the
+reported instances were phrases (96\%) and a few, to single words (4\%).
+The phonetic features of the presented English lyrics were preserved
+with relatively high variability, with some Japanese resulting words or
+phrases sharing high overlap with the original English strings of
+sounds, and some sharing very little overlap. When analysing the few
+instances of homophonic translations of single words, the author
+identified three phonological processes that might explain how Japanese
+listeners reconstructed the English input to generate the Japanese
+words: insertion (e.g., \emph{cry} /\textipa{kraI}/ to \emph{kurai},
+/\textipa{kuRai}/ {[}dark{]}), deletion (e.g., \emph{go},
+/\textipa{goU}/ to \emph{go}, /go/ {[}go{]}, and alternation (e.g.,
+\emph{low}, /\textipa{loU}/ to \emph{rou}, /\textipa{Roo}/ {[}wax{]}).
+This suggests that the reported homophonic translations can be
+explained, to some extent, as the result of the Japanese listeners
+accommodating the strings of English sounds to the Japanese phoneme
+inventory and Japanese phonotactics
+(\citeproc{ref-dupoux1999epenthetic}{Dupoux et al., 1999};
+\citeproc{ref-peperkamp2008perceptual}{Peperkamp et al., 2008}). Native
+prosody also constrains the occurence of homophonic translations. For
+instance, Kentner (\citeproc{ref-kentner2015rhythmic}{2015}) presented
+in the auditory modality French-native and German-native participants
+with English songs with lyrics. Homophonic translations followed
+language-specific segmentation strategies. Most homophonic translations
+reported by German-native participants resulted from inserting phrase
+and word boundaries \emph{before} stressed syllables (following the more
+frequent trochaic patter in German). On the contrary, most homophonic
+translations reported by French-native participants resulted from
+inserting phrase and word boundaries \emph{after} stressed syllables,
+following the more frequent iambic pattern in French.
 
-In the present study, we investigate the extent to which monolinguals
-can exploit phonological similarity between translation equivalents when
-listening to words in an unfamiliar language, and how it interacts with
-competition from phonological neighbours in the native language. We used
-a translation elicitation task in which participants listened to words
+While the previous studies have address the phonological aspects of
+homophonic translation, little attention has been paid to the dynamics
+of lexical activation and competition that underlay this phenomenon. In
+the present work we investigated the interplay between phonological
+similarity and phonological neighbourhood density to examine how
+listeners of an unfamiliar language activate lexical representations in
+their native language. In particular, we studied how the presence of
+phonological neighbours in the native language lexicon affects the
+extent to which listeners are able to activate the correct translation
+of an auditorily presented word in an unfamiliar language. We used a
+translation elicitation task in which participants listened to words
 from an unfamiliar language, and then tried to guess their translation
 in their native language. We will henceforth refer to the
 auditory-presented words heard by participants on each trial as
@@ -414,25 +385,48 @@ We further investigated the effect of phonological competitors. Even if
 the presented word and its target translation share high phonological
 similarity, participants may still provide incorrect translations if the
 presented word also shares high phonological similarity with other words
-in the native language. The effect is predicted to be especially strong
-if any of the competitors is more lexically frequent than the target
-translation. We hypothesised that the size of the facilitatory role of
-phonological similarity would be inversely proportional to the amount of
+in the native language. Words with denser phonological neighbourhoods
+are recognised more slowly and less accurately than words with sparser
+phonological neighbourhoods (\citeproc{ref-dufour2003lexical}{Dufour \&
+Peereman, 2003}; \citeproc{ref-goldinger1989priming}{Goldinger et al.,
+1989}; \citeproc{ref-hamburger1996phonological}{Hamburger \& Slowiaczek,
+1996}; \citeproc{ref-luce1990similarity}{Luce et al., 1990};
+\citeproc{ref-luce1998recognizing}{Luce \& Pisoni, 1998}). This is
+especially true if such neighbours share higher phonological similarity
+with the presented word, or are lexically more frequent than the target
+translation (\citeproc{ref-luce1998recognizing}{Luce \& Pisoni, 1998}).
+Since the interference effects of phonological neighbourhood density has
+also been reported across languages
+(\citeproc{ref-weber2004lexical}{Weber \& Cutler, 2004}), we
+hypothesised that the size of the facilitatory role of phonological
+similarity would be inversely proportional to the amount of
 higher-frequency phonological neighbours of the presented word in the
-target language. For instance, one could expect English participants to
-incorrectly translate the Spanish word \emph{botón} as \emph{bottom}
-instead of as its correct translation \emph{button}, due to combined
-effect of the close phonological similarity between \emph{botón} and
-\emph{bottom} along with the high lexical frequency of \emph{bottom}
-relative to \emph{button}. To test this prediction, we developed a
-lexical frequency-dependent measure of cross-language phonological
-neighbourhood density, in which a neighbour is counted only if it is
-higher frequency and is one phoneme apart from the presented word. If
-the phonological neighbourhood density of the target translation affects
-participants' performance negatively, this would suggest that
-competitors in the native language affect recognition of non-native
-words during recognition of foreign speech.We conducted a series of
-three experiments to test these predictions.
+target language. In the case of non-native speech recognition, the
+presence of cross-linguistic pairs which are phonologically similar but
+differ in meaning (e.g., false friends) may act as distractors during
+lexical access, obstructing the selection of the appropriate target
+translation in the listener's lexicon. For instance, Otwinowska \&
+Szewczyk (\citeproc{ref-otwinowska2019more}{2019}) reported that false
+friends were disadvantaged relative to non-cognates by Polish second
+language learners, in contrast to cognates which were known better. It
+is therefore important to investigate the joint effect of both cognates
+and false friends when investigating the effect cross-linguistic
+phonological similarity has on word recognition in a foreign language.
+This could shed light on available strategies and challenges associated
+with the early stages of second language acquisition. For instance, one
+could expect English participants to incorrectly translate the Spanish
+word \emph{botón} as \emph{bottom} instead of as its correct translation
+\emph{button}, due to combined effect of the close phonological
+similarity between \emph{botón} and \emph{bottom} along with the high
+lexical frequency of \emph{bottom} relative to \emph{button}. To test
+this prediction, we developed a lexical frequency-dependent measure of
+cross-language phonological neighbourhood density, in which a neighbour
+is counted only if it is higher frequency and is one phoneme apart from
+the presented word. If the phonological neighbourhood density of the
+target translation affects participants' performance negatively, this
+would suggest that competitors in the native language affect recognition
+of non-native words during recognition of foreign speech. We conducted a
+series of three experiments to test these predictions.
 
 In Experiment 1, we collected data from two groups of British English
 natives living in the United Kingdom. One group was presented with
@@ -1277,6 +1271,25 @@ regression coefficients of the models in Experiments 1 to 3.
 
 \section{General discussion}\label{general-discussion}
 
+This type of cross-linguistic similarity has also been extremely
+informative for the study of bilingual lexical processing: words that
+share high form-similarity with their translations are processed faster
+and more accurately than words sharing lower phonological similarity.
+This phenomenon has provided strong evidence in favour of the
+language-non selective hypothesis of bilingual lexical access, which
+states that bilinguals activate lexical representations in both
+languages, even during monolingual situations. This facilitation effect
+has been reported for comprehension
+(\citeproc{ref-dijkstra2010cross}{Dijkstra et al., 2010};
+\citeproc{ref-midgley2011effects}{Midgley et al., 2011};
+\citeproc{ref-thierry2007brain}{Thierry \& Wu, 2007}), production
+(\citeproc{ref-costa2000cognate}{Costa et al., 2000}), learning
+(\citeproc{ref-de2000hard}{De Groot \& Keijzer, 2000};
+\citeproc{ref-elias2022crosslanguage}{Elias \& Degani, 2022};
+\citeproc{ref-lotto1998effects}{Lotto \& De Groot, 1998};
+\citeproc{ref-valente2018does}{Valente et al., 2018}), and translation
+(\citeproc{ref-christoffels2006memory}{Christoffels et al., 2006}).
+
 \section{References}\label{references}
 
 \phantomsection\label{refs}
@@ -1346,6 +1359,12 @@ priming: {Assessing} the role of phonological match and mismatch lengths
 between primes and targets. \emph{Memory \& Cognition}, \emph{31},
 1271--1283.
 
+\bibitem[\citeproctext]{ref-dupoux1999epenthetic}
+Dupoux, E., Kakehi, K., Hirose, Y., Pallier, C., \& Mehler, J. (1999).
+Epenthetic vowels in japanese: A perceptual illusion? \emph{Journal of
+Experimental Psychology: Human Perception and Performance},
+\emph{25}(6), 1568.
+
 \bibitem[\citeproctext]{ref-elias2022crosslanguage}
 Elias, M., \& Degani, T. (2022). Cross-language interactions during
 novel word learning: {The} contribution of form similarity and
@@ -1358,25 +1377,20 @@ neighbors of spoken words: {Effects} of competition and inhibition.
 \emph{Journal of Memory and Language}, \emph{28}(5), 501--518.
 \url{https://doi.org/10.1016/0749-596X(89)90009-0}
 
-\bibitem[\citeproctext]{ref-hall2002automatic}
-Hall, C. J. (2002). \emph{The automatic cognate form assumption:
-Evidence for the parasitic model of vocabulary development}.
-
 \bibitem[\citeproctext]{ref-hamburger1996phonological}
 Hamburger, M., \& Slowiaczek, L. M. (1996). Phonological priming
 reflects lexical competition. \emph{Psychonomic Bulletin \& Review},
 \emph{3}(4), 520--525.
+
+\bibitem[\citeproctext]{ref-kentner2015rhythmic}
+Kentner, G. (2015). Rhythmic segmentation in auditory illusions-evidence
+from cross-linguistic mondegreens. \emph{ICPhS}.
 
 \bibitem[\citeproctext]{ref-kruschke2018bayesian}
 Kruschke, J. K., \& Liddell, T. M. (2018). The {Bayesian New
 Statistics}: {Hypothesis} testing, estimation, meta-analysis, and power
 analysis from a {Bayesian} perspective. \emph{Psychonomic Bulletin \&
 Review}, \emph{25}, 178--206.
-
-\bibitem[\citeproctext]{ref-lecumberri2010non}
-Lecumberri, M. L. G., Cooke, M., \& Cutler, A. (2010). Non-native speech
-perception in adverse conditions: {A} review. \emph{Speech
-Communication}, \emph{52}(11-12), 864--886.
 
 \bibitem[\citeproctext]{ref-levenshtein1966binary}
 Levenshtein, V. I. (1966). Binary codes capable of correcting deletions,
@@ -1407,6 +1421,12 @@ cognate status on word comprehension in second language learners: {An
 ERP} investigation. \emph{Journal of Cognitive Neuroscience},
 \emph{23}(7), 1634--1647.
 
+\bibitem[\citeproctext]{ref-otake2007interlingual}
+Otake, T. (2007). Interlingual near homophonic words and phrases in L2
+listening: Evidence from misheard song lyrics. \emph{Proceedings of the
+16th International Congress of Phonetic Sciences (ICPhS 2007)},
+777--780.
+
 \bibitem[\citeproctext]{ref-otwinowska2019more}
 Otwinowska, A., \& Szewczyk, J. M. (2019). The more similar the better?
 Factors in learning cognates, false cognates and non-cognate words.
@@ -1418,6 +1438,11 @@ Sogo, H., Kastman, E., \& Lindeløv, J. K. (2019). {PsychoPy2}:
 {Experiments} in behavior made easy. \emph{Behavior Research Methods},
 \emph{51}(1), 195--203. \url{https://doi.org/10.3758/s13428-018-01193-y}
 
+\bibitem[\citeproctext]{ref-peperkamp2008perceptual}
+Peperkamp, S., Vendelin, I., \& Nakamura, K. (2008). On the perceptual
+origin of loanword adaptations: Experimental evidence from japanese.
+\emph{Phonology}, \emph{25}(1), 129--164.
+
 \bibitem[\citeproctext]{ref-rcoreteam2013language}
 R Core Team. (2013). \emph{R: {A Language} and {Environment} for
 {Statistical Computing}}. R Foundation for Statistical Computing.
@@ -1427,12 +1452,6 @@ R Core Team. (2013). \emph{R: {A Language} and {Environment} for
 Schepens, J., Dijkstra, T., \& Grootjen, F. (2012). Distributions of
 cognates in {Europe} as based on {Levenshtein} distance.
 \emph{Bilingualism: Language and Cognition}, \emph{15}(1), 157--166.
-
-\bibitem[\citeproctext]{ref-takata1990english}
-Takata, Y., \& Nábělek, A. K. (1990). English consonant recognition in
-noise and in reverberation by {Japanese} and {American} listeners.
-\emph{The Journal of the Acoustical Society of America}, \emph{88}(2),
-663--666.
 
 \bibitem[\citeproctext]{ref-thierry2007brain}
 Thierry, G., \& Wu, Y. J. (2007). Brain potentials reveal unconscious
@@ -1534,6 +1553,12 @@ priming: {Assessing} the role of phonological match and mismatch lengths
 between primes and targets. \emph{Memory \& Cognition}, \emph{31},
 1271--1283.
 
+\bibitem[\citeproctext]{ref-dupoux1999epenthetic}
+Dupoux, E., Kakehi, K., Hirose, Y., Pallier, C., \& Mehler, J. (1999).
+Epenthetic vowels in japanese: A perceptual illusion? \emph{Journal of
+Experimental Psychology: Human Perception and Performance},
+\emph{25}(6), 1568.
+
 \bibitem[\citeproctext]{ref-elias2022crosslanguage}
 Elias, M., \& Degani, T. (2022). Cross-language interactions during
 novel word learning: {The} contribution of form similarity and
@@ -1546,25 +1571,20 @@ neighbors of spoken words: {Effects} of competition and inhibition.
 \emph{Journal of Memory and Language}, \emph{28}(5), 501--518.
 \url{https://doi.org/10.1016/0749-596X(89)90009-0}
 
-\bibitem[\citeproctext]{ref-hall2002automatic}
-Hall, C. J. (2002). \emph{The automatic cognate form assumption:
-Evidence for the parasitic model of vocabulary development}.
-
 \bibitem[\citeproctext]{ref-hamburger1996phonological}
 Hamburger, M., \& Slowiaczek, L. M. (1996). Phonological priming
 reflects lexical competition. \emph{Psychonomic Bulletin \& Review},
 \emph{3}(4), 520--525.
+
+\bibitem[\citeproctext]{ref-kentner2015rhythmic}
+Kentner, G. (2015). Rhythmic segmentation in auditory illusions-evidence
+from cross-linguistic mondegreens. \emph{ICPhS}.
 
 \bibitem[\citeproctext]{ref-kruschke2018bayesian}
 Kruschke, J. K., \& Liddell, T. M. (2018). The {Bayesian New
 Statistics}: {Hypothesis} testing, estimation, meta-analysis, and power
 analysis from a {Bayesian} perspective. \emph{Psychonomic Bulletin \&
 Review}, \emph{25}, 178--206.
-
-\bibitem[\citeproctext]{ref-lecumberri2010non}
-Lecumberri, M. L. G., Cooke, M., \& Cutler, A. (2010). Non-native speech
-perception in adverse conditions: {A} review. \emph{Speech
-Communication}, \emph{52}(11-12), 864--886.
 
 \bibitem[\citeproctext]{ref-levenshtein1966binary}
 Levenshtein, V. I. (1966). Binary codes capable of correcting deletions,
@@ -1595,6 +1615,12 @@ cognate status on word comprehension in second language learners: {An
 ERP} investigation. \emph{Journal of Cognitive Neuroscience},
 \emph{23}(7), 1634--1647.
 
+\bibitem[\citeproctext]{ref-otake2007interlingual}
+Otake, T. (2007). Interlingual near homophonic words and phrases in L2
+listening: Evidence from misheard song lyrics. \emph{Proceedings of the
+16th International Congress of Phonetic Sciences (ICPhS 2007)},
+777--780.
+
 \bibitem[\citeproctext]{ref-otwinowska2019more}
 Otwinowska, A., \& Szewczyk, J. M. (2019). The more similar the better?
 Factors in learning cognates, false cognates and non-cognate words.
@@ -1606,6 +1632,11 @@ Sogo, H., Kastman, E., \& Lindeløv, J. K. (2019). {PsychoPy2}:
 {Experiments} in behavior made easy. \emph{Behavior Research Methods},
 \emph{51}(1), 195--203. \url{https://doi.org/10.3758/s13428-018-01193-y}
 
+\bibitem[\citeproctext]{ref-peperkamp2008perceptual}
+Peperkamp, S., Vendelin, I., \& Nakamura, K. (2008). On the perceptual
+origin of loanword adaptations: Experimental evidence from japanese.
+\emph{Phonology}, \emph{25}(1), 129--164.
+
 \bibitem[\citeproctext]{ref-rcoreteam2013language}
 R Core Team. (2013). \emph{R: {A Language} and {Environment} for
 {Statistical Computing}}. R Foundation for Statistical Computing.
@@ -1615,12 +1646,6 @@ R Core Team. (2013). \emph{R: {A Language} and {Environment} for
 Schepens, J., Dijkstra, T., \& Grootjen, F. (2012). Distributions of
 cognates in {Europe} as based on {Levenshtein} distance.
 \emph{Bilingualism: Language and Cognition}, \emph{15}(1), 157--166.
-
-\bibitem[\citeproctext]{ref-takata1990english}
-Takata, Y., \& Nábělek, A. K. (1990). English consonant recognition in
-noise and in reverberation by {Japanese} and {American} listeners.
-\emph{The Journal of the Acoustical Society of America}, \emph{88}(2),
-663--666.
 
 \bibitem[\citeproctext]{ref-thierry2007brain}
 Thierry, G., \& Wu, Y. J. (2007). Brain potentials reveal unconscious
