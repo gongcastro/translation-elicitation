@@ -80,15 +80,17 @@
 \makesavenoteenv{longtable}
 \usepackage{graphicx}
 \makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
 % Set default figure placement to htbp
-\makeatletter
 \def\fps@figure{htbp}
 \makeatother
 % definitions for citeproc citations
@@ -180,6 +182,7 @@
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
+
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
 \else
@@ -194,7 +197,7 @@
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
 \ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
+  \usepackage[english]{selnolig} % disable illegal ligatures
 \fi
 \usepackage{bookmark}
 
@@ -213,6 +216,7 @@ processing, lexical access},
   citecolor={Blue},
   urlcolor={Blue},
   pdfcreator={LaTeX via pandoc}}
+
 
 \usepackage{lineno}
 \linenumbers
@@ -244,6 +248,7 @@ processing \sep
 lexical access
 
 
+
 \section{Introduction}\label{introduction}
 
 When some German speakers listened to the song \emph{The Power} by SNAP!
@@ -273,29 +278,29 @@ lyrics, and may occur anytime when listening to non-native speech. For
 instance, when listening to ``You know me?'' (\textipa{/ju: n@U mi:}/)
 in English, Japanese-native listeners tend to understand \emph{yunomi}
 (/\textipa{jUnomi}/), which is a type of Japanese teacup. Overall, the
-occurence of Soramimi---and more generally, homophonic
+occurrence of Soramimi---and more generally, homophonic
 translations---suggests that speech in an unfamiliar language has the
 potential to activate lexical representations in the native language.
 
 Although homophonic translations do not necessarily take place with the
 preservation of meaning---which often results in outrageous
 mistranslations like the ones aforementioned---homophonic translations
-sometimes may lead to the activation of the intended meaning (i.e., a
-correct translation). For example, imagine a Spanish native with no
-previous familiarity with any other language listening to French for the
-first time. This listener may encounter the word /\textipa{"pOKt}/
-(\emph{porte}), translation of door in French. When comparing the
-phonemic transcription of the French to that of its Spanish translation
-/\textipa{"pweR.ta}/ (\emph{puerta}), one may be led to infer that these
-two words do not have much overlap. But one thing to note is that the
-voiced uvular fricative consonant /\textipa{K}/ and the open-mid back
-rounded vowel /\textipa{O}/, which do not exist in Spanish as phonemic
-categories, can be perceived as allophonic variations the native
-(Spanish) phonemes /\textipa{R}/ and /o/, as described by assimilation
-models of phoneme perception (\citeproc{ref-best1988examination}{Best et
-al., 1988}, \citeproc{ref-best2001discrimination}{2001}). Although this
-phonetic mismatch between the non-native word and its translation can
-have a noticeable toll on comprehension Cutler et al.
+sometimes may lead to correct translations. For example, imagine a
+Spanish native with no previous familiarity with any other language
+listening to French for the first time. This listener may encounter the
+word /\textipa{"pOKt}/ (\emph{porte}), translation of door in French.
+When comparing the phonemic transcription of the French to that of its
+Spanish translation /\textipa{"pweR.ta}/ (\emph{puerta}), one may be led
+to infer that these two words do not have much overlap. But one thing to
+note is that the voiced uvular fricative consonant /\textipa{K}/ and the
+open-mid back rounded vowel /\textipa{O}/, which do not exist in Spanish
+as phonemic categories, can be perceived as allophonic variations the
+native (Spanish) phonemes /\textipa{R}/ and /o/, as described by
+assimilation models of phoneme perception
+(\citeproc{ref-best1988examination}{Best et al., 1988},
+\citeproc{ref-best2001discrimination}{2001}). Although this phonetic
+mismatch between the non-native word and its translation can have a
+noticeable toll on comprehension Cutler et al.
 (\citeproc{ref-cutler2004patterns}{2004}), the Spanish listener may
 still be able to activate the phonological representation of
 /\textipa{"pweR.ta}/ (\emph{puerta}) from hearing the word-form
@@ -317,7 +322,7 @@ translating Catalan \emph{porta} than English \emph{door}, due to the
 phonological and orthographic similarity of the former to the equivalent
 in their native language.
 
-While Soramimi, and more generally homophonic translation, are popular
+While Soramimi (and more generally homophonic translations) are popular
 and frequent phenomena, the psycholinguistic literature on the topic is
 relatively scarce, and has mostly focused on the phonological variables
 involved in the occurence of Soramimi. For instance, Otake
@@ -355,31 +360,30 @@ translations reported by French-native participants resulted from
 inserting phrase and word boundaries \emph{after} stressed syllables,
 following the more frequent iambic pattern in French.
 
-While the previous studies have address the phonological aspects of
-homophonic translation, little attention has been paid to the dynamics
-of lexical activation and competition that underlay this phenomenon. In
-the present work we investigated the interplay between phonological
-similarity and phonological neighbourhood density to examine how
-listeners of an unfamiliar language activate lexical representations in
-their native language. In particular, we studied how the presence of
+These studies have addressed the phonological aspects of homophonic
+translation, but little attention has been paid to the dynamics of
+lexical activation and competition that underlay this phenomenon. In the
+present work, we investigated the interplay between phonological
+similarity and phonological neighbourhood density in a non-native speech
+perception task. In particular, we studied how the presence of
 phonological neighbours in the native language lexicon affects the
 extent to which listeners are able to activate the correct translation
-of an auditorily presented word in an unfamiliar language. We used a
+of an auditorily presented word in thier native language. We used a
 translation elicitation task in which participants listened to words
 from an unfamiliar language, and then tried to guess their translation
 in their native language. We will henceforth refer to the
 auditory-presented words heard by participants on each trial as
-presented words, and the correct translation for the presented words as
-target translations. We explored listeners' reliance on phonological
-similarity to succeed in the task by manipulating the amount of
-phonological similarity between the presented words and their target
-translations. Since participants were unfamiliar with the presented
-language, they could only use phonological similarity between the
-presented language and their native language to successfully translate
-the words. We therefore predicted that participants' performance should
-increase when the translation pairs are phonologically more similar. We
-also predicted that there is a minimum threshold of phonological
-similarity to be sufficient for translation.
+\emph{presented words}, and the correct translation for the presented
+words as \emph{target translations}. We explored listeners' reliance on
+phonological similarity to succeed in the task by manipulating the
+amount of phonological similarity between the presented words and their
+target translations. Since participants were unfamiliar with the
+presented language, they could only use phonological similarity between
+the presented language and their native language to successfully
+translate the words. We therefore predicted that participants'
+performance should increase when the translation pairs are
+phonologically more similar. We also predicted that there is a minimum
+threshold of phonological similarity to be sufficient for translation.
 
 We further investigated the effect of phonological competitors. Even if
 the presented word and its target translation share high phonological
@@ -435,8 +439,8 @@ which participants were able to use the phonological similarity between
 the presented word (in Catalan or Spanish) and its target translation to
 provide accurate responses. In Experiment 2, we tested a group of
 (European) Spanish natives in the same task, who were presented with
-Catalan words. Catalan and Spanish are both Romance languages whose
-close typological distance is reflected in the fact that they share many
+Catalan words. Catalan and Spanish are two Romance languages whose close
+typological distance is reflected in the fact that they share many
 cognates, where English is a Germanic language that shares considerably
 fewer cognates with Catalan and Spanish. By testing participants
 translating words from typologically close or distant languages, we
@@ -453,8 +457,8 @@ speakers of English. In Experiment 3, we collected additional data from
 a new group of British English natives. The design was closely modelled
 after Experiment 1, except that after providing their response in each
 trial, participants reported whether they had previous knowledge of the
-presented word. In the final section of this paper, we present analyses
-on the joint data sets of Experiments 1 to 3.
+presented word. In the final section of this article, we present
+analyses on the joint data sets of Experiments 1 to 3.
 
 \section{Experiment 1}\label{experiment-1}
 
@@ -469,23 +473,23 @@ with additional notes.
 
 \subsubsection{Participants}\label{participants}
 
-Participants were recruited via Prolific (5£ compensation) and SONA
-(compensation in academic credits), and gave informed consent before
-providing any data and the study was conducted in accordance with
-ethical standards of the Declaration of Helsinki and the protocol was by
-the University of Oxford Medical Sciences Inter-Divisional Research
-Ethics Committee (IDREC) (R60939/RE007). Participants were asked to
-complete the experiment using a laptop in a quiet place with good
-internet connection. Data collection took place from June 04th, 2020 to
-June 25th, 2020. We collected data from 71 British English native
-participants living in United Kingdom (\emph{Mean} = 21.76 years,
-\emph{SD} = 2.15, Range = 18-26, 46, 25 female).
+We collected data from 71 British English-native adults living in United
+Kingdom (\emph{Mean} = 21.76 years, \emph{SD} = 2.15, Range = 18-26, 46
+female). Data collection took place from June 04th, 2020 to June 25th,
+2020. Participants were recruited via Prolific (5£ compensation) and
+SONA (compensation in academic credits). Participants gave informed
+consent before providing any data. The study was conducted in accordance
+with ethical standards of the Declaration of Helsinki and the protocol
+was by the University of Oxford Medical Sciences Inter-Divisional
+Research Ethics Committee (IDREC) (R60939/RE007). Participants were
+asked to complete the experiment using a laptop in a quiet place with
+good internet connection.
 
 \setlength{\LTpost}{0mm}
 
 \begin{longtable}{l|rrrc}
 
-\caption{\label{tbl-participants}}
+\caption{\label{tbl-participants}Participant details.}
 
 \tabularnewline
 
@@ -517,72 +521,70 @@ cat-ENG & 32 (0) & $22.31$ ± $2.39$ & $18$–$26$ & Cantonese (1), Irish (1) \\
 
 \subsubsection{Stimuli}\label{stimuli}
 
-We arranged two lists of input words to be presented to participants in
+We created two lists of input words to be presented to participants in
 the auditory modality: one in Catalan and one in Spanish. Words in the
 Catalan list were 5.02 phonemes long on average (\emph{SD} = 1.49, Range
 = 2-8), and the orthographic forms of their English translations (which
 participants had to type) were 5.12 characters long on average
-(\emph{SD} = 1.56, Range = 3-9. Words in the Spanish list were 5.52
+(\emph{SD} = 1.56, Range = 3-9). Words in the Spanish list were 5.52
 phonemes long on average (\emph{SD} = 1.47, Range = 3-9), and the
-orthographic form of their English translations (which participants had
-to type), were 5.29 characters long on average (\emph{SD} = 1.77, Range
-= 3-12.
+orthographic form of their English translations were 5.29 characters
+long on average (\emph{SD} = 1.77, Range = 3-12).
 
-Participants listened to one audio file in each trial, each containing a
-single word presented in isolation. The audio files were the same ones
-used in child experiments conducted in the Laboratori de Recerca en
-Infància of Universitat Pompeu Fabra (Barcelona, Spain). These audio
-files were recorded by a proficient Catalan-Spanish female bilingual
-from the Metropolitan Area of Barcelona in a child-directed manner.
-Catalan and Spanish words were recorded at 44,100 Hz in separate files
-in the same session, and then de-noised using Audacity and normalised at
-peak intensity using Praat (\citeproc{ref-broersma2021praat}{Broersma \&
+In each trial, participants listened to one audio file, wich contained a
+single word. The audio files were the same ones used in child
+experiments conducted in the Laboratori de Recerca en Infància of
+Universitat Pompeu Fabra (Barcelona, Spain). These audio files were
+recorded by a proficient Catalan-Spanish female bilingual from the
+Metropolitan Area of Barcelona in a child-directed manner. Catalan and
+Spanish words were recorded at 44,100 Hz in separate files in the same
+session, and then de-noised using Audacity and normalised at peak
+intensity using Praat (\citeproc{ref-broersma2021praat}{Broersma \&
 Weenink, 2021}). The average duration of the Catalan audio files was
-1.24 (\emph{SD} = 0.19, Range = 0.8-1.58). The average duration of the
-Catalan audio files was 1.16 (\emph{SD} = 0.15, Range = 0.78-1.53).
+1.24 seconds (\emph{SD} = 0.19, Range = 0.8-1.58). The average duration
+of the Spanish audio files was 1.16 seconds (\emph{SD} = 0.15, Range =
+0.78-1.53).
 
-For each translation pair, we defined three predictors of interest: the
-lexical frequency of the correct translation (\emph{Frequency}), the
-phonological similarity between the presented (Catalan or Spanish) word
-and their correct English translation (\emph{Similarity}), and the
-presented word's number of cross-language phonological neighbours
-(\emph{CLPN}).
-
-We included \emph{Frequency} as a nuance predictor, under the hypothesis
-that---keeping other predictors constant---participants would translate
-higher-frequency words more accurately and faster than lower-frequency
-words. Lexical frequencies of correct translations were extracted from
-SUBTLEX-UK (\citeproc{ref-van2014subtlex}{Van Heuven et al., 2014}), and
-transformed to Zipf scores. Words in the stimuli list without a lexical
-frequency value were excluded from data analysis (2 in the Catalan list,
-5 in the Spanish list).
+For each word in the Catalan and Spanish lists pair, we defined three
+predictors of interest: the lexical frequency of the correct English
+translation (\emph{Frequency}), the phonological similarity between the
+presented word (in Catalan or Spanish) and their correct English
+translation (\emph{Similarity}), and the presented word's number of
+cross-language phonological neighbours (\emph{CLPN}) in English.
+\emph{Frequency} was included as a nuance predictor, under the
+hypothesis that---keeping other predictors constant---participants would
+translate higher-frequency words more accurately and faster than
+lower-frequency words. Lexical frequencies of correct translations were
+extracted from SUBTLEX-UK (\citeproc{ref-van2014subtlex}{Van Heuven et
+al., 2014}), and transformed to Zipf scores. Words in the stimuli list
+without a lexical frequency value were excluded from data analysis (2 in
+the Catalan list, 5 in the Spanish list).
 
 We calculated \emph{Similarity}, our main predictor of interest, by
 computing the Levenshtein similarity between the X-SAMPA transcriptions
 of each pair of translations using the \texttt{stringdist} R package
 (\citeproc{ref-van2014stringdist}{van der Loo, 2014}). The Levenshtein
 distance computes the edit distance between two character strings---in
-this case, phoneme transcriptions---by counting the number of additions,
-deletions, and substitutions necessary to make both strings identical
-(\citeproc{ref-levenshtein1966binary}{Levenshtein, 1966}). We divided
-this edit distance by the number of characters included in the longest
-X-SAMPA transcription of the translation pair. This results in a
+this case, two phonological transcriptions---by counting the number of
+additions, deletions, and substitutions necessary to make both strings
+identical (\citeproc{ref-levenshtein1966binary}{Levenshtein, 1966}). We
+divided this edit distance by the number of characters included in the
+longest X-SAMPA transcription of the translation pair. This results in a
 proportion score, in which values closer to zero correspond to lower
 Levenshtein distances between phonological transcriptions (i.e., higher
 similarity), and values closer to 1 correspond to higher Levenshtein
-distances (i.e., lower similarity). This transformation also help
-account for the fact that the Levenshtein distance tends to increase
-with the length of the transcriptions. For interpretability, we
-subtracted this proportion from one, so that values closer to one
-correspond to higher similarity between phonological transcriptions, and
-values closer to zero correspond to lower similarity between
-phonological transcriptions. For example, the \emph{table}
-(\texttt{teIb@l})-\emph{mesa} (\texttt{mesa}) translation pair had a
-17\% similarity, while the \emph{train} (\texttt{trEIn})-\emph{tren}
-(\texttt{tREn}) translation pair had a 60\% similarity.
-Table~\ref{tbl-stimuli} summarises the lexical frequency, phonological
-neighbourhood density and phonological overlap of the words included in
-the Catalan and the Spanish lists.
+distances (i.e., lower similarity). This transformation accounts for the
+fact that the Levenshtein distance tends to increase with the length of
+the transcriptions. For interpretability, we subtracted this proportion
+from one, so that values closer to one correspond to higher similarity
+between phonological transcriptions, and values closer to zero
+correspond to lower similarity between phonological transcriptions. For
+example, the \emph{table} (\texttt{teIb@l})-\emph{mesa} (\texttt{mesa})
+translation pair had a 17\% similarity, while the \emph{train}
+(\texttt{trEIn})-\emph{tren} (\texttt{tREn}) translation pair had a 60\%
+similarity. Table~\ref{tbl-stimuli} summarises the lexical frequency,
+phonological neighbourhood density and phonological overlap of the words
+included in the Catalan and the Spanish lists.
 
 For each Catalan and Spanish word, we calculated the number of
 \emph{CLPN} by counting the number of English words with same or higher
@@ -596,7 +598,7 @@ transcriptions were extracted from the multilingual database CLEARPOND
 
 \begin{longtable}{l|rrrrrr}
 
-\caption{\label{tbl-stimuli}Stimuli properties.}
+\caption{\label{tbl-stimuli}Stimuli details.}
 
 \tabularnewline
 
@@ -647,11 +649,17 @@ and new trial.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{_assets/img/design.png}
+{\centering \pandocbounded{\includegraphics[keepaspectratio]{_assets/img/design.png}}
 
 }
 
-\caption{Schematic representation of a trial in the experimental task}
+\caption{Schematic representation of a trial in the experimental task.
+The trial stars with the presentation of a fixation point in the centre
+of the screen (yellow dot). After 1,000 ms, the auditory word was
+presented while the fixation point remained on screen. After the offset
+of the audio, the fixation point disappeared and a visual prompt
+(\texttt{\textgreater{}}) was presented. Participants then wrote their
+and clicked \texttt{RETURN}, making the end of the trial.}
 
 \end{figure}%
 
@@ -659,18 +667,19 @@ and new trial.
 
 \paragraph{Data processing}\label{data-processing}
 
-After data collection, participants answers were manually coded into the
-following categories: \emph{Correct}, \emph{Typo}, \emph{Wrong},
-\emph{False friend}, \emph{Other}. Responses were coded as
+After data collection, participants' answers were manually coded into
+the following categories: \emph{Correct}, \emph{Typo}, \emph{Wrong},
+\emph{False friend}, \emph{Other}. A response was coded as
 \emph{Correct} if the provided string of characters was identical to the
-orthographic form of the correct translation. Trials were coded as
+orthographic form of the correct translation. A response was coded as
 \emph{Typo} if the participant provided a string of characters only one
 edit distance (addition, deletion, or substitution) apart from the
 orthographic form of the correct translation (e.g., ``pengiun'' instead
 of ``penguin''), as long as the response did not correspond to a
-distinct English word. Responses were coded as \emph{False friend} if
+distinct English word. A response was coded as \emph{False friend} if
 the participant provided a phonologically similar incorrect translation.
-Responses were coded as \emph{Other} (see Data analysis section for more
+Responses not meeting the criteria for previous categories were labelled
+as \emph{Wrong} or \emph{Other} (see Data analysis section for more
 details). Both \emph{Correct} and \emph{Typo} responses were considered
 as correct, while \emph{Wrong} and \emph{False friend} responses were
 considered as incorrect. \emph{Other} responses were excluded from data
@@ -704,15 +713,15 @@ y_{i} \sim & \text{Bernoulli}(p_{i}) \\ \\
 \sigma_{\beta_{p}},  \sigma_{\beta_{w}} \sim & \text{HalfCauchy}(0, 0.1) \\
 \rho_{p}, \rho_{w} \sim & \text{LKJCorr}(8) \\
 \end{aligned}
-\]
+\] ::: \{eq-1\}
 
-To test the practical relevance of each predictor we followed
-(\citeproc{ref-kruschke2018bayesian}{Kruschke \& Liddell, 2018}). We
-first specified a region of practical equivalence (\emph{ROPE}) around
-zero ({[}-0.1, +0.1{]}, in the logit scale). This area indicates the
-values of the regression coefficients that we considered as equivalent
-to zero. We then computed the 95\% posterior credible intervals (CrI) of
-the regression coefficients of interest. Finally, we calculated the
+To test the practical relevance of each predictor we followed Kruschke
+\& Liddell (\citeproc{ref-kruschke2018bayesian}{2018}). We first
+specified a region of practical equivalence (\emph{ROPE}) around zero
+({[}-0.1, +0.1{]}, in the logit scale). This area indicates the values
+of the regression coefficients that we considered as equivalent to zero.
+We then computed the 95\% posterior credible intervals (CrI) of the
+regression coefficients of interest. Finally, we calculated the
 proportion of the 95\% CrI that fell inside the ROPE. This proportion
 indicates the probability that the true value of the coefficient is
 equivalent to zero. All analyses were performed in R environment
@@ -752,43 +761,6 @@ Responses given by English participants to Catalan presented words were
 Range = 1-14), while their translations to Spanish responses were 5.57
 characters long on average (\emph{Median} = 5, \emph{SD} = 1.97, Range =
 2-21).
-
-\begin{longtable}{l|rrrrrrrr}
-
-\caption{\label{tbl-results}}
-
-\tabularnewline
-
-\toprule
-\multicolumn{1}{l}{} & \multicolumn{4}{c}{Correct responses} & \multicolumn{4}{c}{Incorrect responses} \\ 
-\cmidrule(lr){2-5} \cmidrule(lr){6-9}
-\multicolumn{1}{l}{} & Correct & (\%) & Typo & (\%) & Wrong & (\%) & False friend & (\%) \\ 
-\midrule\addlinespace[2.5pt]
-\multicolumn{9}{l}{Experiment 1} \\ 
-\midrule\addlinespace[2.5pt]
-cat-ENG & $429$ & ($16.47$) & $11$ & ($0.42$) & $2,082$ & ($79.95$) & $82$ & ($3.15$) \\ 
-spa-ENG & $374$ & ($14.37$) & $2$ & ($0.08$) & $2,117$ & ($81.36$) & $109$ & ($4.19$) \\ 
-\midrule 
-\emph{Sum} & $803$ & — & $13$ & — & $4,199$ & — & $191$ & — \\ 
-\emph{Mean} & — & $15.42$ & — & $0.25$ & — & $80.66$ & — & $3.67$ \\ 
-\midrule\addlinespace[2.5pt]
-\multicolumn{9}{l}{Experiment 2} \\ 
-\midrule\addlinespace[2.5pt]
-cat-SPA & $780$ & ($46.93$) & $20$ & ($1.20$) & $736$ & ($44.28$) & $126$ & ($7.58$) \\ 
-\midrule 
-\emph{Sum} & $780$ & — & $20$ & — & $736$ & — & $126$ & — \\ 
-\emph{Mean} & — & $46.93$ & — & $1.20$ & — & $44.28$ & — & $7.58$ \\ 
-\midrule\addlinespace[2.5pt]
-\multicolumn{9}{l}{Experiment 3} \\ 
-\midrule\addlinespace[2.5pt]
-cat-ENG & $477$ & ($18.01$) & $7$ & ($0.26$) & $1,986$ & ($75.00$) & $178$ & ($6.72$) \\ 
-spa-ENG & $590$ & ($19.53$) & $6$ & ($0.20$) & $2,294$ & ($75.94$) & $131$ & ($4.34$) \\ 
-\midrule 
-\emph{Sum} & $1,067$ & — & $13$ & — & $4,280$ & — & $309$ & — \\ 
-\emph{Mean} & — & $18.77$ & — & $0.23$ & — & $75.47$ & — & $5.53$ \\ 
-\bottomrule
-
-\end{longtable}
 
 Table~\ref{tbl-dataset} shows a summary of participants' accuracy across
 Experiments 1, 2, and 3. MCMC chains in the model showed strong evidence
@@ -854,7 +826,7 @@ cat-ENG & $32$ & $19.74$ & $4.94$ & $3.49$ & $10.34$–$27.91$ & $82.75$ & $2,64
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-epreds-1-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-epreds-1-1.pdf}}
 
 }
 
@@ -871,20 +843,35 @@ intervals (CrI).}
 
 \subsection{Discussion}\label{discussion}
 
-In the present experiment, we investigated the extent to which the
-phonological similarity between translation equivalents is sufficient
-for successful word translation, in the absence of semantic knowledge.
-We tested two groups of monolingual British English natives in a
-translation task that involved words in Catalan or Spanish, two
-languages participants reported having no prior familiarity with.
-Participants benefited strongly from phonological similarity when the
-correct translation of the presented words in Catalan or Spanish had few
-English phonological neighbours with higher lexical frequency. This
-suggests that, in the absence of distractors, even naïve participants
-can efficiently use phonological similarity to succeed in a translation
-task. Our results suggest that word-to-word connections at the
-phonological level might play a strong role during L2 speech
-comprehension, specially in low-proficiency listeners.
+In Experiment 1, we investigated the extent to which the phonological
+similarity between translation equivalents is sufficient for successful
+word translation, in the absence of conceptual knowledge about the
+presented word. We tested two groups of monolingual British
+English-native adults in a translation task that involved words in
+Catalan or Spanish, two languages participants reported having no prior
+familiarity with. Participants benefited strongly from phonological
+similarity when the correct translation of the presented words in
+Catalan or Spanish had few English phonological neighbours with higher
+lexical frequency. This suggests that word-forms in an unfamiliar
+language have a strong potential to activate their translation
+equivalents in the native language, provided some phonological
+similarity between both words, and the absence of more frequent
+phonological neighbors.
+
+Participants in Experiment 1 were surprisingly good at translating words
+from Catalan and Spanish (two unfamiliar languages) to their native
+language. If English participants were likely to activate the correct
+English translations of the presented words in Catalan and Spanish, it
+is possible that speakers of typologically closer languages to Catalan
+and Spanish may benefit even more strongly from phonological similarity
+in the same task. English is a Germanic language (like Dutch or German),
+while Catalan and Spanish are Romance languages (like Italian, French,
+Portuguese). English shares fewer phonologically similar translations
+with Romance languages than Romance languages share with each other. It
+is possible that the probability of homophonic translations is higher
+when listening to an unfamiliar language from the same typological
+family as the native language. We tested this hypothesis in Experiment
+2.
 
 \section{Experiment 2}\label{experiment-2}
 
@@ -902,17 +889,19 @@ little-to-no prior familiarity with Catalan, with Catalan words.
 
 \subsection{Methods}\label{methods-1}
 
-Participants in Spain were contacted via announcements in Faculties, and
-were compensated 5€ or an Amazon voucher for the same value.
-Participants gave informed consent before providing any data and the
-study was conducted in accordance with ethical standards of the
+We collected data from 33 Spanish native adults living in Spain
+(\emph{Mean} = 21.85 years, \emph{SD} = 3, Range = 18-33, 28, 5 female).
+Data collection took place from June 08th, 2020 to June 28th, 2020.
+Participants in Spain were contacted via announcements at the University
+campus(es), and were compensated 5€ or an Amazon voucher for the same
+value. Participants gave informed consent before providing any data and
+the study was conducted in accordance with ethical standards of the
 Declaration of Helsinki and the protocol was approved by the Drug
 Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar
-(2020/9080/I). Data collection took place from June 08th, 2020 to June
-28th, 2020. We collected data from 33 Spanish native participants living
-in Spain (\emph{Mean} = 21.85 years, \emph{SD} = 3, Range = 18-33, 28, 5
-female). Stimuli were the same list of Catalan stimuli as in Experiment
-1. Procedure and data analysis were identical as in Experiment 1.
+(2020/9080/I).
+
+Stimuli were the same list of Catalan stimuli as in Experiment 1.
+Procedure and data analysis were identical as in Experiment 1.
 
 \subsection{Results}\label{results-1}
 
@@ -925,15 +914,15 @@ participants did not provide a whole word (e.g., \texttt{f}, \emph{n} =
 \texttt{unsure}, (\emph{n} = 1). In addition, we excluded data from
 participants that self-rated their oral and/or written skills in Catalan
 and Spanish, or any other second language as four or higher in a
-five-point scale (\emph{n} = 22), were diagnosed with a language
-(\emph{n} = 1), or did not contribute more than 80\% of valid trials
-(\emph{n} = 9). After applying trial-level and participant-level
-inclusion criteria, the resulting dataset included 1,662 trials provided
-by 42 unique participants. Of those trials, 1,662 were provided by 21
-unique participants who listened to Catalan words, and 1,662 trials were
-provided by 21 unique participants who listened to Spanish words.
-Responses given by participants were 5.6 characters long on average
-(\emph{Median} = 5, \emph{SD} = 1.6, Range = 2-12).
+five-point scale (\emph{n} = 22), were diagnosed with a developmental
+language disorder (\emph{n} = 1), or did not contribute more than 80\%
+of valid trials (\emph{n} = 9). After applying trial-level and
+participant-level inclusion criteria, the resulting dataset included
+1,662 trials provided by 42 unique participants. Of those trials, 1,662
+were provided by 21 unique participants who listened to Catalan words,
+and 1,662 trials were provided by 21 unique participants who listened to
+Spanish words. Responses given by participants were 5.6 characters long
+on average (\emph{Median} = 5, \emph{SD} = 1.6, Range = 2-12).
 
 MCMC chains in the model showed strong evidence of convergence
 (\(\hat{R}<1.01\)) (see Appendix 2 for more detailed model diagnostics).
@@ -955,7 +944,7 @@ different values of \emph{Similarity} and \emph{CLPN}.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-epreds-2-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-epreds-2-1.pdf}}
 
 }
 
@@ -973,29 +962,29 @@ intervals (CrI).}
 \subsection{Discussion}\label{discussion-1}
 
 Experiment 2 was an extension of Experiment 1 to a population of
-monolinguals whose native language is typologically similar to the
-presented language. Particularly, we presented Catalan words to Spanish
-native speakers who were reportedly unfamiliar with Catalan. Our results
-indicate a similar pattern of results as those in Experiment 1:
-participants were able to provide correct translations of presented
-Catalan words, provided that the Catalan words shared some degree of
-phonological similarity with their Spanish translation, and that the
-number of phonological neighbours with higher lexical frequency was
-reduced. In contrasts with the results in Experiment 1, the positive
-impact of phonological similarity on participants' performance in
-Experiment 2 was more resilient to the interference of phonological
-neighbours. English natives in Experiment 1 provided significantly less
-accuracy responses when more than four phonological neighbors were
-present (even when translating high-similarity words), compared to when
-only one or neighbour were present. Spanish participants in Experiment 2
-benefited from phonological similarity, even when eight neighbours were
-present. Spanish participants' performance declined after 8 neighbours,
-and was evident at 12 neighbours. Overall, this suggests that
-participants in Experiment 2, who were natives of a typologically
-similar language (Spanish) to the presented language (Catalan) benefited
-more strongly from phonological similarity than participants in
-Experiment 1, who were natives of typologically less similar language
-(English) to the presented language (Catalan, Spanish).
+monolinguals whose native language is typologically close to the
+presented language. We presented Catalan words to Spanish native adults
+who were reportedly unfamiliar with Catalan. Our results indicate a
+similar pattern of results as those in Experiment 1: participants were
+able to provide correct translations of presented Catalan words,
+provided that the Catalan words shared some degree of phonological
+similarity with their Spanish translation, and that the number of
+phonological neighbours with higher lexical frequency was reduced. In
+contrasts with the results in Experiment 1, the positive impact of
+phonological similarity on participants' performance in Experiment 2 was
+more resilient to the interference of phonological neighbourhood size.
+English natives in Experiment 1 provided significantly less accuracy
+responses when more than four phonological neighbors were present (even
+when translating high-similarity words), compared to when only one or
+neighbour were present. Spanish participants in Experiment 2 benefited
+from phonological similarity, even when eight neighbours were present.
+Spanish participants' performance declined after 8 neighbours, and was
+evident at 12 neighbours. Overall, this suggests that participants in
+Experiment 2, who were natives of a typologically similar language
+(Spanish) to the presented language (Catalan) benefited more strongly
+from phonological similarity than participants in Experiment 1, who were
+natives of typologically less similar language (English) to the
+presented language (Catalan, Spanish).
 
 Participants from both Experiment 1 and 2 benefited strongly from
 phonological similarity to correctly translate words from a non-native,
@@ -1012,10 +1001,10 @@ responses with \(\geq\) 10 average accuracy.
 \begin{longtable}{l|rr}
 
 \caption{\label{tbl-surprises}List of items with unexpectedly high
-accuracy: the Levenshtein similarityscore betwen th presented word (in
-Catalan or Spanish) and their correct Enlgish or Spanish translation is
-zero, but participants, who are reportedly unfamiliar with the presented
-language, were on average \textgreater10\% likely to guess the correct
+accuracy: the Levenshtein similarityscore betwen the presented word (in
+Catalan or Spanish) and their correct Enlgish translation is zero, but
+participants, who are reportedly unfamiliar with the presented language,
+were on average \textgreater10\% likely to guess the correct
 translation.}
 
 \tabularnewline
@@ -1067,17 +1056,18 @@ language (Catalan or Spanish). One possibility is that participants had
 previously encountered these words embedded in English linguistic input.
 Spanish words percolate English speech with relative frequency, via
 different sources such as popular culture, songs, TV programs, etc. In
-addition, words from languages other than Spanish, but with high
-similarity to the Spanish words (e.g., cognates from Italian or French)
-might appear in English speech as well. Such prior knowledge might not
-be specific to the low-similarity words highlighted before. Participants
-may also have had prior knowledge about higher-similarity words, which
-could have contributed to participants responding to such words more
-accurately than without such prior knowledge. In the case of
-higher-similarity words, it is more difficult to disentangle the extent
-to which participants' accuracy is a function of pure phonological
-similarity, or prior knowledge they had about the meaning of Spanish
-words. To investigate this issue, we run Experiment 3.
+addition, words from languages other than Spanish or Catalan, but with
+high similarity to the Spanish or Catalan words (e.g., cognates from
+Italian or French) might appear in English speech as well. Such prior
+knowledge might not be specific to the low-similarity words highlighted
+before. Participants may also have had prior knowledge about
+higher-similarity words, which could have contributed to participants
+responding to such words more accurately than without such prior
+knowledge. In the case of higher-similarity words, it is more difficult
+to disentangle the extent to which participants' accuracy is a function
+of pure phonological similarity, or prior knowledge they had about the
+meaning of Spanish words. Experiment 3 was addressed at investigating
+this issue.
 
 {[}ADD HERE LEXICAL FREQUENCY OF CATALAN AND SPANISH WORDS IN ENGLISH,
 AND OF CATALAN WORDS IN SPANISH{]}
@@ -1091,20 +1081,18 @@ presented to participants in Experiment 1.
 
 \subsection{Methods}\label{methods-2}
 
-Data collection took place from October 22th, 2022 to October 23th,
-2022. We collected data from 64 British English native participants
-living in United Kingdom (\emph{Mean} = 22.02 years, \emph{SD} = 2.49,
-Range = 18-26, 36, 28 female).
-
-Participants were recruited via Prolific (5£ compensation) and SONA
-(compensation in academic credits), and gave informed consent before
-providing any data and the study was conducted in accordance with
-ethical standards of the Declaration of Helsinki and the protocol was by
-the University of Oxford Medical Sciences Inter-Divisional Research
-Ethics Committee (IDREC) (R60939/RE007). Participants were asked to
-complete the experiment using a laptop in a quiet place with good
-internet connection. Stimuli were the same list of Catalan stimuli as in
-Experiment 1.
+We collected data from 64 British English native adults living in United
+Kingdom (\emph{Mean} = 22.02 years, \emph{SD} = 2.49, Range = 18-26, 36,
+28 female). Data collection took place from October 22th, 2022 to
+October 23th, 2022. Participants were recruited via Prolific (5£
+compensation) and SONA (compensation in academic credits), and gave
+informed consent before providing any data and the study was conducted
+in accordance with ethical standards of the Declaration of Helsinki and
+the protocol was by the University of Oxford Medical Sciences
+Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007).
+Participants were asked to complete the experiment using a laptop in a
+quiet place with good internet connection. Stimuli were the same list of
+Catalan stimuli as in Experiment 1.
 
 The experiment was implemented online using Qualtrics (Qualtrics, Provo,
 UT). This platform was chosen to allow easier presentation of survey
@@ -1119,7 +1107,7 @@ completed the consent form followed by the questionnaire about
 demographic status, language background and set up. They then proceeded
 to the experimental task.
 
-On each trial, participants listened to the audio stimulus by clicking
+In each trial, participants listened to the audio stimulus by clicking
 on the \texttt{PLAY} button. For comparability to the PsychoPy version,
 participants were only allowed to play the audio one time. Participants
 were explicitly told that they would be only allowed to listen once. The
@@ -1163,17 +1151,32 @@ any other second language as four or higher in a five-point scale
 not contribute more than 80\% of valid trials (\emph{n} = 1).
 
 After applying trial-level and participant-level inclusion criteria, the
-resulting dataset included 6,290 trials provided by 62 unique
+resulting dataset included 5,888 trials provided by 63 unique
 participants. Of those trials, 3,145 were provided by 31 unique
 participants who listened to Catalan words, and 2,743 trials were
 provided by 32 unique participants who listened to Spanish words.
 
-INSERT PRIOR KNOWLEDGE FILTER
+From the 3,145 total responses provided by English participants who
+listened to Catalan words, participants reported having prior knowledge
+of the presented Catalan words in 446 (14.18\%) of them. In those
+responses, participants reported an average of 5.05 confidence in the
+0-8 scale (\emph{SD} = 1.94). In responses in which no prior knowledge
+of the presented word was reported, average confidence was 1.13
+confidence in the 0-8 scale (\emph{SD} = 1.38). From the 2,743 total
+responses provided by English participants who listened to Spanish
+words, participants reported having prior knowledge of the presented
+Spanish words in 446 (14.18\%) of them. In those responses, participants
+reported an average of 4.79 confidence in the 0-8 scale (\emph{SD} =
+1.82). In responses in which no prior knowledge of the presented word
+was reported, average confidence was 1.25 confidence in the 0-8 scale
+(\emph{SD} = 1.66). Before data analysis, responses in which
+participants reported prior knowledge about the meaning of the presented
+Catalan or Spanish word were excluded from the dataset.
 
 Responses given by English participants to Catalan presented words were
-5.52 characters long on average (\emph{Median} = 5, \emph{SD} = 1.75,
-Range = 1-17), while their translations to Spanish responses were 5.41
-characters long on average (\emph{Median} = 5, \emph{SD} = 1.77, Range =
+5.49 characters long on average (\emph{Median} = 5, \emph{SD} = 1.71,
+Range = 1-14), while their translations to Spanish responses were 5.39
+characters long on average (\emph{Median} = 5, \emph{SD} = 1.75, Range =
 1-20).
 
 MCMC chains in the model showed strong evidence of convergence
@@ -1195,7 +1198,7 @@ knowledge.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-knowledge-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-knowledge-1.pdf}}
 
 }
 
@@ -1211,18 +1214,19 @@ accuracy.}
 \end{figure}%
 
 Participants translating Catalan words and participants translating
-Spanish words, as indicated by the regression coefficient of
-\emph{Group} (\(\beta\) = -0.049, 95\% CrI = {[}-0.388, -0.32{]},
-\emph{p}(ROPE) = 0.426). Overall, participants responded less accurately
-to words with more CLPNs than to words with fewer CLPNs, regardless of
-the amount of phonological similarity between the presented word and its
-translation. This is indicated by the size of the regression coefficient
-of the two-way interaction between \emph{Similarity} and \emph{CLPN}
-(\(\beta\) = -0.665, 95\% CrI = {[}-1.068, -0.32{]}, \emph{p}(ROPE) =
-0.002). As anticipated, participants' performance benefited from an
-increase in \emph{Similarity} (\(\beta\) = 7.585, 95\% CrI = {[}7.043,
-8.24{]}, \emph{p}(ROPE) = 0), while the number of \emph{CLND} had the
-opposite effect (\(\beta\) = -0.049, 95\% CrI = {[}-0.203, 0.086{]},
+Spanish words performed similarly, as indicated by the regression
+coefficient of \emph{Group} (\(\beta\) = -0.049, 95\% CrI = {[}-0.388,
+-0.32{]}, \emph{p}(ROPE) = 0.426). Overall, both groups of participants
+responded less accurately to words with more CLPNs than to words with
+fewer CLPNs, regardless of the amount of phonological similarity between
+the presented word and its translation. This is indicated by the size of
+the regression coefficient of the two-way interaction between
+\emph{Similarity} and \emph{CLPN} (\(\beta\) = -0.665, 95\% CrI =
+{[}-1.068, -0.32{]}, \emph{p}(ROPE) = 0.002). As anticipated,
+participants' performance benefited from an increase in
+\emph{Similarity} (\(\beta\) = 7.585, 95\% CrI = {[}7.043, 8.24{]},
+\emph{p}(ROPE) = 0), while the number of \emph{CLND} had the opposite
+effect (\(\beta\) = -0.049, 95\% CrI = {[}-0.203, 0.086{]},
 \emph{p}(ROPE) = 0.753). Figure~\ref{fig-epreds-1} illustrates the
 posterior of the average predictions of the model for words with
 different values of \emph{Similarity} and \emph{CLPN}.
@@ -1231,7 +1235,7 @@ different values of \emph{Similarity} and \emph{CLPN}.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-epreds-3-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-epreds-3-1.pdf}}
 
 }
 
@@ -1248,7 +1252,8 @@ intervals (CrI).}
 
 \subsection{Discussion}\label{discussion-2}
 
-\section{Joint analyses}\label{joint-analyses}
+\section{Pooled analyses of Experiments 1 and
+3}\label{pooled-analyses-of-experiments-1-and-3}
 
 Across Experiments 1 and 3, we found strong evidence that participants
 efficiently exploited phonological similarity to provide accurate
@@ -1261,7 +1266,7 @@ regression coefficients of the models in Experiments 1 to 3.
 
 \centering{
 
-\includegraphics{manuscript_files/figure-pdf/fig-coefs-1.pdf}
+\pandocbounded{\includegraphics[keepaspectratio]{manuscript_files/figure-pdf/fig-coefs-1.pdf}}
 
 }
 
@@ -1269,7 +1274,99 @@ regression coefficients of the models in Experiments 1 to 3.
 
 \end{figure}%
 
+\begin{longtable}{l|rrrrrrrr}
+
+\caption{\label{tbl-results}}
+
+\tabularnewline
+
+\toprule
+\multicolumn{1}{l}{} & \multicolumn{4}{c}{Correct responses} & \multicolumn{4}{c}{Incorrect responses} \\ 
+\cmidrule(lr){2-5} \cmidrule(lr){6-9}
+\multicolumn{1}{l}{} & Correct & (\%) & Typo & (\%) & Wrong & (\%) & False friend & (\%) \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{9}{l}{Experiment 1} \\ 
+\midrule\addlinespace[2.5pt]
+cat-ENG & $429$ & ($16.47$) & $11$ & ($0.42$) & $2,082$ & ($79.95$) & $82$ & ($3.15$) \\ 
+spa-ENG & $374$ & ($14.37$) & $2$ & ($0.08$) & $2,117$ & ($81.36$) & $109$ & ($4.19$) \\ 
+\midrule 
+\emph{Sum} & $803$ & — & $13$ & — & $4,199$ & — & $191$ & — \\ 
+\emph{Mean} & — & $15.42$ & — & $0.25$ & — & $80.66$ & — & $3.67$ \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{9}{l}{Experiment 2} \\ 
+\midrule\addlinespace[2.5pt]
+cat-SPA & $780$ & ($46.93$) & $20$ & ($1.20$) & $736$ & ($44.28$) & $126$ & ($7.58$) \\ 
+\midrule 
+\emph{Sum} & $780$ & — & $20$ & — & $736$ & — & $126$ & — \\ 
+\emph{Mean} & — & $46.93$ & — & $1.20$ & — & $44.28$ & — & $7.58$ \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{9}{l}{Experiment 3} \\ 
+\midrule\addlinespace[2.5pt]
+cat-ENG & $477$ & ($18.01$) & $7$ & ($0.26$) & $1,986$ & ($75.00$) & $178$ & ($6.72$) \\ 
+spa-ENG & $590$ & ($19.53$) & $6$ & ($0.20$) & $2,294$ & ($75.94$) & $131$ & ($4.34$) \\ 
+\midrule 
+\emph{Sum} & $1,067$ & — & $13$ & — & $4,280$ & — & $309$ & — \\ 
+\emph{Mean} & — & $18.77$ & — & $0.23$ & — & $75.47$ & — & $5.53$ \\ 
+\bottomrule
+
+\end{longtable}
+
 \section{General discussion}\label{general-discussion}
+
+The present work investigated the dynamics of lexical activation and
+selection dring non-native speech listening. Using a translation
+elicitation task, we collected data from a group of English native
+adults (Experiment 1) and a group of Spanish native adults (Experiment
+2). Neither group was familiar with Catalan, Spanish, or any other
+Romance language. In each trial, participants were presented with
+Spanish words (Experiment 1) or Catalan words (Experiments 1 and 2), and
+then asked to type their best-guess translation for the presented word
+in their native language. Participants provided correct translations
+more often if the presented word and its translation shared phonological
+similarity, only if the number of phonological neighbours around the
+presented word was small. These results suggest that listening to words
+in an unfamiliar language can trigger dynamics of lexical activation and
+selection similar to those triggered by listening to speech in the
+native language.
+
+In Experiment 1, we collected data from two groups of British English
+natives living in the United Kingdom. One group was presented with
+Catalan words, the other with Spanish words. We examined the extent to
+which participants were able to use the phonological similarity between
+the presented word (in Catalan or Spanish) and its target translation to
+provide accurate responses, despite reporting no prior relevant
+experience with the Catalan or Spanish. In Experiment 2, we tested a
+group of (European) Spanish natives in the same task, who were presented
+with Catalan words. Catalan and Spanish are two Romance languages whose
+close typological distance is reflected in the fact that they share many
+cognates, where English is a Germanic language that shares considerably
+fewer cognates with Catalan and Spanish. By testing participants
+translating words from typologically close or distant languages, we
+expected to widen the range of the phonological similarity scores of the
+translation pairs involved in the experimental task, therefore allowing
+us to explore potential cross-language differences in participant's
+performance. Some participants in Experiments 1 and 2 were surprisingly
+good at translating a subset of words which had low phonological
+similarity with their correct translation. We were concerned that this
+may be caused by some prior knowledge of specific words by our
+participants, as some Spanish words are commonly seen in media or
+product labels, making them familiar even to monolingual speakers of
+English. In Experiment 3, we collected additional data from a new group
+of British English natives. The design was closely modelled after
+Experiment 1, except that after providing their response in each trial,
+participants reported whether they had previous knowledge of the
+presented word. After removing responses in which participants reported
+prior knowledge about the meaning of the presented Catalan or Spanish
+word, we found similar resutls as in Experiment 1, suggesting that
+participants did not simply rely on prior familiarity with the
+word-forms presented but rather exclusively on their phonological
+similarity with the correct English translation.
+
+Our findings provide insights into the mechanisms underlying homophonic
+translations. This phenomenon is frequently experienced by listeners of
+foreign speech, when strings of sounds in the input are perceived as
+strings of words or phrases in the native language, without necessarily
+preserving the meaning.
 
 This type of cross-linguistic similarity has also been extremely
 informative for the study of bilingual lexical processing: words that
@@ -1683,6 +1780,7 @@ Welcome to the tidyverse. \emph{Journal of Open Source Software},
 \emph{4}(43), 1686. \url{https://doi.org/10.21105/joss.01686}
 
 \end{CSLReferences}
+
 
 
 
