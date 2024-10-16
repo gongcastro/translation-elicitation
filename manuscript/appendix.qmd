@@ -449,3 +449,79 @@ tab_spacat <- cbind(
 include_graphics(here("img", "accuracy_spacat.png"))
 
 ```
+
+## Appendix 3: pooled analyses of Experiments 1 and 3
+
+Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
+
+```{r fig-coefs}
+#| label: fig-coefs
+#| fig-width: 9
+#| fig-height: 5
+var_labels <- c(
+  "b_Intercept" = "Intercept",
+  "b_freq_zipf_2" = "Frequency",
+  "b_lv" = "Similarity",
+  "b_neigh_n_h" = "CLPN",
+  "b_neigh_n_h:lv" = "Similarity × CLPN",
+  "b_group1" = "cat-ENG vs. spa-ENG"
+)
+
+list(exp_1_m0, exp_2_m0, exp_3_m1) |>
+  set_names(paste0("Experiment ", 1:3)) |>
+  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
+  dplyr::filter(.variable != "b_Intercept") |>
+  mutate(
+    .value = .value / 4,
+    .variable = factor(.variable,
+      levels = names(var_labels),
+      labels = var_labels
+    )
+  ) |>
+  ggplot(aes(.value, reorder(exp, desc(exp)))) +
+  facet_wrap(~.variable, scales = "free_x") +
+  annotate(
+    geom = "rect",
+    xmin = -0.1 / 4,
+    xmax = 0.1 / 4,
+    ymin = -Inf,
+    ymax = Inf,
+    fill = "grey",
+    alpha = 3 / 4,
+    colour = NA
+  ) +
+  geom_vline(
+    xintercept = 0,
+    colour = "grey",
+    linewidth = 3 / 4
+  ) +
+  stat_slab(aes(fill = after_stat(level)),
+    point_interval = mode_hdi,
+    .width = c(0.95, 0.89, 0.67, 1),
+    outline_bars = TRUE,
+    colour = "white",
+    linewidth = 0.1,
+    breaks = 20,
+    normalize = "panels"
+  ) +
+  stat_spike(
+    at = "median",
+    size = 1,
+    aes(linetype = "Median"),
+    normalize = "panels"
+  ) +
+  labs(
+    x = "Estimate", y = "Experiment",
+    colour = "CrI",
+    fill = "CrI",
+    linetype = ""
+  ) +
+  scale_fill_brewer(palette = "Reds") +
+  theme(
+    legend.position = c(1, 0),
+    legend.box = "horizontal",
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+```
