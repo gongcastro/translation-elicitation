@@ -723,36 +723,44 @@ Participants from both Experiment 1 and 2 benefited strongly from phonological s
 
 ```{r tbl-surprises}
 #| label: tbl-surprises
-#| tbl-cap: "List of items with unexpectedly high accuracy: the Levenshtein similarityscore betwen the presented word (in Catalan or Spanish) and their correct Enlgish translation is zero, but participants, who are reportedly unfamiliar with the presented language, were on average >10% likely to guess the correct translation."
+#| tbl-cap: "List of items with unexpectedly high accuracy: the Levenshtein similarityscore betwen the presented word (in Catalan or Spanish) and their correct English translation is zero, but participants, who are reportedly unfamiliar with the presented language, were on average >10% likely to guess the correct translation."
 tbl_data <- list(
   "Experiment 1" = dataset_1,
   "Experiment 2" = dataset_2
 ) |>
   bind_rows(.id = "exp") |>
-  mutate(translation = paste0())
+  mutate(
+    translation = paste0(word_1, " - ",  word_2),
+    xsampa = paste0("/", sampa_1, "/ - /", sampa_2, "/")
+  ) |> 
   summarise(
     n = n(),
     correct = sum(correct),
-    .by = c(exp, group, lv, translation)
+    .by = c(exp, group, lv, translation, xsampa)
   ) |>
   mutate(
     accuracy = prop_adj(correct, n),
     accuracy_se = prop_adj_se(correct, n)
   ) |>
   dplyr::filter(lv == 0, accuracy >= 0.1) |>
-  select(exp, translation, group, accuracy, accuracy_se) |>
-  arrange(exp, group, desc(accuracy))
-
-tbl_data |>
-  select(translation, accuracy, accuracy_se) |> 
+  select(exp, translation, xsampa, group, accuracy, accuracy_se) |>
+  arrange(exp, group, desc(accuracy)) |> 
+  select(translation, xsampa, accuracy, accuracy_se) |> 
   mutate(accuracy = round(accuracy * 100, 2),
-         accuracy_se = round(accuracy_se * 100, 2)) |> 
-  set_names(c("Translation", "Accuracy (%)", "SE")) |> 
-  tt() |> 
+         accuracy_se = round(accuracy_se * 100, 2))
+
+names(tbl_data) <- c("Translation", "X-SAMPA", "Accuracy (\\%)", "SE")
+
+tt(tbl_data) |> 
   group_tt(i = list(
-    "Experiment 1 (cat-ENG)" = 5,
-    "Experiment 2 (spa-ENG)" = 21,
-    "Experiment 3 (cat-SPA)" = 26))
+    "Experiment 1 (cat-ENG)" = 1,
+    "Experiment 2 (spa-ENG)" = 6,
+    "Experiment 3 (cat-SPA)" = 22)) |> 
+  style_tt(i = 0, bold = TRUE, line = "tb") |> 
+  style_tt(i = 1, bold = TRUE, line = "b") |> 
+  style_tt(i = 7, bold = TRUE, line = "tb") |> 
+  style_tt(i = 24, bold = TRUE, line = "tb")
+
 ```
 
 
