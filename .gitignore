@@ -33,6 +33,14 @@ _targets/
 docs/index_files/
 index_files/
 
+manuscript/_freeze/
+manuscript/manuscript_cache/
+manuscript/manuscript_files/
+manuscript/.quarto
+manuscript/_targets.yaml
+manuscript/arxiv.sty
+manuscript/orcidlink.sty
+
 manuscript/nul
 docs/nul
 nul
