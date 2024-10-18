@@ -11,16 +11,13 @@ format:
       text: |
         \usepackage{tipa}
         \usepackage{booktabs}
-        \DeclareTextFontCommand\textphonetic{\ipafont}
-        \usepackage[utf8]{inputenc}
-        \usepackage{CJKutf8}
+    authorcols: true
     knitr:
       opts_chunk:
         dev: "cairo_pdf"
     filters: 
       - "_extensions/andrewheiss/wordcount/citeproc.lua"
       - "_extensions/andrewheiss/wordcount/wordcount.lua"
-    fontfamily: "Times"
   docx:
     reference-doc: _assets/template.docx
   typst:
@@ -45,7 +42,7 @@ author:
     email: siow.serene@gmail.com
     affiliations: 
       - ref: uo
-      - id: uo
+        id: uo
         name: University of Oxford
         department: Department of Experimental Psychology
         city: Oxford, OX2 6GG
@@ -76,3 +73,5 @@ fig-dpi: 1000
 echo: false
 warning: false
 
+abstract: |
+  Insert abstract here.

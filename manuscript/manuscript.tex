@@ -17,7 +17,7 @@
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
 \fi
-\usepackage[]{Times}
+\usepackage{lmodern}
 \ifPDFTeX\else  
     % xetex/luatex font selection
     \setmainfont[]{Latin Modern Roman}
@@ -144,9 +144,6 @@
 \newcommand{\tinytableTabularrayStrikeout}[1]{\sout{#1}}
 \usepackage{tipa}
 \usepackage{booktabs}
-\DeclareTextFontCommand\textphonetic{\ipafont}
-\usepackage[utf8]{inputenc}
-\usepackage{CJKutf8}
 \usepackage{arxiv}
 \usepackage{orcidlink}
 \usepackage{amsmath}
@@ -234,22 +231,27 @@ processing, lexical access},
 \renewcommand{\runninghead}{Cognateness and recognition of foreign
 words }
 \title{The role of cognateness in native spoken word recognition}
+\def\asep{\\\\\\ } % default: all authors on same column
+\def\asep{\And }
 \author{\textbf{Gonzalo
 Garcia-Castro}~\orcidlink{0000-0002-8553-4209}\\Center for Brain and
 Cognition\\Universitat Pompeu Fabra\\Barcelona,
-08005\\\texttt{\href{mailto:gonzalo.garciadecastro@upf.edu}{gonzalo.garciadecastro@upf.edu}}\And\textbf{Serene
+08005\\\href{mailto:gonzalo.garciadecastro@upf.edu}{gonzalo.garciadecastro@upf.edu}\asep\textbf{Serene
 Siow}~\orcidlink{0000-0001-6482-2191}\\Department of Experimental
 Psychology\\University of Oxford\\Oxford, OX2
-6GG\\\texttt{\href{mailto:siow.serene@gmail.com}{siow.serene@gmail.com}}\And\textbf{Kim
+6GG\\\href{mailto:siow.serene@gmail.com}{siow.serene@gmail.com}\asep\textbf{Kim
 Plunkett}~\orcidlink{0000-0003-0216-7480}\\Department of Experimental
 Psychology\\University of Oxford\\Oxford, OX2
-6GG\\\texttt{\href{mailto:kim.plunkett@psy.ox.ac.uk}{kim.plunkett@psy.ox.ac.uk}}\And\textbf{Nuria
+6GG\\\href{mailto:kim.plunkett@psy.ox.ac.uk}{kim.plunkett@psy.ox.ac.uk}\asep\textbf{Nuria
 Sebastian-Galles}~\orcidlink{0000-0001-6938-2498}\\Center for Brain and
 Cognition\\Universitat Pompeu Fabra\\Barcelona,
-08005\\\texttt{\href{mailto:nuria.sebastian@upf.edu}{nuria.sebastian@upf.edu}}}
+08005\\\href{mailto:nuria.sebastian@upf.edu}{nuria.sebastian@upf.edu}}
 \date{}
 \begin{document}
 \maketitle
+\begin{abstract}
+Insert abstract here.
+\end{abstract}
 {\bfseries \emph Keywords}
 \def\sep{\textbullet\ }
 cognate \sep spoken word
@@ -535,11 +537,11 @@ cat-ENG & 32 (0) & $22.31$ ± $2.39$ & $18$–$26$ & Cantonese (1), Irish (1) \\
 
 We created two lists of input words to be presented to participants in
 the auditory modality: one in Catalan and one in Spanish. Words in the
-Catalan list were 5.02 phonemes long on average (\emph{SD} = 1.49, Range
-= 2-8), and the orthographic forms of their English translations (which
+Catalan list were 6.67 phonemes long on average (\emph{SD} = 2.06, Range
+= 2-11), and the orthographic forms of their English translations (which
 participants had to type) were 5.12 characters long on average
-(\emph{SD} = 1.56, Range = 3-9). Words in the Spanish list were 5.52
-phonemes long on average (\emph{SD} = 1.47, Range = 3-9), and the
+(\emph{SD} = 1.56, Range = 3-9). Words in the Spanish list were 7.27
+phonemes long on average (\emph{SD} = 2.05, Range = 3-13), and the
 orthographic form of their English translations were 5.29 characters
 long on average (\emph{SD} = 1.77, Range = 3-12).
 
@@ -1063,36 +1065,36 @@ row{25}={,cmd=\bfseries,},
 hline{25,26}={1,2,3,4}{solid, 0.1em, black},
 }                     %% tabularray inner close
 \toprule
-Translation & X-SAMPA & Accuracy (\%) & SE \\ \midrule %% TinyTableHeader
+Translation & IPA & Accuracy (\%) & SE \\ \midrule %% TinyTableHeader
 Experiment 1 (cat-ENG) &&& \\
-cavall - horse       & /k5BaL/ - /hOs/          & 17.14 & 6.37 \\
-llibre - book        & /LiB45/ - /bUk/          & 17.14 & 6.37 \\
-camisa - shirt       & /k5miz5/ - /S36t/        & 16.67 & 6.21 \\
-poma - apple         & /poma/ - /1pl/           & 16.67 & 6.21 \\
-cama - leg           & /kam5/ - /lEg/           & 11.11 & 5.24 \\
+cavall - horse       & \textipa{/k@'ba}\textlambda\textipa{/ - /hO:s/}                                  & 17.14 & 6.37 \\
+llibre - book        & \textipa{/"}\textlambda\textipa{i.BR@/ - /bUk/}                                  & 17.14 & 6.37 \\
+camisa - shirt       & \textipa{/ka.'mi.za/ - /S3:t/}                                                     & 16.67 & 6.21 \\
+poma - apple         & \textipa{/"po.ma/ - /"aepl/}                                                       & 16.67 & 6.21 \\
+cama - leg           & \textipa{/"ka.m@/ - /lEg/}                                                         & 11.11 & 5.24 \\
 Experiment 2 (spa-ENG) &&& \\
-pantalon - trousers  & /pantalon/ - /tr0aUs56z/ & 77.42 & 7.51 \\
-naranja - orange     & /na4aNxa/ - /Or0I0ndZ/   & 41.94 & 8.86 \\
-leche - milk         & /letSe/ - /mIlk/         & 35.48 & 8.59 \\
-toro - bull          & /to4o/ - /bUl/           & 33.33 & 8.61 \\
-libro - book         & /liB4o/ - /bUk/          & 30.00 & 8.37 \\
-cebra - zebra        & /TeB4a/ - /zibr05/       & 29.03 & 8.15 \\
-pan - bread          & /pan/ - /br0Ed/          & 29.03 & 8.15 \\
-pollo - chicken      & /poLo/ - /tSIkIn/        & 26.67 & 8.07 \\
-jirafa - giraffe     & /xi4afa/ - /dZI0r01f/    & 20.69 & 7.52 \\
-perro - dog          & /pErro/ - /dAg/          & 16.13 & 6.61 \\
-pluma - feather      & /pluma/ - /fED56/        & 16.13 & 6.61 \\
-puerta - door        & /pwE4ta/ - /dor/         & 16.13 & 6.61 \\
-pie - foot           & /pje/ - /fUt/            & 12.90 & 6.02 \\
-caballo - horse      & /kaBaLo/ - /hors/        & 10.34 & 5.66 \\
-bocadillo - sandwich & /bokaDiLo/ - /s1ndwItS/  & 10.00 & 5.48 \\
-globo - balloon      & /gloBo/ - /b5lun/        & 10.00 & 5.48 \\
+pantalon - trousers  & \textipa{/paN.ta"lon/ - /"traUz@z/}                                                & 77.42 & 7.51 \\
+naranja - orange     & \textipa{/na"RaN.xa/ - /"6rIn}\textdyoghlig\textipa{/}                           & 41.94 & 8.86 \\
+leche - milk         & \textipa{/"le.}\textteshlig\textipa{e/ - /mIlk/}                                 & 35.48 & 8.59 \\
+toro - bull          & \textipa{/"to.Ro/ - /bUl/}                                                         & 33.33 & 8.61 \\
+libro - book         & \textipa{/"li.BRo/ - /bUk/}                                                        & 30.00 & 8.37 \\
+cebra - zebra        & \textipa{/"Te.bRa/ - /"zi:br@/}                                                    & 29.03 & 8.15 \\
+pan - bread          & \textipa{/pan/ - /brEd/}                                                           & 29.03 & 8.15 \\
+pollo - chicken      & \textipa{/"po.}\textlambda\textipa{o/ - /"}\textteshlig\textipa{IkIn/}         & 26.67 & 8.07 \\
+jirafa - giraffe     & \textipa{/xi'Ra.fa/ - /}\textdyoghlig\textipa{I"rA:f/}                           & 20.69 & 7.52 \\
+perro - dog          & \textipa{/pe.ro/ - /d6g/}                                                          & 16.13 & 6.61 \\
+pluma - feather      & \textipa{/plu.ma/ - /"fED@/}                                                       & 16.13 & 6.61 \\
+puerta - door        & \textipa{/pwer.ta/ - /dO:/}                                                        & 16.13 & 6.61 \\
+pie - foot           & \textipa{/pje/ - /fUt/}                                                            & 12.90 & 6.02 \\
+caballo - horse      & \textipa{/ka"Ba.}\textlambda\textipa{o/ - /hO:s/}                                & 10.34 & 5.66 \\
+bocadillo - sandwich & \textipa{/bo.ka"di.}\textlambda\textipa{o/ - /"saenwI}\textdyoghlig\textipa{/} & 10.00 & 5.48 \\
+globo - balloon      & \textipa{/"glo.Bo/ - /b@"lu:n/}                                                    & 10.00 & 5.48 \\
 Experiment 3 (cat-SPA) &&& \\
-fulla - hoja         & /fuL5/ - /oxa/           & 30.43 & 9.59 \\
-ull - ojo            & /uL/ - /oxo/             & 21.74 & 8.60 \\
-got - vaso           & /gOt/ - /baso/           & 20.00 & 8.00 \\
-entrepa - bocadillo  & /ent45pa/ - /bokaDiLo/   & 13.04 & 7.02 \\
-mirall - espejo      & /mi4aL/ - /espexo/       & 12.50 & 6.75 \\
+fulla - hoja         & \textipa{/"fu.}\textlambda\textipa{@/ - /"o.xa/}                                 & 30.43 & 9.59 \\
+ull - ojo            & \textipa{/u}\textlambda\textipa{/ - /"o.xo/}                                     & 21.74 & 8.60 \\
+got - vaso           & \textipa{/"gOt/ - /"ba.so/}                                                        & 20.00 & 8.00 \\
+entrepa - bocadillo  & \textipa{/ˌen.tR@"pa/ - /bo.ka"di.}\textlambda\textipa{o/}                       & 13.04 & 7.02 \\
+mirall - espejo      & \textipa{/mi"Ra}\textlambda\textipa{/ - /es'pe.xo/}                              & 12.50 & 6.75 \\
 \bottomrule
 \end{tblr}
 
