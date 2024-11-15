@@ -1,5 +1,5 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-.Random.seed|object|507981bb84c8f0ad|||||||||||||||
+.Random.seed|object|76003d22a1b7f97e|||||||||||||||
 audios_path|stem|c1f0c9417be59297|12d385ea6b765767|ef46db3751d8e999|-787466669||t19846.4240284954s|425d385953b3c542|67|rds|local|vector|||0||
 clean_input_text|function|054cc002c27f9c9d|||||||||||||||
 clean_stimuli|function|5f4b971f2e902023|||||||||||||||
@@ -10,26 +10,28 @@ cp_c_path_spa|stem|5bf4abcc4804c6fe|f91fb0eb5e275a2f|ef46db3751d8e999|-93544736|
 cp_h_path_eng|stem|bc096d903f9787cb|702bafe974ee0561|ef46db3751d8e999|-533600941|data-raw/clearpond/clearpondHeaders_EN.txt|t19828.3333540478s|3ae6f7e89cf53b45|1491|file|local|vector|||0||
 cp_h_path_spa|stem|d10320422f45c570|de34e239e0ed777b|ef46db3751d8e999|-287688951|data-raw/clearpond/clearpondHeaders_SP.txt|t19828.3333578694s|3ae6f7e89cf53b45|1491|file|local|vector|||0||
 dataset_1|stem|a1199c1555d6dc09|22f31d17318f0ee9|45d12dfa69ca0b92|1599484138||t20014.4479507565s|69e6e8aa76b5562b|50302|rds|local|vector|||0.03||
+dataset_12|stem|215331f689f647f5|a13f3b62e022be37|09ab97801e1195ee|-1724431406||t20042.3855087588s|27f01a9948d37a6b|65702|rds|local|vector|||0||
 dataset_2|stem|f3fc50a5b5f5a7f9|9debd8117ba99b6b|45d12dfa69ca0b92|164305589||t20014.4484254036s|8de99dd9399b8e7d|18963|rds|local|vector|||0.05||
 dataset_3|stem|6873755033456552|46becfdda74bf7b9|45d12dfa69ca0b92|1490328510||t20014.4489659158s|88ad162d703b2153|162167|rds|local|vector|||0.05||
 durations|stem|369883fa206c8ca6|ba61b054fa3c455d|b9ed4dd23df945be|-1768938158||t20014.4453642654s|099b7a4f96e543d1|1241|rds|local|vector|||1.72||
 epreds|stem|0633e2975df47526|bfd19362f1413ce3|1d467f9dd5b9a230|-1920632744||t19846.4589455728s|5b11b8d6feb4a478|7217510|rds|local|vector|||3.42||
 exp_1_loos|stem|b6359a35963802b4|bd7cef07de64a59e|8ea1b53b89ddffb9|-1147097371||t19849.4488385701s|973381529c66c0df|296|rds|local|vector|||32.75|Found 16 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.. Found 24 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.|
-exp_1_m0|stem|a74317e71a1d8bd0|020fda51b7510028|995d7c10175a3063|-2019216671||t20014.4168924533s|9b4e753e04c69375|8976281|rds|local|vector|||0.78|Rows containing NAs were excluded from the model.|
+exp_1_m0|stem|b8d0af4b859c4505|33e1d68d897e9853|d1d05c4d3c79fcfb|-2019216671||t20041.598218176s|84ffc910ed686c1d|17354257|rds|local|vector|||89.56|Rows containing NAs were excluded from the model.|
 exp_1_m1|stem|36ce2d576fafdca3|3ebcb69f68e3c62d|e6c3058f45461fe4|187543563||t19849.447055371s|6a9592eb64fed440|8918855|rds|local|vector|||44.75|Rows containing NAs were excluded from the model.|
 exp_1_m2|stem|ee17e8a5dab838b2|3e7d773eedd62155|3739356bfeec6402|697607577||t19846.5149163019s|ec7b07a4ef2fbc16|13862897|rds|local|vector|||46.54||
 exp_1_m3|stem|74bce158aa082348|dcc740b7001521eb|3739356bfeec6402|1808781891||t19846.5142299593s|b1412fdfd688a3d1|14142772|rds|local|vector|||48.34||
+exp_12_m0|stem|5bac9fd0c8f5c0ad|ea5b48c15270c8e4|f8aac301e2b42aa8|1841098856||t20042.3872964377s|e5af6761fda27397|23002904|rds|local|vector|||103.44|Rows containing NAs were excluded from the model.|
 exp_2_loos_1|stem|d017ee2ddca6304e|e1d4f676ec39ac88|c5e94a0b3fd0b642|84176096||t19849.4476535624s|365c3547718ef9a1|295|rds|local|vector|||36.89|Found 5 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.. Found 2 observations with a pareto_k  0.7 in model .xi. We recommend to set moment_match  TRUE in order to perform moment matching for problematic observations.|
 exp_2_loos_2|stem|c1d72e8e37498ac4|52b1c67ef21996c5|caf08b8b119bdd8d|673756637||t19849.4480655579s|365c3547718ef9a1|295|rds|local|vector|||35.59|Found 5 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.. Found 28 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.|
 exp_2_loos_3|stem|ac70a9389c0eef03|2d68102d7bef5155|86dbea7ded67af95|-88320559||t19849.4484577908s|973381529c66c0df|296|rds|local|vector|||33.87|Found 5 observations with a pareto_k  0.7 in model .xi. We recommend to run more iterations to get at least about 2200 posterior draws to improve LOOCV approximation accuracy.. Found 2 observations with a pareto_k  0.7 in model .xi. We recommend to set moment_match  TRUE in order to perform moment matching for problematic observations.|
-exp_2_m0|stem|c91fccdaca81ff54|e5b4ccd98a9d21b2|0ca6b4809ea5a67f|-979797251||t20014.4168505185s|7b07651ab614057a|3843198|rds|local|vector|||0.36|Rows containing NAs were excluded from the model.|
+exp_2_m0|stem|f5a556673fef3ecf|cfc81eac82b19441|e1cbe2ec5fc4f53c|-979797251||t20041.5983753841s|d623606561da623c|3820715|rds|local|vector|||13.35|Rows containing NAs were excluded from the model.|
 exp_2_m1|stem|003e41038034cf3c|2af2d0a76f4e2a72|1dad76fa4284049e|1231120314||t19850.3797414586s|67c01d1bd7521be5|11419828|rds|local|vector|||253.06|Rows containing NAs were excluded from the model.|
 exp_2_m2|stem|6ce0e0dc1868a36d|ee3c1d48519aa3aa|1dad76fa4284049e|69071095||t19850.3880956921s|10a2801b785788d0|33492851|rds|local|vector|||154.53|Rows containing NAs were excluded from the model.|
 exp_2_m3|stem|11b1d9c4830a5b7f|0396622602e595f7|1dad76fa4284049e|683921934||t19849.446533493s|29cfd13de6cf93da|9515554|rds|local|vector|||59.71|Rows containing NAs were excluded from the model.|
 exp_2_m4|stem|74e7f0ab34b29ee0|e6eaaa337e8360f7|e481551a94d6c3e4|1678591312||t19846.42740465s|2c2e3624530bb3dc|7632779|rds|local|vector|||0.24|Rows containing NAs were excluded from the model.|
 exp_2_m5|stem|5f9e9a15780ef496|a2ba6f0acbd1500e|e481551a94d6c3e4|1496876040||t19846.427411268s|b323ccf1d0553ec1|7562504|rds|local|vector|||0.26|Rows containing NAs were excluded from the model.|
-exp_3_m0|stem|34bbb9648bd76cd7|650e6b70921150f0|9173dbdd676ee316|1736267104||t20014.4168659503s|f98fc1d3adc30b2c|9511220|rds|local|vector|||0.87|Rows containing NAs were excluded from the model.|
-exp_3_m1|stem|7c1d28dc3c11fbe1|a702f14146035b8d|9173dbdd676ee316|1507251273||t20014.4168770287s|deee6c1ee59aa1d1|9575927|rds|local|vector|||0.34|Rows containing NAs were excluded from the model.|
+exp_3_m0|stem|01bf3072fa89931e|729f23cbc60ef230|bb8031a78e2b05f1|1736267104||t20041.6027477249s|1126989b1ffd3240|9541303|rds|local|vector|||33|Rows containing NAs were excluded from the model.|
+exp_3_m1|stem|6a77e0e34840de4c|3f119ed092d66b82|bb8031a78e2b05f1|1507251273||t20041.6030957163s|7d89c6a4a7f4cef9|9588408|rds|local|vector|||29.67|Rows containing NAs were excluded from the model.|
 exp_3_m2|stem|ddc15fef180e73e2|a702f14146035b8d|44e7895777ceae01|-1740014543||t19851.4016066488s|a4cb557508038eb7|9575925|rds|local|vector|||48.22|Rows containing NAs were excluded from the model.|
 exp_participants|stem|7c3fa0b0fd24a85d|59422c5065f66bc2|79a6e1d2af6e62af|-603532735||t19851.3974581297s|894f05ffd19a3b65|2406|rds|local|vector|||0.19||
 exp_processed|stem|50df17c3b1bba192|86d26a2464ccf59c|29ea6cb8eda0968f|-1179457516||t20014.4479456179s|3d92567b58bbeed6|60671|rds|local|vector|||0.92||
@@ -41,14 +43,14 @@ first_non_na|function|9de74cc521021c03|||||||||||||||
 get_avg_sim|function|25a501f9a4472af1|||||||||||||||
 get_dataset|function|f1d846def8555b49|||||||||||||||
 get_duration|function|d712a4a3714f6280|||||||||||||||
-get_epreds|function|4ba860213682caa1|||||||||||||||
+get_epreds|function|04950dca79f82b1f|||||||||||||||
 get_exp_participants|function|5cd4385b40271733|||||||||||||||
 get_exp_processed|function|b24bf7f1277e3cad|||||||||||||||
 get_exp_raw|function|d0631ae211a17c52|||||||||||||||
 get_exp_responses|function|89630c189e6fcf22|||||||||||||||
 get_levenshtein|function|1aa8174d2219d3e5|||||||||||||||
-get_model_fit|function|d868b6fafb4cabbb|||||||||||||||
-get_model_loos|function|8356172dbefa283f|||||||||||||||
+get_model_fit|function|61405e8882604dc2|||||||||||||||
+get_model_loos|function|e959fab29282a91a|||||||||||||||
 get_neighbours|function|31590cdfed896ec4|||||||||||||||
 get_participants|function|85703389088d2244|||||||||||||||
 get_quest_participants|function|6f6c64991b80b3f4|||||||||||||||
@@ -77,6 +79,7 @@ quest_raw_files_path|stem|739a20bfbc96082b|cdd6a5552a9fdab2|ef46db3751d8e999|178
 quest_responses|stem|55f6bcfcbe046b34|a73d0fdfe8b5786d|6e8ff5af54adceae|789653037||t20014.4479485133s|4dd791d8afe53ef5|35551|rds|local|vector|||0.22||
 question_raw_files|stem|3ce3916925a63865|42c4991b05bc1862|fb8c4bb92eab1f4b|131931056|data-raw/questionnaire/04_responses-coded.csv*data-raw/questionnaire/questionnaire_catalan.csv*data-raw/questionnaire/questionnaire_spanish.csv|t19303.5972453704s|597de277124b904a|480194|file|local|vector|||0||
 replace_non_ascii|function|998b010877d91b17|||||||||||||||
+rescale|function|5c66e40ffbe991cb|||||||||||||||
 stimuli|stem|76eeceff6880b947|035c9f488b7fde6c|5631be69c011271c|1062581131||t20014.4463237375s|2fa42770813b8514|20962|rds|local|vector|||82.83||
 stimuli_exclude|stem|8182794c17060755|a213bb9f23d61159|ef46db3751d8e999|-171897908||t19846.4240285879s|17e1813002340629|93|rds|local|vector|||0||
 theme_custom|function|e72e8dfbeadb00f5|||||||||||||||
