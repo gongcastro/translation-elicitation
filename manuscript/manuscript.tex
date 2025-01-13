@@ -230,7 +230,27 @@ processing, lexical access},
 \newcommand{\runninghead}{A Preprint }
 \renewcommand{\runninghead}{Cognateness and recognition of foreign
 words }
-\title{The role of cognateness in native spoken word recognition}
+\title{The role of cognateness in native spoken word
+recognition\thanks{The authors declare no conflicts of interest with
+regard to the funding source of this study. This study was supported by
+the Spanish Ministry for Science and Innovation and State Research
+Agency (Project PID2021- 123416NB-I00 financed by MCIN/ AEI/
+10.13039/501100011033 / FEDER, UE) and the Economic and Social Research
+Council (ESRC) (ES/S010947/1, UK). GGC was supported by a FPI research
+contract (PRE2019-088165). We are grateful to Irina Lepadatu and Nicola
+Gillen, and to the Speech Acquisition and Perception research group for
+their helpful feedback. We thank Xavier Mayoral, Silvia Blanch, Pamela
+Miller, and Cristina Cuadrado for their technical support. We also thank
+all families and infants who participated in the experiments. This study
+was conducted according to guidelines laid down in the Declaration of
+Helsinki, and was approved by the Drug Research Ethical Committee (CEIm)
+of the IMIM Parc de Salut Mar, reference 2020/9080/I. The data and code
+necessary to reproduce the analyses presented here are publicly
+accessible, as are the materials necessary to attempt to replicate the
+findings. The analyses presented here were not preregistered. Data,
+code, and materials for this research are available at the following
+URLs: https://osf.io/hy984/,
+https://github.com/gongcastro/translation-elicitation.}}
 \def\asep{\\\\\\ } % default: all authors on same column
 \def\asep{\And }
 \author{\textbf{Gonzalo
@@ -250,7 +270,28 @@ Cognition\\Universitat Pompeu Fabra\\Barcelona,
 \begin{document}
 \maketitle
 \begin{abstract}
-Insert abstract here.
+While listening to speech in an unfamiliar language, words and phrases
+in the native language are activated, leading to common auditory
+illusions like Soramimi, a particular case of homophonic translation.
+Homophonic translation has received little attention as a
+psycholinguistic phenomenon. In this study, we explored the mechanisms
+underlying lexical activation and selection in homoponic translation.
+Across three studies, English and Spanish native adults completed a
+translation elicitation task, in which they listened to a series of
+Catalan or Spanish words (to which participants were unfamiliar), and
+then had to type their best-guess translation in their native language.
+Both English and Spanish natives were surprisingly good at translating
+unfamiliar words, efficiently exploiting the phonological similarity
+between the presented (unfamiliar) words and their correct translation.
+When the correct translation belonged to high-density phonological
+neighbours, participants' ability to benefit from phonological
+similarity decreased. Finally, Spanish natives exploited phonological
+similarity more efficiently: provided identical phonological similarity,
+Spanish natives were more likely to guess the correct translation of the
+unfamiliar word than English natives. Overall, we show that speech in an
+unfamiliar language triggers equivalent dynamics of lexical selection
+than native speech, providing a psycholinguistic account for homophonic
+translation.
 \end{abstract}
 {\bfseries \emph Keywords}
 \def\sep{\textbullet\ }
@@ -271,19 +312,19 @@ System of a Down (\emph{Steal this Album!}, 2002), they tend to hear
 \emph{Sácame de aquí, King-Kong} {[}take me out of here, King-Kong{]}.
 Outrageous as these examples might sound, the reader may know a few
 cases in their own native language. This auditory illusion is common
-across languages and cultures
+across languages and cultures and can feel quite real, often inevitable
 (\citeproc{ref-dembeck2015oberflachenubersetzung}{Dembeck, 2015};
-\citeproc{ref-efimova2018homophonic}{Efimova et al., 2018}) and can feel
-quite real, and often inevitable. In Japanese, this phenomenon takes the
-name \emph{Soramimi} (lit. ``empty ear''). Soramimi is a particular case
-of homophonic translation in which words or phrases that appear in the
-lyrics of a song in one language are translated into similar-sounding
-words and phrases in a different language, without necessarily
-preserving the meaning (\citeproc{ref-gasparov2006semen}{Gasparov,
-2006}). Homophonic translation also occurs outside the context of music.
-For instance, it is often intentionally employed by translators to
-preserve the meter and ``sound structure'' (e.g., rhymes) of an original
-text in the language of translation (e.g.,
+\citeproc{ref-efimova2018homophonic}{Efimova et al., 2018}). In
+Japanese, this phenomenon takes the name \emph{Soramimi} (lit. ``empty
+ear''). From a linguistic point of view, Soramimi is a particular case
+of homophonic translation: words or phrases that appear in the speech
+stream in one language are translated into similar-sounding words and
+phrases in a different language, without necessarily preserving the
+meaning (\citeproc{ref-gasparov2006semen}{Gasparov, 2006}). Homophonic
+translation has mostly received attention as a perceptual curiosity, and
+as a literary figure, intentionally employed by translators to preserve
+the meter and ``sound structure'' (e.g., rhymes) of an original text in
+the language of translation (e.g.,
 \citeproc{ref-levick2016translating}{Levick, 2016};
 \citeproc{ref-pilshchikov2016semiotics}{Pilshchikov, 2016})\footnote{The
   rationale behind this translation approach is to ``sacrifice{[}s{]}
@@ -294,14 +335,14 @@ text in the language of translation (e.g.,
   similar case, in which formal aspects of the original text in Spanish
   are favoured to some degree over equivalence to English, even
   sometimes keeping Spanish words from the original text in the English
-  translation (e.g., \emph{Señor}, \emph{ínsula}).}. Although homophonic
-translation is mostly seen as a perceptual curiosity or as a literary
-figure, little attention has been paid to homophonic translation as a
-spontanous psycholinguistic event.
+  translation (e.g., \emph{Señor}, \emph{ínsula}).}. Little attention
+has been paid to homophonic translation as a psycholinguistic event.
 
-Otake (\citeproc{ref-otake2007interlingual}{2007}) analysed 194
-instances of Soramimi, broadcasted between 1992 and 2007 by the TV show
-\emph{Soramimi hour}, in which examples of Soramimi were presented the
+In one of the few available studies concerning homophonic translation as
+a psycholinguistic phenomenon, Otake
+(\citeproc{ref-otake2007interlingual}{2007}) analysed 194 instances of
+Soramimi, broadcasted between 1992 and 2007 by the Japanese TV show
+\emph{Soramimi hour}, in which examples of Soramimi were presented to
 the audience for comedy purposes. These instances consisted of
 homophonic translations of English song lyrics to words and phrases in
 Japanese. The vast majority of the reported instances were phrases
@@ -322,18 +363,39 @@ explained, to some extent, as the result of the Japanese listeners
 accommodating the strings of English sounds to the Japanese phoneme
 inventory and Japanese phonotactics
 (\citeproc{ref-dupoux1999epenthetic}{Dupoux et al., 1999};
-\citeproc{ref-peperkamp2008perceptual}{Peperkamp et al., 2008}).
+\citeproc{ref-peperkamp2008perceptual}{Peperkamp et al., 2008}). The
+phonological processes described by Otake
+(\citeproc{ref-otake2007interlingual}{2007}) do not take place in a
+vaccum, but rather in the context of a lexicon. As words or phrases in
+the native lexicon are activated by their acoustic similarity with the
+non-native speech stream, they trigger a series of mechanisms that
+result in the selection of one of the candidate word or phrase in the
+native language. In the present work, we investigated the interplay
+between phonological similarity and one of the main mechanisms involved
+in the dynamics of lexical selection: phonological neighbourhood
+density. The phonological neighbourhood density of a given word-form
+refers to the number of words-forms that differ in a single phoneme from
+the former. For instance, the English word \emph{cat} hbelongs to a
+dense phonological neighbourhood, with 50 English phonological
+neighbours (e.g., hat, bat, cap), while the word \emph{charger} belongs
+to a sparse phonological neighbourhood, with six neighbours (e.g.,
+charged,larger, charter, charmer). Phonological neighbourhood density
+affects lexical processing. For instance, words from dense
+neighbourhoods are recognized more slowly and less accuractely in the
+auditory modality than words from sparse neighbourhoods
+(\citeproc{ref-dufour2010phonological}{Dufour \& Frauenfelder, 2010};
+e.g., \citeproc{ref-luce1998recognizing}{Luce \& Pisoni, 1998};
+\citeproc{ref-vitevitch2006clustering}{M. Vitevitch, 2006};
+\citeproc{ref-vitevitch1998words}{Vitevitch \& Luce, 1998}). In this
+study, we examined how listeners may activate lexical representations in
+their native language when listening to an unfamiliar language.
 
-In the present work, we investigated the interplay between phonological
-similarity and phonological neighbourhood density to examine how
-listeners may activate lexical representations in their native language
-when listening to an unfamiliar language. Although homophonic
-translations do not necessarily take place with the preservation of
-meaning---which results in outrageous mistranslations like the
-aforementioned ones---homophonic translations sometimes may lead to
-correct translations. For example, imagine an English native listening
-to Dutch for the first time. This listener may encounter the word
-/\textipa{"pINgUIn}/ (\emph{pinguin}), which sounds similar to its
+Although homophonic translations do not necessarily take place with the
+preservation of meaning---which results in outrageous mistranslations
+like the aforementioned ones---homophonic translations sometimes may
+lead to correct translations. For example, imagine an English native
+listening to Dutch for the first time. This listener may encounter the
+word /\textipa{"pINgUIn}/ (\emph{pinguin}), which sounds similar to its
 English translation /\textipa{"pENgwIn}/ (penguin). Given enough
 phonological similarity between the non-native word and its translation
 in the native language, a naïve listener may succeed at word
@@ -349,37 +411,8 @@ the case of \emph{puerta} and \emph{porta} (\emph{door} in Spanish and
 Catalan, respectively). Given no prior knowledge of either language, a
 Spanish native speaker is likely to be much more successful at correctly
 translating Catalan \emph{porta} than English \emph{door}, due to the
-phonological and orthographic similarity of the former to the equivalent
-in their native language.
-
-When comparing the phonemic transcription of the French to that of its
-Spanish translation /\textipa{"pweR.ta}/ (\emph{puerta}), one may be led
-to infer that these two words do not have much overlap. But one thing to
-note is that the voiced uvular fricative consonant /\textipa{K}/ and the
-open-mid back rounded vowel /\textipa{O}/, which do not exist in Spanish
-as phonemic categories, can be perceived as allophonic variations the
-native (Spanish) phonemes /\textipa{R}/ and /o/, as described by
-assimilation models of phoneme perception
-(\citeproc{ref-best1988examination}{Best et al., 1988},
-\citeproc{ref-best2001discrimination}{2001}). Although this phonetic
-mismatch between the non-native word and its translation can have a
-noticeable toll on comprehension Cutler et al.
-(\citeproc{ref-cutler2004patterns}{2004}), the Spanish listener may
-still be able to activate the phonological representation of
-/\textipa{"pweR.ta}/ (\emph{puerta}) from hearing the word-form
-/\textipa{"pOKt}/ (\emph{porte}), ultimately allowing them to access the
-correct semantic representation. Native prosody also constrains the
-occurrence of homophonic translations. For instance, Kentner
-(\citeproc{ref-kentner2015rhythmic}{2015}) presented in the auditory
-modality French-native and German-native participants with English songs
-with lyrics. Homophonic translations followed language-specific
-segmentation strategies. Most homophonic translations reported by
-German-native participants resulted from inserting phrase and word
-boundaries before stressed syllables (following the more frequent
-trochaic pattern in German). On the contrary, most homophonic
-translations reported by French-native participants resulted from
-inserting phrase and word boundaries after stressed syllables, following
-the more frequent iambic pattern in French.
+phonological and (orthographic similarity) of the former to the
+equivalent in their native language.
 
 To explore the lexical mechanisms triggered by unfamiliar speech
 listening, we used a translation elicitation task in which participants
@@ -396,7 +429,8 @@ between the presented language and their native language to successfully
 translate the words. We therefore predicted that participants'
 performance should increase when the translation pairs are
 phonologically more similar. We also predicted that there is a minimum
-threshold of phonological similarity to be sufficient for translation.
+threshold of phonological similarity to be sufficient for correct
+translation.
 
 We further investigated the effect of phonological competitors. Even if
 the presented word and its target translation share high phonological
@@ -557,7 +591,7 @@ Weenink, 2021}). The average duration of the Catalan audio files was
 of the Spanish audio files was 1.16 seconds (\emph{SD} = 0.15, Range =
 0.78-1.53).
 
-For each word in the Catalan and Spanish lists pair, we defined three
+For each word pair in the Catalan and Spanish lists, we defined three
 predictors of interest: the lexical frequency of the correct English
 translation (\emph{Frequency}), the phonological similarity between the
 presented word and their correct English translation
@@ -570,30 +604,27 @@ their native language. Lexical frequencies of correct translations were
 extracted from SUBTLEX-UK (\citeproc{ref-van2014subtlex}{Van Heuven et
 al., 2014}), and transformed to Zipf scores. Translations without a
 lexical frequency value were excluded from data analysis (2 in the
-Catalan list, 5 in the Spanish list).
-
-We calculated \emph{Similarity}, our main predictor of interest, by
-computing the Levenshtein similarity between the X-SAMPA transcriptions
-of each pair of translations using the \texttt{stringdist} R package
-(\citeproc{ref-van2014stringdist}{van der Loo, 2014}). The Levenshtein
-distance computes the edit distance between two character strings---in
-this case, two phonological transcriptions---by counting the number of
-additions, deletions, and substitutions necessary to make both strings
-identical (\citeproc{ref-levenshtein1966binary}{Levenshtein, 1966}). We
-divided this edit distance by the number of characters in the longest
-X-SAMPA transcription of the translation pair. This transformation
-accounts for the fact that Levenshtein distance tends to increase with
-the length of the transcriptions. For interpretability, we subtracted
-this proportion from one, so that values closer to one correspond to
-higher similarity between phonological transcriptions, and values closer
-to zero correspond to lower similarity between phonological
-transcriptions. For example, the \emph{table}
-(\texttt{teIb@l})-\emph{mesa} (\texttt{mesa}) translation pair had 17\%
-similarity, while the \emph{train} (\texttt{trEIn})-\emph{tren}
-(\texttt{tREn}) translation pair had 60\% similarity.
-
-For each Catalan and Spanish word, we calculated the number of
-\emph{CLPN} by counting the number of English words with same or higher
+Catalan list, 5 in the Spanish list). \emph{Similarity}, our main
+predictor of interest, was calculated as the Levenshtein similarity
+between the X-SAMPA transcriptions of each pair of translations using
+the \texttt{stringdist} R package (\citeproc{ref-van2014stringdist}{van
+der Loo, 2014}). The Levenshtein distance computes the edit distance
+between two character strings---in this case, two phonological
+transcriptions---by counting the number of additions, deletions, and
+substitutions necessary to make both strings identical
+(\citeproc{ref-levenshtein1966binary}{Levenshtein, 1966}). We divided
+this edit distance by the number of characters in the longest X-SAMPA
+transcription of the translation pair. This transformation accounts for
+the fact that Levenshtein distance tends to increase with the length of
+the transcriptions. For interpretability, we subtracted this proportion
+from one, so that values closer to one correspond to higher similarity
+between phonological transcriptions, and values closer to zero
+correspond to lower similarity between phonological transcriptions. For
+example, the \emph{table} (\texttt{teIb@l})-\emph{mesa} (\texttt{mesa})
+translation pair had 17\% similarity, while the \emph{train}
+(\texttt{trEIn})-\emph{tren} (\texttt{tREn}) translation pair had 60\%
+similarity. We calculated the number of \emph{CLPN} for each Catalan and
+Spanish word by counting the number of English words with same or higher
 lexical frequency, and whose phonological transcription (in X-SAMPA
 format) differed in up to one phoneme from that of the presented Catalan
 or Spanish word. Lexical frequencies and phonological transcriptions
@@ -702,19 +733,26 @@ We modelled the probability of participants guessing the correct
 translation of each presented word using a generalised multilevel
 Bayesian regression model with a Bernoulli logit link distribution. We
 included as fixed effects the intercept, the main effects of
-\emph{Frequency}, \emph{Similarity}, and \emph{CLPN}, and the two-way
-interaction between \emph{Similarity} and \emph{CLPN}. We also included
-participant-level random intercepts and slopes for the main effects and
-the interaction. Eq. 1 shows a formal description of the model.
+\emph{Frequency}, \emph{Similarity}, \emph{CLPN}, and \emph{Group}
+(sum-coded as \texttt{cat-ENG\ =\ -0}, \texttt{spa-ENG\ =\ +0.5},
+\citeproc{ref-schad2020capitalize}{Schad et al., 2020}) and the
+three-way interaction between \emph{Similarity}, \emph{CLPN}, and
+\emph{Group}. The predictor \emph{Group} was included to account for any
+differences in task performance between English participants translating
+Catalan and Spanish words. We also included participant-level random
+intercepts and slopes for the main effects and the interaction. Eq. 1
+shows a formal description of the model.
 
 \begin{equation}\phantomsection\label{eq-1}{
 \begin{aligned}
 &\textbf{Likelihood}  \\
 y_{i} \sim & \text{Bernoulli}(p_{i}) \\ \\
 &\textbf{Parameters}  \\
-\text{Logit}(p_{i}) = &  \beta_{0[p,w]} + \beta_{1[p]} \text{Frequency}_{i} + \beta_{2[p]} \text{PTHN}_i + \beta_{3[p]} \text{Similarity}_i + \beta_{4[p]} (\text{PTHN}_i \times \text{Similarity}_i) \\
-\beta_{0-6[p,w]} \sim & \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \text{ and  word } w \text{ in 1, ..., } W \\
-\beta_{1-6[p]} \sim &  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \\ \\
+\text{Logit}(p_{i}) = &  \beta_{0[p,w]} + \beta_{1[p]} \text{Frequency}_{i} + \beta_{2[p]} \text{Similarity}_i +  \beta_{3[p]} \text{CLPN}_i + \beta_{4[p]} \text{Group}_i + \\
+&\beta_{5[p]} (\text{Similarity}_i \times \text{CLPN}_i) + \beta_{6[p]} (\text{Similarity}_i \times \text{Group}_i) + \\
+& \beta_{7[p]} (\text{CLPN}_i \times \text{Group}_i) + \beta_{8[p]} (\text{Similarity}_i \times \text{CLPN}_i \times \text{Group}_i) \\ \\
+\beta_{0-8[p,w]} \sim & \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \text{ and  word } w \text{ in 1, ..., } W \\
+\beta_{1-8[p]} \sim &  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \\ \\
 &\textbf{Prior}  \\
 \mu_{\beta_{p,w}}  \sim &  \mathcal{N}(0, 0.1) \\
 \sigma_{\beta_{p}},  \sigma_{\beta_{w}} \sim & \text{HalfCauchy}(0, 0.1) \\
@@ -740,6 +778,10 @@ data and to generate figures. We used the \texttt{brms} R package
 \texttt{cmdstanr} back-end to the Stan probabilistic language
 (\citeproc{ref-carpenter2017stan}{Carpenter et al., 2017}) to estimate
 and compare the models (see Appendix 1 for mode details on the models).
+Numeric predictors were standardised before entering the model by
+subtracting the mean and dividing by the standard deviation. Categorical
+predictors were sum-coded as \texttt{-0.5} and \texttt{+0.5}
+(\citeproc{ref-schad2020capitalize}{Schad et al., 2020}).
 
 \subsection{Results}\label{results}
 
@@ -790,7 +832,8 @@ different values of \emph{Similarity} and \emph{CLPN}.
 
 \begin{longtable}{l|rrrrrrrrr}
 
-\caption{\label{tbl-dataset}}
+\caption{\label{tbl-dataset}Summary of participants' accuracy in the
+translation elicitation task across Experiments 1, 2, and 3.}
 
 \tabularnewline
 
@@ -904,7 +947,10 @@ Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar
 (2020/9080/I).
 
 Stimuli were the same list of Catalan stimuli as in Experiment 1.
-Procedure and data analysis were identical as in Experiment 1.
+Procedure and data analysis were identical as in Experiment 1, with the
+only exception that the statistical model did not include the
+\emph{Group} predictor, given that only one group (\texttt{cat-SPA})
+participated in this experiment.
 
 \subsection{Results}\label{results-1}
 
@@ -967,15 +1013,14 @@ included all predictors from the models presented in Experiments 1 and
 \texttt{"Experiment\ 1"} and \texttt{"Experiment\ 2"}, and a three-way
 interaction between \emph{Experiment}, \emph{Similarity}, and
 \emph{CLPN}. The \emph{Experiment} variable was sum-coded as
-\texttt{-0.5} = \texttt{"Experiment\ 1"} and \texttt{+0.5} =
-\texttt{"Experiment\ 2"} (\citeproc{ref-schad2020capitalize}{Schad et
-al., 2020}). All two-way interactions between the three predictors were
-also included. The effect of \emph{CLPN} on \emph{Similarity} was mostly
-equivalent in both groups, as indicated by the coefficient of the
-three-way way interaction (\(\beta\) = 0.105, 95\% CrI = {[}-0.151,
--0.043{]}). The posterior probability of this coefficient being
-equivalent to zero (\emph{p}(ROPE)) wwas 0.422), that is, inconclusive.
-The coefficient of the interaction term between \emph{Experiment} and
+\texttt{-0.5\ =\ Experiment\ 1} and \texttt{+0.5\ =\ Experiment\ 2}. All
+two-way interactions between the three predictors were also included.
+The effect of \emph{CLPN} on \emph{Similarity} was equivalent in both
+groups, as indicated by the coefficient of the three-way way interaction
+(\(\beta\) = 0.105, 95\% CrI = {[}-0.151, -0.043{]}). The posterior
+probability of this coefficient being equivalent to
+zero---\emph{p}(ROPE)---was 0.422), that is, inconclusive. The
+coefficient of the interaction term between \emph{Experiment} and
 \emph{CLPN} was also equivalent to zero (\(\beta\) = -0.09, 95\% CrI =
 {[}-0.458, 0.346{]}, \emph{p}(ROPE) = 0.361), suggesting that
 participants from Experiments 1 and 2 were affected by CLPN on a similar
@@ -1000,21 +1045,14 @@ provided that the Catalan words shared some degree of phonological
 similarity with their Spanish translation, and that the number of
 phonological neighbours with higher lexical frequency was reduced. In
 contrast with the results in Experiment 1, the positive impact of
-phonological similarity on participants' performance in Experiment 2 was
-more resilient to the interference of phonological neighbourhood size.
-English natives in Experiment 1 provided significantly less accurate
-responses when more than four phonological neighbors were present (even
-when translating high-similarity words), compared to when less than
-three neighbours were present. Spanish participants in Experiment 2
-benefited from phonological similarity even when eight neighbours were
-present. Spanish participants' performance declined after eight
-neighbours, and was most evident at 12 neighbours. Overall, this
-suggests that participants in Experiment 2, who were natives of a
+phonological similarity on participants' performance in Experiment 2
+larger. Spanish natives in Experiment 2 provided exploited phonological
+similarity more strongly than English natives in Experiment 1. Overall,
+this suggests that participants in Experiment 2, who were natives of a
 typologically similar language (Spanish) to the presented language
 (Catalan), benefited more strongly from phonological similarity than
 participants in Experiment 1, who were natives of typologically less
 similar language (English) to the presented language (Catalan, Spanish).
-
 Participants from both Experiment 1 and 2 benefited strongly from
 phonological similarity to correctly translate words from a non-native,
 reportedly unfamiliar language. This pattern of results holds for most
@@ -1293,6 +1331,19 @@ intervals (CrI).}
 
 \subsection{Discussion}\label{discussion-2}
 
+Experiment 3 was a conceptual replication of Experiment 1 in which we
+gathered additional information about English native participants' prior
+familiarity with the meaning of the Catalan and Spanish words presented.
+After each trial, participants reported whether they had prior knowledge
+about the word meaning, and how confident they were about such
+information in a numeric scale from 0 to 7. To control for the effect of
+participants' prior knowledge abbout form-meaning mappings, we excluded
+from the analyses those words in which participants reported such prior
+knowledge. We found equivalent results to those in Experiment 1,
+indicating that participants' surprisingly good performance in the
+translation elicitation task was not due to being familiar with the
+meaning of words they were presented with.
+
 \begin{longtable}{l|rrrrrrrr}
 
 \caption{\label{tbl-results}}
@@ -1332,7 +1383,7 @@ spa-ENG & $590$ & ($19.53$) & $6$ & ($0.20$) & $2,294$ & ($75.94$) & $131$ & ($4
 
 \section{General discussion}\label{general-discussion}
 
-The present work explored the psycholinguistic bases of homophonic
+The present work explored the lexical processing bases of homophonic
 translation, a phenomenon in which listening to speech in a
 non-native---perhaps unfamiliar---language leads to the activation of
 lexical representations in the native language, without necessarily
@@ -1365,20 +1416,21 @@ adults who listened to a list of Catalan words. Again, participants
 reported no prior familiarity with Catalan, or any other Romance
 language other than Spanish. In line with the results with English
 natives, we found an interaction between phonological similarity and
-phonological neighbourhood size. The facilitation effect of phonological
-similarity in the Spanish participants was more robust to the
-interfering effect of phonological neighbourhood density: Spanish
-participants provided correct translations for words with high
-neighbourhood densities more often than English participants. Experiment
-3 was a replication of Experiment 1, in which we collected additional
-information about participants' prior familiarity with the presented
-Catalan and Spanish words. This follow-up experiment was designed to
-address concerns that participants in Experiments 1 and 2 might have
-managed to provide correct translations for some words thanks to having
-prior experience with those words. The design of Experiment 3 was
-closely modelled after Experiment 1, except that after providing their
-response in each trial, participants reported whether they had previous
-knowledge of the presented word. After removing responses where
+phonological neighbourhood size. Spanish natives in Experiment 2
+exploited phonological similarity more strongly than English natives in
+Experiment 1: the association between phonological similarity and the
+probability of correct translation was stronger in Experiment 2,
+compared to in Experiment 1.
+
+Experiment 3 was a replication of Experiment 1, in which we collected
+additional information about participants' prior familiarity with the
+presented Catalan and Spanish words. This follow-up experiment was
+designed to address concerns that participants in Experiments 1 and 2
+might have managed to provide correct translations for some words thanks
+to having prior experience with those words. The design of Experiment 3
+was closely modelled after Experiment 1, except that after providing
+their response in each trial, participants reported whether they had
+previous knowledge of the presented word. After removing responses where
 participants reported prior knowledge about the meaning of the presented
 Catalan or Spanish word, we ran the same analyses as in Experiment 1,
 and found parallel results. Overall, our results suggest that
@@ -1476,41 +1528,27 @@ account finer-grained phonetic or prosodic cues present in the acoustic
 signal, and explore the relative contribution of such cues in the
 occurrence of homophonic translation.
 
-In summary, the present paper provides insights into the
-psycholinguistic mechanisms underlying homophonic translation. English
-and Spanish native adults were tested in a translation elicitation task
-in which they had to guess the English or Spanish translation of a
-series of words in an unfamiliar language. Participants successfully
-exploited phonological similarity between the presented words and their
-correct translations to provide correct answers. Participants'
-performance in the task only benefited from phonological similarity when
-the presented word had few higher-frequency phonological neighbours in
-the target language. Finally, the facilitation effect of phonological
-similarity was more robust in the Spanish native participants, who
-translated words from a typologically closer language than English
-participants. Overall, the findings presented in the present paper
-suggest that the processing of words in a non-native, unfamiliar
-language recruits mechanisms of lexical activation, selection, and
-interference parallel to those recruited by listening to words in a
-native language.
+In summary, the present paper provides insights into the processing
+mechanisms underlying homophonic translation. English and Spanish native
+adults were tested in a translation elicitation task in which they had
+to guess the English or Spanish translation of a series of words in an
+unfamiliar language. Participants successfully exploited phonological
+similarity between the presented words and their correct translations to
+provide correct answers. Participants' performance in the task only
+benefited from phonological similarity when the presented word had few
+higher-frequency phonological neighbours in the target language.
+Finally, the facilitation effect of phonological similarity was stronger
+in the Spanish native participants, who translated words from a
+typologically closer language than English participants. Overall, the
+findings presented in the present paper suggest that the processing of
+words in a non-native, unfamiliar language recruits mechanisms of
+lexical activation, selection, and interference parallel to those
+recruited by listening to words in a native language.
 
 \section{References}\label{references}
 
 \phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
-\bibitem[\citeproctext]{ref-best2001discrimination}
-Best, C. T., McRoberts, G. W., \& Goodell, E. (2001). Discrimination of
-non-native consonant contrasts varying in perceptual assimilation to the
-listener's native phonological system. \emph{The Journal of the
-Acoustical Society of America}, \emph{109}(2), 775--794.
-
-\bibitem[\citeproctext]{ref-best1988examination}
-Best, C. T., McRoberts, G. W., \& Sithole, N. M. (1988). Examination of
-perceptual reorganization for nonnative speech contrasts: Zulu click
-discrimination by english-speaking adults and infants. \emph{Journal of
-Experimental Psychology: Human Perception and Performance},
-\emph{14}(3), 345.
-
 \bibitem[\citeproctext]{ref-briusov1911ot}
 Briusov, V. Y. (1911). \emph{Ot perevodchika}. Skorpion.
 
@@ -1534,12 +1572,6 @@ Statistical Software}, \emph{76}(1), 1--32.
 Cervantes, M. de, \& Grossman, E. (2002). First part of the ingenious
 nobleman don quixote of la mancha. \emph{Conjunctions}, \emph{38},
 207--225. \url{http://www.jstor.org/stable/24518146}
-
-\bibitem[\citeproctext]{ref-cutler2004patterns}
-Cutler, A., Weber, A., Smits, R., \& Cooper, N. (2004). Patterns of
-{English} phoneme confusions by native and non-native listeners.
-\emph{The Journal of the Acoustical Society of America}, \emph{116}(6),
-3668--3678.
 
 \bibitem[\citeproctext]{ref-dembeck2015oberflachenubersetzung}
 Dembeck, T. (2015). Oberfl{ä}chen{ü}bersetzung: The poetics and cultural
@@ -1592,10 +1624,6 @@ in lexical decision and naming. \emph{Journal of Memory and Language},
 Hamburger, M., \& Slowiaczek, L. M. (1996). Phonological priming
 reflects lexical competition. \emph{Psychonomic Bulletin \& Review},
 \emph{3}(4), 520--525.
-
-\bibitem[\citeproctext]{ref-kentner2015rhythmic}
-Kentner, G. (2015). Rhythmic segmentation in auditory illusions-evidence
-from cross-linguistic mondegreens. \emph{ICPhS}.
 
 \bibitem[\citeproctext]{ref-kruschke2018bayesian}
 Kruschke, J. K., \& Liddell, T. M. (2018). The {Bayesian New
@@ -1676,6 +1704,12 @@ Van Heuven, W. J., Mandera, P., Keuleers, E., \& Brysbaert, M. (2014).
 {SUBTLEX-UK}: {A} new and improved word frequency database for {British
 English}. \emph{Quarterly Journal of Experimental Psychology},
 \emph{67}(6), 1176--1190.
+
+\bibitem[\citeproctext]{ref-vitevitch2006clustering}
+Vitevitch, M. (2006). The clustering coefficient of phonological
+neighborhoods influences spoken word recognition. \emph{The Journal of
+the Acoustical Society of America}, \emph{120}(5), 3252--3252.
+\url{https://doi.org/10.1121/1.4788314}
 
 \bibitem[\citeproctext]{ref-vitevitch1998words}
 Vitevitch, M. S., \& Luce, P. A. (1998). When words compete: Levels of
@@ -1701,19 +1735,6 @@ Robinson, D., Seidel, D. P., Spinu, V., \ldots{} Yutani, H. (2019).
 Welcome to the tidyverse. \emph{Journal of Open Source Software},
 \emph{4}(43), 1686. \url{https://doi.org/10.21105/joss.01686}
 
-\bibitem[\citeproctext]{ref-best2001discrimination}
-Best, C. T., McRoberts, G. W., \& Goodell, E. (2001). Discrimination of
-non-native consonant contrasts varying in perceptual assimilation to the
-listener's native phonological system. \emph{The Journal of the
-Acoustical Society of America}, \emph{109}(2), 775--794.
-
-\bibitem[\citeproctext]{ref-best1988examination}
-Best, C. T., McRoberts, G. W., \& Sithole, N. M. (1988). Examination of
-perceptual reorganization for nonnative speech contrasts: Zulu click
-discrimination by english-speaking adults and infants. \emph{Journal of
-Experimental Psychology: Human Perception and Performance},
-\emph{14}(3), 345.
-
 \bibitem[\citeproctext]{ref-briusov1911ot}
 Briusov, V. Y. (1911). \emph{Ot perevodchika}. Skorpion.
 
@@ -1737,12 +1758,6 @@ Statistical Software}, \emph{76}(1), 1--32.
 Cervantes, M. de, \& Grossman, E. (2002). First part of the ingenious
 nobleman don quixote of la mancha. \emph{Conjunctions}, \emph{38},
 207--225. \url{http://www.jstor.org/stable/24518146}
-
-\bibitem[\citeproctext]{ref-cutler2004patterns}
-Cutler, A., Weber, A., Smits, R., \& Cooper, N. (2004). Patterns of
-{English} phoneme confusions by native and non-native listeners.
-\emph{The Journal of the Acoustical Society of America}, \emph{116}(6),
-3668--3678.
 
 \bibitem[\citeproctext]{ref-dembeck2015oberflachenubersetzung}
 Dembeck, T. (2015). Oberfl{ä}chen{ü}bersetzung: The poetics and cultural
@@ -1795,10 +1810,6 @@ in lexical decision and naming. \emph{Journal of Memory and Language},
 Hamburger, M., \& Slowiaczek, L. M. (1996). Phonological priming
 reflects lexical competition. \emph{Psychonomic Bulletin \& Review},
 \emph{3}(4), 520--525.
-
-\bibitem[\citeproctext]{ref-kentner2015rhythmic}
-Kentner, G. (2015). Rhythmic segmentation in auditory illusions-evidence
-from cross-linguistic mondegreens. \emph{ICPhS}.
 
 \bibitem[\citeproctext]{ref-kruschke2018bayesian}
 Kruschke, J. K., \& Liddell, T. M. (2018). The {Bayesian New
@@ -1879,6 +1890,12 @@ Van Heuven, W. J., Mandera, P., Keuleers, E., \& Brysbaert, M. (2014).
 {SUBTLEX-UK}: {A} new and improved word frequency database for {British
 English}. \emph{Quarterly Journal of Experimental Psychology},
 \emph{67}(6), 1176--1190.
+
+\bibitem[\citeproctext]{ref-vitevitch2006clustering}
+Vitevitch, M. (2006). The clustering coefficient of phonological
+neighborhoods influences spoken word recognition. \emph{The Journal of
+the Acoustical Society of America}, \emph{120}(5), 3252--3252.
+\url{https://doi.org/10.1121/1.4788314}
 
 \bibitem[\citeproctext]{ref-vitevitch1998words}
 Vitevitch, M. S., \& Luce, P. A. (1998). When words compete: Levels of
