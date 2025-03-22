@@ -1,5 +1,5 @@
 
-# TranslationElicitation
+# Translation Elicitation
 
 More info in the Open Science Framework repository.
 
