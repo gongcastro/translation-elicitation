@@ -70,15 +70,12 @@ object will be directly save as a variable in your workspace.
 
 This repository is organised as follows:
 
--   **data**: raw, processed, and coded data from the behavioural task
--   **img**: figures resulting from the scripts
--   **docs**: lab notes
--   **manuscript**: Rmarkdown files and outputs of the manuscript
-    (generated using the {papaja} R package)
--   **results**: outputs of the models.
--   **scripts**: R code used to process and analyse the data, and Stan
-    code used to fit the Bayesian models (called via the R scripts).
--   **stimuli**: Stimuli and trial lists used in the behavioural task.
+- **data-raw**: raw data from the behavioural task in Experiments 1, 2, and 3.
+- **data**: processed and manually coded data.
+- **manuscript**: Quarto documents for the manuscript and appendix.
+- **results**: outputs of the models.
+- **R**: R code used to process and analyse the data.
+- **stimuli**: stimuli and trial lists used in the behavioural task.
 
 The file `.gitignore` indicates Git what files/subfolders must *not* be
 kept track of (for privacy and storage limit, e.g., audios).

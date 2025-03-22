@@ -1,456 +1,106 @@
 
-## Appendix 1: MCMC diagnostics
+```{r}
+#| label: setup
+library(targets)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(gt)
+library(gtExtras)
+library(brms)
+library(tidybayes)
+library(ggExtra)
+library(tinytable)
+library(stringdist)
+set.seed(1234)
+
+# import objects
+tar_config_set(
+  store = here::here("_targets"),
+  script = here::here("_targets.R")
+)
+tar_load_globals()
+tar_load(participants)
+tar_load(exp_participants)
+tar_load(exp_responses)
+tar_load(quest_responses)
+tar_load(quest_participants)
+tar_load(stimuli)
+tar_load(epreds)
+tar_load(dataset_1)
+tar_load(dataset_2)
+tar_load(dataset_3)
+tar_load(exp_1_m0)
+tar_load(exp_2_m0)
+tar_load(exp_3_m1)
+tar_load(exp_12_m0)
+
+
+theme_set(theme_ggdist() +
+  theme(panel.grid.major.y = element_line(
+    colour = "grey",
+    linetype = "dotted"
+  )))
+
+```
+
+## Appendix 1: Model diagnostics
+
+One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript.  Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
+
 
 ```{r fig-appendix-diagnostics}
 #| label: fig-appendix-diagnostics
 #| fig-width: 9
 #| fig-height: 9
-var_labels <- c("b_Intercept" = "Intercept",
-                "b_freq_zipf_2" = "Frequency",
-                "b_lv" = "Cognateness",
-                "b_neigh_n_h" = "CLPN",
-                "b_neigh_n_h:lv" = "Cognateness × CLPN",
-                "b_group1" = "cat-ENG vs. spa-ENG") 
-
-list(exp_1_m0, exp_2_m0, exp_3_m1) |> 
-    set_names(paste0("Experiment ", 1:3)) |> 
-    map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |> 
-    dplyr::filter(.variable != "b_Intercept") |> 
-    mutate(.value = .value/4,
-           .variable = factor(.variable, 
-                              levels = names(var_labels),
-                              labels = var_labels)) |> 
-    ggplot(aes(.iteration, .value, colour = factor(.chain))) +
-    facet_grid(.variable~exp, scales = "free") +
-    geom_line() +
-    labs(x = "Iteration",
-         y = "Value",
-         colour = "Chain",
-         fill = "Chain",
-         linetype = "Chain") +
-    scale_colour_brewer(palette = "Reds") +
-    theme(legend.position = "top",
-          legend.box = "horizontal",
-          panel.border = element_rect(fill = NA,
-                                      colour = "grey"),
-          legend.justification = c(1, 0),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank())
-```
-
-
-
-## Trace and Rank plots
-
-```{r appendix-trace, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-(bayesplot::mcmc_trace(exp_1_m0, names(var_labels)) + bayesplot::legend_none()) /
-  bayesplot::mcmc_rank_overlay(exp_1_m0, pars = names(var_labels)) +
-  plot_layout(guides = "collect") &
-  theme(
-    legend.position = "top"
-  )
-```
-
-
-# Appendix 3: participant-level posterior predictions
-
-```{r acc_participant, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# by participant
-m_re_participant <- posterior_epreds_random$participants %>% 
-  mutate_at(vars(pthn, frequency_zipf), function(x) paste0(x, " SD")) %>% 
-  mutate(
-    pthn = case_when(
-      pthn=="-1 SD" ~ "Low PTHN",
-      pthn=="0 SD" ~ "Mean PTHN",
-      pthn=="1 SD" ~ "High PTHN"
-    ),
-    frequency_zipf = case_when(
-      frequency_zipf=="-1 SD" ~ "Low frequency",
-      frequency_zipf=="0 SD" ~ "Mean frequency",
-      frequency_zipf=="1 SD" ~ "High frequency"
-    )
-  ) %>% 
-  group_by(participant, lv, pthn) %>% 
-  summarise(.epred = mean(.epred, na.rm = TRUE), .groups = "drop") %>% 
-  mutate(participant = as.numeric(participant))
-
-ggplot(m_re_participant, aes(lv, .epred, colour = pthn, fill = pthn)) +
-  facet_wrap(~participant) +
-  geom_line(aes(group = interaction(pthn, participant)), size = 0.35) +
-  geom_text(
-    data = distinct(m_re_participant, participant), 
-    aes(x = -1, y = 1, label = participant),
-    size = 1.5, vjust = 1, hjust = 0, inherit.aes = FALSE, 
-    position = position_nudge(x = 0.2),
-    show.legend = FALSE
-  ) +
-  labs(x = "Phonological similarity\n(Levenshtein, SD)", y = "P(Correct)", 
-       colour = "PTHN", fill = "PTHN", linetype = "PTHN",
-       title = "Participant-level predictions") +
-  scale_color_manual(values = c("#1E88E5", "#ff2976")) +
-  scale_y_continuous(labels = function(x) percent(round(x, 2)), limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
-  guides(colour = guide_legend(ncol = 2)) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks = element_blank(),
-    strip.text = element_blank(),
-    strip.background = element_blank(),
-    panel.spacing = unit(0.1, "lines")
-  ) 
-
-```
-
-
-
-# Appendix 2: accuracy by item
-
-## English-Spanish group
-
-```{r appendix-accuracy-engspa, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="100%", fig.height = 7, fig.width = 4}
-
-acc_engspa <- responses %>%
-  filter(group == "ENG-SPA") %>% 
-  group_by(word) %>%
-  summarise(
-    correct_sum = sum(correct, na.rm = TRUE),
-    correct_n = sum(!is.na(correct), na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  left_join(select(filter(stimuli, group=="ENG-SPA"), word = word1, word2, ipa1, ipa2)) %>% 
-  drop_na(word2) %>% 
-  rowwise() %>% 
-  mutate(
-    word = paste0(word, " /", ipa1, "/"),
-    word2 = paste0(word2, " /", ipa2, "/"),
-    correct_prop = prop_adj(correct_sum, correct_n),
-    correct_se = prop_adj_se(correct_sum, correct_n),
-    correct_ci_lower = correct_prop + qnorm((1-.95)/2)*correct_se,
-    correct_ci_upper = correct_prop + qnorm(1-(1-.95)/2)*correct_se,
-    correct_ci_lower = ifelse(correct_ci_lower < 0, 0, correct_ci_lower),
-    correct_ci_upper = ifelse(correct_ci_upper > 1, 1, correct_ci_upper)
-  ) %>% 
-  ungroup() %>% 
-  arrange(-correct_prop) %>% 
-  select(word, word2, correct_prop, correct_se, correct_ci_lower, correct_ci_upper) 
-
-if ((nrow(acc_engspa) %% 2) > 0) {
-  acc_engspa <- add_row(
-    acc_engspa,
-    data.frame(
-      word = NA, word2 = NA, correct_prop = NA, correct_se = NA, 
-      correct_ci_lower = NA, correct_ci_upper = NA
-    )
-  )
-}
-
-
-acc_engspa <- mutate(
-  acc_engspa, 
-  row = 1:nrow(acc_engspa), 
-  col = ifelse(row <= nrow(acc_engspa)/2, 1, 2)
+var_labels <- c(
+  "b_Intercept" = "Intercept",
+  "b_freq_zipf_2_std" = "Frequency",
+  "b_lv_std" = "Cognateness",
+  "b_neigh_n_h_std" = "CLPN",
+  "b_neigh_n_h_std:lv_std" = "Cognateness × CLPN",
+  "b_group1" = "cat-ENG vs. spa-ENG"
 )
 
-tab_engspa <- cbind(
-  rename_all(acc_engspa[acc_engspa$col==1,], ~paste0(., "_1")), 
-  rename_all(acc_engspa[acc_engspa$col==2,], ~paste0(., "_2"))
-) %>% 
-  select(-c(col_1, col_2, row_1, row_2)) %>% 
-  as_tibble() %>% 
-  gt() %>% 
-  tab_header(
-    title = "Table A.1",
-    subtitle = "Proportion of correct translation by item in the English-Spanish group"
-  ) %>% 
-  tab_source_note("Words presented to participants in the English-Spanish group are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95\\% confidence interval of each word. Accuracy is plotted separately for each group.") %>% 
-  tab_spanner("(1)", ends_with("_1")) %>% 
-  tab_spanner("(2)", ends_with("_2")) %>% 
-  cols_merge(5:6, pattern = "[{1}, {2}]") %>% 
-  cols_merge(11:12, pattern = "[{1}, {2}]") %>% 
-  
-  fmt_percent(3:6, decimals = 0) %>% 
-  fmt_percent(9:12, decimals = 0)  %>% 
-  
-  cols_align("left") %>% 
-  cols_label(
-    word_1 = "Word",
-    word2_1 = "Translation",
-    correct_prop_1 = "Accuracy",
-    correct_se_1 = md("*SE*"),
-    correct_ci_lower_1 = md("*CI*<sub>95%</sub>"),
-    word_2 = "Word",
-    word2_2 = "Translation",
-    correct_prop_2 = "Accuracy",
-    correct_se_2 = md("*SE*"),
-    correct_ci_lower_2 = md("*CI*<sub>95%</sub>")
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = c("left", "right"), color = "white"),
-    locations = list(
-      cells_body(), cells_row_groups(),
-      cells_stub(), 
-      cells_column_labels(), cells_stubhead()
-    )
-  ) %>% 
-  tab_style(
-    style = list(cell_text(align = "left", size = "small"), cell_borders(sides = "all", color = "white")),
-    locations = cells_stub()
-  ) %>% 
-  tab_style(
-    style = cell_text(align = "center", size = "small", weight = "normal", style = "normal"),
-    locations = list(cells_column_spanners(), cells_column_labels())
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "all", color = "white"),
-    locations = cells_body(columns = c(1:12))
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "top", color = "white"),
-    locations = cells_body(columns = 1:6)
-  ) %>% 
-  tab_style(
-    cell_text(weight = "bold"), cells_body(columns = c(1, 7))
-  ) %>% 
-  tab_style(
-    cell_text(size = "small"), 
-    cells_body(columns = everything(), rows = everything())
-  ) %>%
-  tab_style(cell_text(size = "small"), cells_body(columns = everything(), rows = everything())) %>%   tab_options(data_row.padding = px(1)) %>% 
-  gtsave(here("Figures", "accuracy_engspa.png"))
-
-include_graphics(here("Figures", "accuracy_engspa.png"))
-```
-
-## English-Catalan group
-
-```{r appendix-accuracy-engcat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="100%", fig.height = 7, fig.width = 4}
-
-acc_engcat <- responses %>%
-  filter(group == "ENG-CAT") %>% 
-  group_by(word) %>%
-  summarise(
-    correct_sum = sum(correct, na.rm = TRUE),
-    correct_n = sum(!is.na(correct), na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  left_join(select(filter(stimuli, group=="ENG-CAT"), word = word1, word2, ipa1, ipa2)) %>% 
-  drop_na(word2) %>% 
-  rowwise() %>% 
+list(exp_1_m0, exp_2_m0, exp_3_m1) |>
+  set_names(paste0("Experiment ", 1:3)) |>
+  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
+  dplyr::filter(.variable != "b_Intercept") |>
   mutate(
-    word = paste0(word, " /", ipa1, "/"),
-    word2 = paste0(word2, " /", ipa2, "/"),
-    correct_prop = prop_adj(correct_sum, correct_n),
-    correct_se = prop_adj_se(correct_sum, correct_n),
-    correct_ci_lower = correct_prop + qnorm((1-.95)/2)*correct_se,
-    correct_ci_upper = correct_prop + qnorm(1-(1-.95)/2)*correct_se,
-    correct_ci_lower = ifelse(correct_ci_lower < 0, 0, correct_ci_lower),
-    correct_ci_upper = ifelse(correct_ci_upper > 1, 1, correct_ci_upper)
-  ) %>% 
-  ungroup() %>% 
-  arrange(-correct_prop) %>% 
-  select(word, word2, correct_prop, correct_se, correct_ci_lower, correct_ci_upper) 
-
-if ((nrow(acc_engcat) %% 2) > 0) {
-  acc_engcat <- add_row(
-    acc_engcat,
-    data.frame(
-      word = NA, word2 = NA, correct_prop = NA, correct_se = NA, 
-      correct_ci_lower = NA, correct_ci_upper = NA
+    .value = .value / 4,
+    .variable = factor(.variable,
+      levels = names(var_labels),
+      labels = var_labels
     )
+  ) |>
+  ggplot(aes(.iteration, .value, colour = factor(.chain))) +
+  facet_grid(.variable ~ exp, scales = "free") +
+  geom_line() +
+  labs(
+    x = "Iteration",
+    y = "Value",
+    colour = "Chain",
+    fill = "Chain",
+    linetype = "Chain"
+  ) +
+  scale_colour_brewer(palette = "Reds") +
+  theme(
+    legend.position = "top",
+    legend.box = "horizontal",
+    panel.border = element_rect(
+      fill = NA,
+      colour = "grey"
+    ),
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
   )
-}
-
-
-acc_engcat <- mutate(acc_engcat, row = 1:nrow(acc_engcat), col = ifelse(row <= nrow(acc_engcat)/2, 1, 2))
-
-tab_engcat <- cbind(
-  rename_all(acc_engcat[acc_engcat$col==1,], ~paste0(., "_1")), 
-  rename_all(acc_engcat[acc_engcat$col==2,], ~paste0(., "_2"))
-) %>% 
-  select(-c(col_1, col_2, row_1, row_2)) %>% 
-  as_tibble() %>% 
-  gt() %>% 
-  tab_header(
-    title = "Table A.2",
-    subtitle = "Proportion of correct translation by item in the English-Catalan group"
-  ) %>% 
-  tab_source_note("Words presented to participants in the English-Catalan group are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95\\% confidence interval of each word. Accuracy is plotted separately for each group.") %>% 
-  tab_spanner("(1)", ends_with("_1")) %>% 
-  tab_spanner("(2)", ends_with("_2")) %>% 
-  cols_merge(5:6, pattern = "[{1}, {2}]") %>% 
-  cols_merge(11:12, pattern = "[{1}, {2}]") %>% 
-  
-  fmt_percent(3:6, decimals = 0) %>% 
-  fmt_percent(9:12, decimals = 0)  %>% 
-  
-  cols_align("left") %>% 
-  cols_label(
-    word_1 = "Word",
-    word2_1 = "Translation",
-    correct_prop_1 = "Accuracy",
-    correct_se_1 = md("*SE*"),
-    correct_ci_lower_1 = md("*CI*<sub>95%</sub>"),
-    word_2 = "Word",
-    word2_2 = "Translation",
-    correct_prop_2 = "Accuracy",
-    correct_se_2 = md("*SE*"),
-    correct_ci_lower_2 = md("*CI*<sub>95%</sub>")
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = c("left", "right"), color = "white"),
-    locations = list(
-      cells_body(), cells_row_groups(),
-      cells_stub(), 
-      cells_column_labels(), cells_stubhead()
-    )
-  ) %>% 
-  tab_style(
-    style = list(cell_text(align = "left", size = "small"), cell_borders(sides = "all", color = "white")),
-    locations = cells_stub()
-  ) %>% 
-  tab_style(
-    style = cell_text(align = "center", size = "small", weight = "normal", style = "normal"),
-    locations = list(cells_column_spanners(), cells_column_labels())
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "all", color = "white"),
-    locations = cells_body(columns = c(1:12))
-  ) %>% 
-  tab_style(
-    cell_text(weight = "bold"), cells_body(columns = c(1, 7))
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "top", color = "white"),
-    locations = cells_body(columns = 1:6)
-  ) %>% 
-  tab_style(
-    cell_text(size = "small"), 
-    cells_body(columns = everything(), rows = everything())
-  ) %>%
-  tab_style(cell_text(size = "small"), cells_body(columns = everything(), rows = everything())) %>%   tab_options(data_row.padding = px(1)) %>% 
-  gtsave(here("Figures", "accuracy_engcat.png"))
-
-include_graphics(here("Figures", "accuracy_engcat.png"))
-
 ```
 
 
-## Spanish-Catalan group
 
-```{r appendix-accuracy-spacat, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="100%", fig.height = 7, fig.width = 4}
-
-acc_spacat <- responses %>%
-  filter(group == "SPA-CAT") %>% 
-  group_by(word) %>%
-  summarise(
-    correct_sum = sum(correct, na.rm = TRUE),
-    correct_n = sum(!is.na(correct), na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  left_join(select(filter(stimuli, group=="SPA-CAT"), word = word1, word2, ipa1, ipa2)) %>% 
-  drop_na(word2) %>% 
-  rowwise() %>% 
-  mutate(
-    word = paste0(word, " /", ipa1, "/"),
-    word2 = paste0(word2, " /", ipa2, "/"),
-    correct_prop = prop_adj(correct_sum, correct_n),
-    correct_se = prop_adj_se(correct_sum, correct_n),
-    correct_ci_lower = correct_prop + qnorm((1-.95)/2)*correct_se,
-    correct_ci_upper = correct_prop + qnorm(1-(1-.95)/2)*correct_se,
-    correct_ci_lower = ifelse(correct_ci_lower < 0, 0, correct_ci_lower),
-    correct_ci_upper = ifelse(correct_ci_upper > 1, 1, correct_ci_upper)
-  ) %>% 
-  ungroup() %>% 
-  arrange(-correct_prop) %>% 
-  select(word, word2, correct_prop, correct_se, correct_ci_lower, correct_ci_upper) 
-
-if ((nrow(acc_spacat) %% 2) > 0) {
-  acc_spacat <- add_row(
-    acc_spacat,
-    data.frame(
-      word = NA, word2 = NA, correct_prop = NA, correct_se = NA, 
-      correct_ci_lower = NA, correct_ci_upper = NA
-    )
-  )
-}
-
-
-acc_spacat <- mutate(acc_spacat, row = 1:nrow(acc_spacat), col = ifelse(row <= nrow(acc_spacat)/2, 1, 2))
-
-tab_spacat <- cbind(
-  rename_all(acc_spacat[acc_spacat$col==1,], ~paste0(., "_1")), 
-  rename_all(acc_spacat[acc_spacat$col==2,], ~paste0(., "_2"))
-) %>% 
-  select(-c(col_1, col_2, row_1, row_2)) %>% 
-  as_tibble() %>% 
-  gt() %>% 
-  tab_header(
-    title = "Table A.3",
-    subtitle = "Proportion of correct translation by item in the Spanish-Catalan group"
-  ) %>% 
-  tab_source_note("Words presented to participants in the Spanish-Catalan group are listed in the Y-axis, ordered from higher to lower average translation accuracy, depicted in the X-axis. Dots and whiskers represent the average accuracy and 95\\% confidence interval of each word. Accuracy is plotted separately for each group.") %>% 
-  tab_spanner("(1)", ends_with("_1")) %>% 
-  tab_spanner("(2)", ends_with("_2")) %>% 
-  cols_merge(5:6, pattern = "[{1}, {2}]") %>% 
-  cols_merge(11:12, pattern = "[{1}, {2}]") %>% 
-  
-  fmt_percent(3:6, decimals = 0) %>% 
-  fmt_percent(9:12, decimals = 0)  %>% 
-  
-  cols_align("left") %>% 
-  cols_label(
-    word_1 = "Word",
-    word2_1 = "Translation",
-    correct_prop_1 = "Accuracy",
-    correct_se_1 = md("*SE*"),
-    correct_ci_lower_1 = md("*CI*<sub>95%</sub>"),
-    word_2 = "Word",
-    word2_2 = "Translation",
-    correct_prop_2 = "Accuracy",
-    correct_se_2 = md("*SE*"),
-    correct_ci_lower_2 = md("*CI*<sub>95%</sub>")
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = c("left", "right"), color = "white"),
-    locations = list(
-      cells_body(), cells_row_groups(),
-      cells_stub(), 
-      cells_column_labels(), cells_stubhead()
-    )
-  ) %>% 
-  tab_style(
-    style = list(cell_text(align = "left", size = "small"), cell_borders(sides = "all", color = "white")),
-    locations = cells_stub()
-  ) %>% 
-  tab_style(
-    style = cell_text(align = "center", size = "small", weight = "normal", style = "normal"),
-    locations = list(cells_column_spanners(), cells_column_labels())
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "all", color = "white"),
-    locations = cells_body(columns = c(1:12))
-  ) %>% 
-  tab_style(
-    style = cell_borders(sides = "top", color = "white"),
-    locations = cells_body(columns = 1:6)
-  ) %>% 
-  tab_style(
-    cell_text(weight = "bold"), cells_body(columns = c(1, 7))
-  ) %>% 
-  tab_style(
-    cell_text(size = "small"), 
-    cells_body(columns = everything(), rows = everything())
-  ) %>%
-  tab_options(data_row.padding = px(1)) %>% 
-  gtsave(here("Figures", "accuracy_spacat.png"))
-
-include_graphics(here("img", "accuracy_spacat.png"))
-
-```
-
-## Appendix 3: pooled analyses of Experiments 1 and 3
+## Appendix 2: Pooled analyses of Experiments 1 and 3
 
 Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
 
@@ -460,10 +110,10 @@ Across Experiments 1 and 3, we found strong evidence that participants efficient
 #| fig-height: 5
 var_labels <- c(
   "b_Intercept" = "Intercept",
-  "b_freq_zipf_2" = "Frequency",
-  "b_lv" = "Similarity",
-  "b_neigh_n_h" = "CLPN",
-  "b_neigh_n_h:lv" = "Similarity × CLPN",
+  "b_freq_zipf_2_std" = "Frequency",
+  "b_lv_std" = "Similarity",
+  "b_neigh_n_h_std" = "CLPN",
+  "b_neigh_n_h_std:lv_std" = "Similarity × CLPN",
   "b_group1" = "cat-ENG vs. spa-ENG"
 )
 
@@ -525,3 +175,4 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
     axis.title.y = element_blank()
   )
 ```
+

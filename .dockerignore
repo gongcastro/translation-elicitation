@@ -1,0 +1,9 @@
+.Renviron
+.Rproj.user/
+.Rprofile
+Dockerfile
+_targets.yaml
+.vscode/
+.github/
+.gitignore
+/renv/
