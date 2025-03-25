@@ -1,3 +1,8 @@
+---
+abstract: |
+  When listening to speech in an unfamiliar language, words and phrases in the native language are frequently activated due to their acoustic similarity with some parts of the speech stream. This study explored this phenomenon, for the first time, from a language processing perspective. Across three studies, English- and Spanish-native adults completed a translation elicitation task, in which they listened to a series of words from an unfamiliar language (Catalan or Spanish for English speakers, Catalan for Spanish speakers). For each presented word, participants had to type their best-guess translation in their native language. Both English and Spanish natives were surprisingly good at translating unfamiliar words, efficiently exploiting the phonological similarity between the presented (unfamiliar) words and their correct translation. When the correct translation belonged to high-density phonological neighbourhood, participants' ability to benefit from phonological similarity decreased. Spanish participants, whose native language was typologically closer to the presented language, benefited more strongly from phonological similarity than English participants. Overall, we show that speech in an unfamiliar language triggers equivalent dynamics of lexical selection than native speech, providing a psycholinguistic account for homophonic translation.
+---
+
 ```{r}
 #| label: setup
 library(targets)
@@ -65,7 +70,7 @@ In Experiment 1, we collected data from two groups of British English natives li
 
 ## Methods
 
-All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/](https://osf.io/9fjxm/?view_only=aab7636ce1af48cf832596a7ea9101c5/) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes.
+All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/](https://osf.io/9fjxm/?view_only=aab7636ce1af48cf832596a7ea9101c5/) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general](https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general)).
 
 ### Participants
 

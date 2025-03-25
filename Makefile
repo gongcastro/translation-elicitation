@@ -1,11 +1,6 @@
-pdf:
+render:
 	quarto render 
 
-docx:
-	quarto render --profile docx
-
-render:
-	quarto render --profile docx,pdf
 
 docker-build: Dockerfile .dockerignore
 	@echo "Building Docker image..."
