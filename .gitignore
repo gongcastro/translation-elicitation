@@ -26,6 +26,7 @@ data-raw/
 data-raw/clearpond/
 
 psychopy/
+_freeze/
 
 _targets/objects/
 _targets/
