@@ -1,7 +1,7 @@
 project:
   render:
-    - manuscript/manuscript.qmd
-    - manuscript/appendix.qmd
+    - article/manuscript.qmd
+    - article/appendix.qmd
 
 format:
   arxiv-pdf:
