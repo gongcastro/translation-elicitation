@@ -4,8 +4,27 @@
 More info in the Open Science Framework repository.
 
 ## How to make this repository work on your local machine
+There are two possibilities to reproduce the computational environment of this study: (a) Using the Docker image (recommended), (b) manual setup.
 
-### 1. Downloading the repository
+### Docker setup
+
+1) Install [Docker Desktop](https://docs.docker.com/engine/install/) in your local machine. (You may have to restart your machine after installation).
+2) Open Docker Desktop. In the search bar (Ctrl+K or cmd+K), search `gongcastro/translation-elicitation` and click "Run".
+4) Open a terminal and run the following command:
+
+```bash
+docker run --rm -ti \
+    -e ROOT=true \
+	-e PASSWORD=rstudio \
+    -p 8787:8787 \
+    --name rstudio gongcastro/translation-elicitation:latest
+```
+5) Open a browser and navigate to [http://localhost:8787](http://localhost:8787). A login page will show up. Use "rstudio" as username. You will find the passsword printed in the terminal.
+6) After login, you will see an RStudio session in which you can run `make()` to run the code and get all outputs.
+
+### Manual setup
+
+#### 1. Downloading the repository
 
 You can either download the project as a .zip file by clocking on the
 green button that says “Code”, or if you feel comfortable with Git, you
@@ -15,7 +34,7 @@ can clone the repository from your console running:
 git clone https://github.com/gongcastro/translation-elicitation.git
 ```
 
-### 2. Setting up R packages with renv
+#### 2. Setting up R packages with renv
 
 We used the R package renv to keep track of the dependencies of the
 project. renv allows to install and update the R packages necessary to
@@ -34,7 +53,7 @@ renv::activate() # this will create the renv infrastructure if missing
 renv::restore() # this will install/update/move the necessary R pakcages into this project
 ```
 
-### 3. Running the code with targets
+#### 3. Running the code with targets
 
 Restart your R session. The code in the .Rprofile file should run at
 start, and define the function `make()`. You should be able to run
