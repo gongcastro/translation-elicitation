@@ -19,7 +19,7 @@ docker run --rm -ti \
     -p 8787:8787 \
     --name rstudio gongcastro/translation-elicitation:latest
 ```
-5) Open a browser and navigate to [http://localhost:8787](http://localhost:8787). A login page will show up. Use "rstudio" as username. You will find the passsword printed in the terminal.
+5) Open a browser and navigate to [http://localhost:8787](http://localhost:8787). A login page will show up. Use "rstudio" as username and password.
 6) After login, you will see an RStudio session in which you can run `make()` to run the code and get all outputs.
 
 ### Manual setup
