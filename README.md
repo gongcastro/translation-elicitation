@@ -15,7 +15,7 @@ There are two possibilities to reproduce the computational environment of this s
 ```bash
 docker run --rm -ti \
     -e ROOT=true \
-	-e PASSWORD=rstudio \
+    -e PASSWORD=rstudio \
     -p 8787:8787 \
     --name rstudio gongcastro/translation-elicitation:latest
 ```
