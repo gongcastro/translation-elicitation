@@ -8,7 +8,7 @@ There are two possibilities to reproduce the computational environment of this s
 
 ### Docker setup
 
-1) Install [Docker Desktop](https://docs.docker.com/engine/install/) in your local machine. (You may have to restart your machine after installation).
+1) Install [Docker Desktop](https://www.docker.com/) in your local machine. (You may have to restart your machine after installation).
 2) Open Docker Desktop. In the search bar (Ctrl+K or cmd+K), search `gongcastro/translation-elicitation` and click "Run".
 4) Open a terminal and run the following command:
 
