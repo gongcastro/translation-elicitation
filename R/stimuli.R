@@ -1,12 +1,15 @@
 #' Import CLEARPOND database
 #'
-import_clearpond <- function(cp_c_path_eng,
-                             cp_c_path_spa,
-                             cp_h_path_eng,
-                             cp_h_path_spa) {
+import_clearpond <- function(
+  cp_c_path_eng,
+  cp_c_path_spa,
+  cp_h_path_eng,
+  cp_h_path_spa
+) {
   suppressWarnings({
     header <- readLines(file.path(cp_h_path_eng), warn = FALSE)
-    eng <- read_tsv(file.path(cp_c_path_eng),
+    eng <- read_tsv(
+      file.path(cp_c_path_eng),
       col_names = header,
       progress = FALSE,
       show_col_types = FALSE
@@ -14,7 +17,8 @@ import_clearpond <- function(cp_c_path_eng,
       janitor::clean_names()
 
     header <- readLines(file.path(cp_h_path_spa), warn = FALSE)
-    spa <- read_tsv(file.path(cp_c_path_spa),
+    spa <- read_tsv(
+      file.path(cp_c_path_spa),
       col_names = header,
       progress = FALSE,
       show_col_types = FALSE
@@ -60,10 +64,18 @@ get_trial_list <- function(trial_list_path) {
   trial_list <- groups |>
     map_dfr(import_trials, trial_list_path, .id = "group") |>
     select(
-      group, word_1, word_2, ipa_1, ipa_2,
-      sampa_1, sampa_2, practice_trial, file
+      group,
+      word_1,
+      word_2,
+      ipa_1,
+      ipa_2,
+      sampa_1,
+      sampa_2,
+      practice_trial,
+      file
     ) |>
-    mutate(across(matches("sampa"), \(x) gsub("[[:punct:]]", "", x)),
+    mutate(
+      across(matches("sampa"), \(x) gsub("[[:punct:]]", "", x)),
       target_language = if_else(group == "cat-SPA", "Spanish", "English"),
       practice_trial = as.logical(practice_trial)
     )
@@ -86,9 +98,15 @@ get_levenshtein <- function(trial_list) {
 
 #' Get phonological neighbours
 #'
-get_neighbours <- function(word_1, word_2, freq_2, language_2,
-                           corpus, neighbour_threshold = 1,
-                           higher_frequency = FALSE) {
+get_neighbours <- function(
+  word_1,
+  word_2,
+  freq_2,
+  language_2,
+  corpus,
+  neighbour_threshold = 1,
+  higher_frequency = FALSE
+) {
   get_neighbours_helper <- function(pw, tw, tf, cw, cf, threshold) {
     dist_mat <- stringdistmatrix(pw, cw)
     n_list <- cw[which(dist_mat <= threshold)]
@@ -120,8 +138,14 @@ get_neighbours <- function(word_1, word_2, freq_2, language_2,
 
 #' Get phonological neighbours
 #'
-get_avg_sim <- function(word_1, word_2, freq_2, language_2,
-                        corpus, higher_frequency = FALSE) {
+get_avg_sim <- function(
+  word_1,
+  word_2,
+  freq_2,
+  language_2,
+  corpus,
+  higher_frequency = FALSE
+) {
   n <- length(word_1)
   out <- vector(mode = "double", length = n)
   pb <- cli::cli_progress_bar("Averaging similarity...", total = n)
@@ -163,8 +187,13 @@ get_duration <- function(trial_list, audios_path) {
 
 #' Process stimuli and add information
 #'
-get_stimuli <- function(trial_list, levenshtein, corpus,
-                        durations, stimuli_exclude) {
+get_stimuli <- function(
+  trial_list,
+  levenshtein,
+  corpus,
+  durations,
+  stimuli_exclude
+) {
   corpus_tmp <- corpus |>
     select(
       word_2 = word,
@@ -177,28 +206,44 @@ get_stimuli <- function(trial_list, levenshtein, corpus,
 
   stimuli <- trial_list |>
     mutate(duration = durations) |>
-    left_join(levenshtein_tmp,
-      by = join_by(group, word_1, word_2)
-    ) |>
-    left_join(select(corpus_tmp, -sampa),
+    left_join(levenshtein_tmp, by = join_by(group, word_1, word_2)) |>
+    left_join(
+      select(corpus_tmp, -sampa),
       by = join_by(word_2, target_language)
     ) |>
     mutate(
       practice_trial = as.logical(practice_trial),
       # assign a numeric ID to each unique translation pair
       translation = paste0(
-        word_1, " /", ipa_1, "/ - ",
-        word_2, " /", ipa_2, "/"
+        word_1,
+        " /",
+        ipa_1,
+        "/ - ",
+        word_2,
+        " /",
+        ipa_2,
+        "/"
       ),
       translation_id = as.integer(as.factor(translation)),
       # does lexical frequency need to be imputed?
       is_imputed = is.na(freq_zipf_2)
     ) |>
     select(
-      group, target_language, translation, translation_id, word_1, word_2,
-      sampa_1, sampa_2, ipa_1, ipa_2,
-      freq_zipf_2, lv, lv_dist,
-      duration, practice_trial
+      group,
+      target_language,
+      translation,
+      translation_id,
+      word_1,
+      word_2,
+      sampa_1,
+      sampa_2,
+      ipa_1,
+      ipa_2,
+      freq_zipf_2,
+      lv,
+      lv_dist,
+      duration,
+      practice_trial
     ) |>
     dplyr::filter(!(word_1 %in% stimuli_exclude)) |>
     mutate(

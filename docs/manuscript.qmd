@@ -17,6 +17,7 @@ library(tidybayes)
 library(ggExtra)
 library(tinytable)
 library(stringdist)
+
 set.seed(1234)
 
 # import objects
@@ -24,6 +25,7 @@ tar_config_set(
   store = here::here("_targets"),
   script = here::here("_targets.R")
 )
+
 tar_load_globals()
 tar_load(participants)
 tar_load(exp_participants)
@@ -39,14 +41,12 @@ tar_load(exp_1_m0)
 tar_load(exp_2_m0)
 tar_load(exp_3_m1)
 tar_load(exp_12_m0)
-
-
+  
 theme_set(theme_ggdist() +
   theme(panel.grid.major.y = element_line(
     colour = "grey",
     linetype = "dotted"
   )))
-
 ```
 
 
@@ -208,7 +208,7 @@ In each trial, participants listened to one audio file, which contained a single
 For each word pair in the Catalan and Spanish lists, we defined three predictors of interest: the lexical frequency of the correct English translation (*Frequency*), the phonological similarity between the presented word and its correct English translation (*Similarity*), and the presented word's number of cross-language phonological neighbours (*CLPN*) in English. *Frequency* was included as a nuisance predictor, under the hypothesis that---keeping other predictors constant---participants would provide correct responses more often when the correct translations are high frequency words in their native language. Lexical frequencies of correct translations were extracted from SUBTLEX-UK [@van2014subtlex], and transformed to Zipf scores. Translations without a lexical frequency value were excluded from data analysis (`r stim_exc_freq$cat_eng$n` in the Catalan list, `r stim_exc_freq$spa_eng$n` in the Spanish list).  *Similarity*, our main predictor of interest, was calculated as the Levenshtein similarity between the X-SAMPA transcriptions of each pair of translations using the `stringdist` R package [@van2014stringdist]. The Levenshtein distance computes the edit distance between two character strings---in this case, two phonological transcriptions---by counting the number of additions, deletions, and substitutions necessary to make both strings identical [@levenshtein1966binary]. We divided this edit distance by the number of characters in the longest X-SAMPA transcription of the translation pair. This transformation accounts for the fact that Levenshtein distance tends to increase with the length of the transcriptions. For interpretability, we subtracted this proportion from one, so that values closer to one correspond to higher similarity between phonological transcriptions, and values closer to zero correspond to lower similarity between phonological transcriptions. For example, the *table* (`teIb@l`)-*mesa* (`mesa`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("teɪbəl"), enc2utf8("mesa")))` similarity, while the *train* (`trEIn`)-*tren* (`tREn`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("trEIn"), enc2utf8("tɾEn")))` similarity. We calculated the number of *CLPN* for each Catalan and Spanish word by counting the number of English words with same or higher lexical frequency, and whose phonological transcription (in X-SAMPA format) differed by up to one phoneme from that of the presented Catalan or Spanish word. Lexical frequencies and phonological transcriptions were extracted from the multilingual database CLEARPOND [@marian2012clearpond]^[Phonological transcriptions in CLEARPOND were generated from eSPEAK, [http://espeak.sourceforge.net/](http://espeak.sourceforge.net/)]]. @tbl-stimuli summarises the lexical frequency, *CLPN* and phonological overlap of the words included in the Catalan and the Spanish lists.
 
 
-```{r tbl-stimuli}
+```{r}
 #| label: tbl-stimuli
 #| tbl-cap: "Stimuli details."
 stimuli |>
@@ -305,7 +305,7 @@ $$ {#eq-1}
 
 We followed @kruschke2018bayesian's guidelines for statistical inference. We first specified a region of practical equivalence (ROPE) around zero ([-0.1, +0.1], in the logit scale). This area indicates the values of the regression coefficients that we considered equivalent to zero. We then computed the 95% posterior credible intervals (CrI) of the regression coefficients of interest, which indicates the most likely range of values that contains the true value of the coefficient with 95% probability. Finally, for each regression coefficient we calculated the proportion of the 95% CrI that fell inside the ROPE, noted as *p*(ROPE). This proportion indicates the probability that the true value of the coefficient is equivalent to zero. For instance, if the *p*(ROPE) of a regression coefficient $\beta$ is 0.5, this indicates that there is a 50% probability that the true value of $\beta$ is zero or equivalent to zero, given the data. If *p*(ROPE)=0.01, this indicates that there is a 1% probability that the true value of the regression coefficient is zero or equivalent. If *p*(ROPE)=0.99, this indicates that there is a 99% probability that the true value of the regression coefficient is zero or equivalent.
 
-All analyses were performed in the R environment [@rcoreteam2013language]. We used the tidyverse family of R packages [@wickham2019welcome] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see Appendix 1 for model diagnostics). Numeric predictors were standardised before entering the model by subtracting the mean and dividing by the standard deviation.
+All analyses were performed in the R environment [@rcoreteam2013language]. We used the tidyverse family of R packages [@wickham2019welcome] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see #apx-diagnostics for model diagnostics). Numeric predictors were standardised before entering the model by subtracting the mean and dividing by the standard deviation.
 
 
 ## Results
@@ -387,7 +387,7 @@ names(c1) <- janitor::make_clean_names(names(c1))
 
 @tbl-dataset shows a summary of participants' accuracy across Experiments 1, 2, and 3. Participants translating Catalan words and participants translating Spanish words performed equivalently, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c1$b_group1$.median, 3)`, 95% CrI = [`r round(c1$b_group1$.lower, 3)`, `r round(c1$b_group1$.upper, 3)`], *p*(ROPE) = `r round(c1$b_group1$.rope, 3)`). Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c1$b_neigh_n_h_std_lv_std$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_std_lv_std$.lower, 3)`, `r round(c1$b_neigh_n_h_std_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_std_lv_std$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c1$b_lv_std$.median, 3)`, 95% CrI = [`r round(c1$b_lv_std$.lower, 3)`, `r round(c1$b_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c1$b_lv_std$.rope, 3)`), while the number of *CLPN* had the opposite effect ($\beta$ = `r round(c1$b_neigh_n_h_std$.median, 3)`, 95% CrI = [`r round(c1$b_neigh_n_h_std$.lower, 3)`, `r round(c1$b_neigh_n_h_std$.upper, 3)`], *p*(ROPE) = `r round(c1$b_neigh_n_h_std$.rope, 3)`). @fig-epreds-1 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*.
 
-```{r tbl-dataset}
+```{r}
 #| label: tbl-dataset
 #| tbl-cap: "Summary of participants' accuracy in the translation elicitation task across Experiments 1, 2, and 3."
 sem <- function(x) mean(x) / (sqrt(length(x)))
@@ -746,7 +746,6 @@ ipa_to_tipa <- function(ipa) {
   return(tipa)
 }
 
-
 tbl_data <- list(
   "Experiment 1" = dataset_1,
   "Experiment 2" = dataset_2
@@ -938,12 +937,11 @@ Responses given by English participants to Catalan presented words were `r round
 Overall, participants reported prior knowledge more often for the Spanish words that showed unexpectedly high accuracy in Experiment 1 (see Discussion in Experiment 2) than for words with expected accuracy (see @fig-knowledge). Participants reported prior knowledge of Catalan words with unexpected accuracy in Experiment 1 as often as those with expected accuracy. This suggests that participants in Experiment 1 may have relied, to some extent, on their prior knowledge about form-meaning mappings to correctly translate some Spanish words. To isolate such an effect of prior Spanish knowledge, we ran the same analysis as in Experiment 1 on the newly collected translations from Experiment 3, now excluding responses to words for which participants reported prior knowledge.
 
 
-```{r fig-knowledge}
+```{r}
 #| label: fig-knowledge
 #| fig-width: 9
 #| fig-height: 4
 #| fig-cap: "Catalan and Spanish prior word knowledge reported by English native participants in Experiment 3. The X-axis indicates the proportion of participants that reported prior knowledge with the word. The Y-axis indicates participants' accuracy (the proportion of participants that translated the word correctly). For visualisation purposes, data points have been aggregated so that numbers and color coding show the number of data points with identical accuracy and proportion of reported knowledge."
-
 bin_interval <- seq(0, 1, 0.05)
 dataset_3 |>
   mutate(surprise = translation %in% tbl_data$Translation) |>
@@ -999,7 +997,7 @@ names(c3) <- janitor::make_clean_names(names(c3))
 Participants translating Catalan words and participants translating Spanish words performed similarly, as indicated by the regression coefficient of *Group* ($\beta$ = `r round(c3$b_group1$.median, 3)`, 95% CrI = [`r round(c3$b_group1$.lower, 3)`, `r round(c3$b_neigh_n_h_std_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c3$b_group1$.rope, 3)`). Overall, both groups of participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c3$b_neigh_n_h_std_lv_std$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_std_lv_std$.lower, 3)`, `r round(c3$b_neigh_n_h_std_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_std_lv_std$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c3$b_lv_std$.median, 3)`, 95% CrI = [`r round(c3$b_lv_std$.lower, 3)`, `r round(c3$b_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c3$b_lv_std$.rope, 3)`), while the number of *CLPN* had the opposite effect ($\beta$ = `r round(c3$b_neigh_n_h_std$.median, 3)`, 95% CrI = [`r round(c3$b_neigh_n_h_std$.lower, 3)`, `r round(c3$b_neigh_n_h_std$.upper, 3)`], *p*(ROPE) = `r round(c3$b_neigh_n_h_std$.rope, 3)`). @fig-epreds-3 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*.
 
 
-```{r fig-epreds-3}
+```{r}
 #| label: fig-epreds-3
 #| cache: false
 #| fig-cap: "Posterior model-predicted mean accuracy in Experiment 3. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
@@ -1042,8 +1040,6 @@ epreds_3 |>
 
 Experiment 3 was a conceptual replication of Experiment 1 in which we gathered additional information about English native participants' prior familiarity with the meaning of the Catalan and Spanish words presented. After each trial, participants reported whether they had prior knowledge about the word meaning, and how confident they were about such information in a numeric scale from 0 to 7. To control for the effect of participants' prior knowledge about form-meaning mappings, we excluded from the analyses those words in which participants reported such prior knowledge. We found equivalent results to those in Experiment 1, indicating that participants' surprisingly good performance in the translation elicitation task was not due to being familiar with the meaning of words they were presented with.
 
-
-
 # General discussion
 
 The present work explored the lexical processing bases of homophonic translation, a phenomenon in which listening to speech in a non-native---perhaps unfamiliar---language leads to the activation of lexical representations in the native language, without necessarily preserving the meaning. We investigated how phonological similarity and its interaction with phonological neighbourhood density impact the dynamics of lexical activation and selection during non-native word processing. We designed a translation elicitation task in which participants listened to individual words in a non-native, unfamiliar language. After listening to each word, participants were asked to provide their best-guess translation for each word in their native language. In Experiment 1, British English-native adults listened to a list of words in Catalan or Spanish. Participants reported no prior familiarity with Catalan, Spanish, or any other Romance language, yet provided accurate translations for words that shared some degree of phonological similarity with their correct English translation. We calculated phonological similarity between word pairs as the Levenshtein similarity between the X-SAMPA transcription of their phonological forms [see @floccia2018introduction for a similar approach]. Using this measure, we found that participants were able to exploit the phonological similarity between the presented words and their correct translation, even when both words-forms shared few phonemes. This points to listeners accommodating non-native phonological forms to their native phoneme inventory, resulting in the activation of native lexical representations. 
@@ -1062,6 +1058,141 @@ The specific mechanisms behind this effect are unclear. One possibility is that 
 
 In summary, the present paper provides insights into the processing mechanisms underlying homophonic translation. English and Spanish native adults were tested in a translation elicitation task in which they had to guess the English or Spanish translation of a series of words in an unfamiliar language. Participants successfully exploited phonological similarity between the presented words and their correct translations to provide correct answers. Participants' performance in the task only benefited from phonological similarity when the presented word had few higher-frequency phonological neighbours in the target language. Finally, the facilitation effect of phonological similarity was stronger in the Spanish native participants, who translated words from a typologically closer language than English participants. Overall, the findings presented in the present paper suggest that the processing of words in a non-native, unfamiliar language recruits mechanisms of lexical activation, selection, and interference parallel to those recruited by listening to words in a native language.
 
-# References
+# References {.unnumbered}
 
+::: {#refs}
+:::
+
+## Appendix 1: Model diagnostics {#apx-diagnostics}
+
+One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript.  Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
+
+
+```{r}
+#| label: apxfig-appendix-diagnostics
+#| fig-cap: "Traceplots of fixed regression coefficients of models in Experiments 1, 2, and 3."
+#| fig-width: 9
+#| fig-height: 9
+var_labels <- c(
+  "b_Intercept" = "Intercept",
+  "b_freq_zipf_2_std" = "Frequency",
+  "b_lv_std" = "Cognateness",
+  "b_neigh_n_h_std" = "CLPN",
+  "b_neigh_n_h_std:lv_std" = "Cognateness × CLPN",
+  "b_group1" = "cat-ENG vs. spa-ENG"
+)
+
+list(exp_1_m0, exp_2_m0, exp_3_m1) |>
+  set_names(paste0("Experiment ", 1:3)) |>
+  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
+  dplyr::filter(.variable != "b_Intercept") |>
+  mutate(
+    .value = .value / 4,
+    .variable = factor(.variable,
+      levels = names(var_labels),
+      labels = var_labels
+    )
+  ) |>
+  ggplot(aes(.iteration, .value, colour = factor(.chain))) +
+  facet_grid(.variable ~ exp, scales = "free") +
+  geom_line() +
+  labs(
+    x = "Iteration",
+    y = "Value",
+    colour = "Chain",
+    fill = "Chain",
+    linetype = "Chain"
+  ) +
+  scale_colour_brewer(palette = "Reds") +
+  theme(
+    legend.position = "top",
+    legend.box = "horizontal",
+    panel.border = element_rect(
+      fill = NA,
+      colour = "grey"
+    ),
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+```
+
+
+
+## Appendix 2: Pooled analyses of Experiments 1 and 3 {#apx-pooled}
+
+Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
+
+```{r}
+#| label: apxfig-coefs
+#| fig-cap: "Regression coefficients across Experiments 1, 2, and 3."
+#| fig-width: 9
+#| fig-height: 5
+var_labels <- c(
+  "b_Intercept" = "Intercept",
+  "b_freq_zipf_2_std" = "Frequency",
+  "b_lv_std" = "Similarity",
+  "b_neigh_n_h_std" = "CLPN",
+  "b_neigh_n_h_std:lv_std" = "Similarity × CLPN",
+  "b_group1" = "cat-ENG vs. spa-ENG"
+)
+
+list(exp_1_m0, exp_2_m0, exp_3_m1) |>
+  set_names(paste0("Experiment ", 1:3)) |>
+  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
+  dplyr::filter(.variable != "b_Intercept") |>
+  mutate(
+    .value = .value / 4,
+    .variable = factor(.variable,
+      levels = names(var_labels),
+      labels = var_labels
+    )
+  ) |>
+  ggplot(aes(.value, reorder(exp, desc(exp)))) +
+  facet_wrap(~.variable, scales = "free_x") +
+  annotate(
+    geom = "rect",
+    xmin = -0.1 / 4,
+    xmax = 0.1 / 4,
+    ymin = -Inf,
+    ymax = Inf,
+    fill = "grey",
+    alpha = 3 / 4,
+    colour = NA
+  ) +
+  geom_vline(
+    xintercept = 0,
+    colour = "grey",
+    linewidth = 3 / 4
+  ) +
+  stat_slab(aes(fill = after_stat(level)),
+    point_interval = mode_hdi,
+    .width = c(0.95, 0.89, 0.67, 1),
+    outline_bars = TRUE,
+    colour = "white",
+    linewidth = 0.1,
+    breaks = 20,
+    normalize = "panels"
+  ) +
+  stat_spike(
+    at = "median",
+    size = 1,
+    aes(linetype = "Median"),
+    normalize = "panels"
+  ) +
+  labs(
+    x = "Estimate", y = "Experiment",
+    colour = "CrI",
+    fill = "CrI",
+    linetype = ""
+  ) +
+  scale_fill_brewer(palette = "Reds") +
+  theme(
+    legend.position = c(1, 0),
+    legend.box = "horizontal",
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+```
 

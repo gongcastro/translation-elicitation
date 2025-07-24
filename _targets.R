@@ -1,21 +1,19 @@
-suppressWarnings({
-  suppressPackageStartupMessages({
-    library(tarchetypes)
-    library(dplyr)
-    library(tidyr)
-    library(stringr)
-    library(ggplot2)
-    library(ggdist)
-    library(beeswarm)
-    library(readxl)
-    library(brms)
-    library(cmdstanr)
-    library(stringdist)
-    library(cli)
-    library(readr)
-    library(purrr)
-  })
-})
+library(tarchetypes)
+library(here)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(ggdist)
+library(beeswarm)
+library(readxl)
+library(brms)
+library(cmdstanr)
+library(stringdist)
+library(cli)
+library(quarto)
+library(readr)
+library(purrr)
 
 # load functions
 invisible({
@@ -31,24 +29,24 @@ options(
   brms.backend = "cmdstanr"
 )
 
+clearpond_path <- here("data", "raw", "cleapond")
+exp_data_path <- here("data", "raw", "experiment")
+que_data_path <- here("data", "raw", "questionnaire")
 
 list(
-  # CLEARPOND database
-  tar_target(cp_c_path_eng, "data-raw/clearpond/englishCPdatabase2.txt", format = "file"),
-  tar_target(cp_h_path_eng, "data-raw/clearpond/clearpondHeaders_EN.txt", format = "file"),
-  tar_target(cp_c_path_spa, "data-raw/clearpond/spanishCPdatabase2.txt", format = "file"),
-  tar_target(cp_h_path_spa, "data-raw/clearpond/clearpondHeaders_SP.txt", format = "file"),
-  tar_target(clearpond, import_clearpond(
-    cp_c_path_eng,
-    cp_c_path_spa,
-    cp_h_path_eng,
-    cp_h_path_spa
-  )),
-
-  # stimuli ------------------------------------------------------------------
-  tar_target(trial_list_path, file.path("stimuli", "trials.xlsx"),
-    format = "file"
+  # CLEARPOND database -----
+  tar_target(
+    clearpond,
+    import_clearpond(
+      here(clearpond_path, "englishCPdatabase2.txt"),
+      here(clearpond_path, "spanishCPdatabase2.txt"),
+      here(clearpond_path, , "clearpondHeaders_EN.txt"),
+      here(clearpond_path, "clearpondHeaders_SP.txt"),
+    )
   ),
+
+  # stimuli -----
+  tar_target(trial_list_path, here("stimuli", "trials.xlsx"), format = "file"),
   tar_target(trial_list, get_trial_list(trial_list_path)),
   # exclude some stimuli:
   # corona: problematic after COVID-19
@@ -65,7 +63,7 @@ list(
   tar_target(levenshtein, get_levenshtein(trial_list)),
 
   # get audio durations
-  tar_target(audios_path, "stimuli/sounds"),
+  tar_target(audios_path, here("stimuli", "sounds")),
   tar_target(durations, get_duration(trial_list, audios_path)),
 
   # join all stimuli data
@@ -81,9 +79,9 @@ list(
   ),
 
   # experiment responses -----------------------------------------------------
-  tar_target(exp_raw_files_path, "data-raw/experiment/"),
-  tar_target(exp_raw_files,
-    list.files(exp_raw_files_path, full.names = TRUE),
+  tar_target(
+    exp_raw_files,
+    list.files(exp_data_path, full.names = TRUE),
     format = "file"
   ),
   tar_target(exp_raw, get_exp_raw(exp_raw_files)),
@@ -92,23 +90,36 @@ list(
   tar_target(exp_responses, get_exp_responses(exp_participants, stimuli)),
 
   # questionnaire responses --------------------------------------------------
-  tar_target(quest_raw_files_path, "data-raw/questionnaire/"),
-  tar_target(quest_raw_files,
-    list.files(quest_raw_files_path,
-      full.names = TRUE, pattern = "quest"
-    ),
+  tar_target(
+    que_raw_files,
+    list.files(que_data_path, full.names = TRUE, pattern = "quest"),
     format = "file"
   ),
-  tar_target(quest_raw, get_quest_raw(quest_raw_files)),
-  tar_target(quest_processed, get_quest_processed(quest_raw)),
-  tar_target(quest_participants, get_quest_participants(quest_processed)),
-  tar_target(quest_responses, get_quest_responses(quest_processed, quest_participants, stimuli)),
+  tar_target(que_raw, get_que_raw(que_raw_files)),
+  tar_target(que_processed, get_que_processed(que_raw)),
+  tar_target(que_participants, get_que_participants(que_processed)),
+  tar_target(
+    que_responses,
+    get_que_responses(que_processed, que_participants, stimuli)
+  ),
 
   # merge datasets -----------------------------------------------------------
-  tar_target(participants, get_participants(exp_participants, quest_participants)),
-  tar_target(dataset_1, get_dataset(1, exp_responses, quest_responses, stimuli)),
-  tar_target(dataset_2, get_dataset(2, exp_responses, quest_responses, stimuli)),
-  tar_target(dataset_3, get_dataset(3, exp_responses, quest_responses, stimuli)),
+  tar_target(
+    participants,
+    get_participants(exp_participants, que_participants)
+  ),
+  tar_target(
+    dataset_1,
+    get_dataset(1, exp_responses, que_responses, stimuli)
+  ),
+  tar_target(
+    dataset_2,
+    get_dataset(2, exp_responses, que_responses, stimuli)
+  ),
+  tar_target(
+    dataset_3,
+    get_dataset(3, exp_responses, que_responses, stimuli)
+  ),
   tar_target(dataset_12, {
     dataset_12 <- bind_rows(
       list(
@@ -136,21 +147,27 @@ list(
   # analysis of Experiment 1
   tar_target(
     exp_1_m0,
-    get_model_fit("exp_1_m0",
-      correct ~ freq_zipf_2_std + neigh_n_h_std * lv_std + group +
-        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+    get_model_fit(
+      "exp_1_m0",
+      correct ~
+        freq_zipf_2_std +
+          neigh_n_h_std * lv_std +
+          group +
+          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_1
     )
   ),
 
-
   # analysis of Experiment 2
   tar_target(
     exp_2_m0,
-    get_model_fit("exp_2_m0",
-      correct ~ freq_zipf_2_std + neigh_n_h_std * lv_std +
-        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+    get_model_fit(
+      "exp_2_m0",
+      correct ~
+        freq_zipf_2_std +
+          neigh_n_h_std * lv_std +
+          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_2
     )
@@ -159,32 +176,43 @@ list(
   # analysis of Experiment 3
   tar_target(
     exp_3_m0,
-    get_model_fit("exp_3_m0",
-      correct ~ freq_zipf_2_std + neigh_n_h_std * lv_std + group +
-        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+    get_model_fit(
+      "exp_3_m0",
+      correct ~
+        freq_zipf_2_std +
+          neigh_n_h_std * lv_std +
+          group +
+          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_3
     )
   ),
   tar_target(
     exp_3_m1,
-    get_model_fit("exp_3_m1",
-      correct ~ freq_zipf_2_std + neigh_n_h_std * lv_std + group +
-        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+    get_model_fit(
+      "exp_3_m1",
+      correct ~
+        freq_zipf_2_std +
+          neigh_n_h_std * lv_std +
+          group +
+          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = filter(dataset_3, !knowledge)
     )
   ),
   tar_target(
     exp_12_m0,
-    get_model_fit("exp_12_m0",
-      correct ~ freq_zipf_2_std + neigh_n_h_std * lv_std * experiment +
-        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+    get_model_fit(
+      "exp_12_m0",
+      correct ~
+        freq_zipf_2_std +
+          neigh_n_h_std * lv_std * experiment +
+          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_12
     )
   ),
 
   # render manuscript
-  tar_target(manuscript, quarto::quarto_render(file.path("manuscript", "manuscript.qmd")))
+  tar_target(manuscript, quarto_render(here("docs", "manuscript.qmd")))
 )
