@@ -6,6 +6,9 @@
 .Renviron
 .secrets
 
+data-raw/cleapond/
+_targets/
+
 *.Pitch
 *.PitchTier
 *.csv

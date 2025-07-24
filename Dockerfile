@@ -36,8 +36,8 @@ RUN gdebi --non-interactive quarto-linux-amd64.deb
 RUN rm /home/rstudio/quarto-linux-amd64.deb
 
 # install and configure renv
-RUN R -e 'install.packages("remotes", repos = c(CRAN = "https://cloud.r-project.org"))'
-RUN R -e 'remotes::install_version("renv", version = "1.0.0", repos = c("https://rstudio.r-universe.dev", "https://cloud.r-project.org"))'
+RUN Rscript -e 'install.packages("remotes", repos = c(CRAN = "https://cloud.r-project.org"))'
+RUN Rscript -e 'remotes::install_version("renv", version = "1.0.0", repos = c("https://rstudio.r-universe.dev", "https://cloud.r-project.org"))'
 ENV RENV_PATHS_LIBRARY=renv/library
 RUN Rscript -e 'renv::restore()'
 

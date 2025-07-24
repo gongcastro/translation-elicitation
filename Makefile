@@ -1,7 +1,6 @@
 render:
 	quarto render 
 
-
 docker-build: Dockerfile .dockerignore
 	@echo "Building Docker image..."
 	@docker build -t translation-elicitation .

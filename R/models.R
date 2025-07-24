@@ -37,15 +37,26 @@ get_model_loos <- function(fits) {
 
 #' Get expected posterior predictions
 #'
-get_epreds <- function(model, data, n = 100,
-                       lv = seq(0, 1, length.out = 100),
-                       neigh_n_h = c(0, 2, 4, 8, 12),
-                       ...) {
+get_epreds <- function(
+  model,
+  data,
+  n = 100,
+  lv = seq(0, 1, length.out = 100),
+  neigh_n_h = c(0, 2, 4, 8, 12),
+  ...
+) {
   knowledge <- unique(model$data$knowledge)
   confidence <- unique(model$data$confidence)
   freq_zipf_2 <- mean(data$freq_zipf_2, na.rm = TRUE)
   group <- unique(model$data$group)
-  nd <- tidyr::expand_grid(freq_zipf_2, neigh_n_h, lv, knowledge, confidence, group)
+  nd <- tidyr::expand_grid(
+    freq_zipf_2,
+    neigh_n_h,
+    lv,
+    knowledge,
+    confidence,
+    group
+  )
   if ("experiment" %in% colnames(model$data)) {
     nd <- tidyr::expand_grid(nd, experiment = unique(model$data$experiment))
   }
