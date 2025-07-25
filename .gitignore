@@ -1,52 +1,68 @@
-.Rproj.user
-.Rhistory
-.RData
-.Rproj
-.Ruserdata
-.Renviron
-.secrets
+.here
+.quarto
 
-data-raw/cleapond/
 _targets/
-
-*.Pitch
-*.PitchTier
-*.csv
-*.pptx
-*.docx
-*.rds
-
-stimuli/sounds/
-Media/*
-img/*
-
 data/experiment/raw
 data/experiment/processed
 data/questionnaire/
 data/stimuli/
-results/
-data-raw/
-data-raw/clearpond/
-
-psychopy/
-_freeze/
-
-_targets/objects/
-_targets/
-
-docs/index_files/
-index_files/
-
-manuscript/_freeze/
-manuscript/manuscript_cache/
-manuscript/manuscript_files/
-manuscript/.quarto
-manuscript/_targets.yaml
-manuscript/arxiv.sty
-manuscript/orcidlink.sty
-
-manuscript/nul
+out/
+data/
+data/raw/
+data/raw/clearpond/
+sounds/
+assets/
+docs/_freeze/
+docs/_targets.yaml
+docs/arxiv.sty
+docs/orcidlink.sty
 docs/nul
 nul
 
-/.quarto/
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# R Environment Variables
+.Renviron
+
+# translation temp files
+po/*~
+
+# RStudio Connect folder
+rsconnect/
+
