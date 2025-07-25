@@ -33,6 +33,8 @@ You can either download the project as a .zip file by clocking on the green butt
 git clone https://github.com/gongcastro/translation-elicitation.git
 ```
 
+Download the `data` folder from the Open Science Framework repository: [https://osf.io/9fjxm/](https://osf.io/9fjxm/) into the main project folder.
+
 #### 2. Install R dependencies with renv
 
 You will need to install [R 4.3.3](https://cran.r-project.org/bin/windows/base/old/4.3.3/). Other versions of R may work, but have not been tested in the present project.
