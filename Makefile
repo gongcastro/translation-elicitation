@@ -1,4 +1,5 @@
 render:
+	Rscript -e "targets::tar_make()"
 	quarto render 
 
 docker-build: Dockerfile .dockerignore

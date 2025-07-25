@@ -37,11 +37,15 @@ tar_load(exp_3_m1)
 tar_load(exp_12_m0)
 
 
-theme_set(theme_ggdist() +
-  theme(panel.grid.major.y = element_line(
-    colour = "grey",
-    linetype = "dotted"
-  )))
+theme_set(
+  theme_ggdist() +
+    theme(
+      panel.grid.major.y = element_line(
+        colour = "grey",
+        linetype = "dotted"
+      )
+    )
+)
 
 ```
 
@@ -69,7 +73,8 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
   dplyr::filter(.variable != "b_Intercept") |>
   mutate(
     .value = .value / 4,
-    .variable = factor(.variable,
+    .variable = factor(
+      .variable,
       levels = names(var_labels),
       labels = var_labels
     )
@@ -123,7 +128,8 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
   dplyr::filter(.variable != "b_Intercept") |>
   mutate(
     .value = .value / 4,
-    .variable = factor(.variable,
+    .variable = factor(
+      .variable,
       levels = names(var_labels),
       labels = var_labels
     )
@@ -145,7 +151,8 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
     colour = "grey",
     linewidth = 3 / 4
   ) +
-  stat_slab(aes(fill = after_stat(level)),
+  stat_slab(
+    aes(fill = after_stat(level)),
     point_interval = mode_hdi,
     .width = c(0.95, 0.89, 0.67, 1),
     outline_bars = TRUE,
@@ -161,7 +168,8 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
     normalize = "panels"
   ) +
   labs(
-    x = "Estimate", y = "Experiment",
+    x = "Estimate",
+    y = "Experiment",
     colour = "CrI",
     fill = "CrI",
     linetype = ""

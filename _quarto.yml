@@ -3,19 +3,50 @@ project:
     - docs/manuscript.qmd
 
 format:
+  apaquarto-typst:
+    mask: true
   apaquarto-docx: default
-  apaquarto-html: default
-  apaquarto-pdf: default
-  apaquarto-typst: default
 
 title: "The role of cognateness in native spoken word recognition"
-short-title: "Cognateness and recognition of foreign words"
+shorttitle: "Cognateness and recognition of foreign words"
+keywords:
+  - spoken word recognition
+  - phonology
+  - cognateness
+  - language processing
+  - nonnative speech
+  - lexical processing
+floatsintext: true
+numbered-lines: true
+mask: false
+suppress-title-page: true
+word-count: true
+knitr:
+  opts_chunk:
+    fig.path: img/
+
+author-note:
+  disclosures:
+    data-sharing: |
+      All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/?view_only=751d6ab27ffd4dd4856e4c07c4372991) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general](https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general)).
+    financial-support: |
+      This study was supported by the Spanish Ministry for Science and Innovation and State Research Agency (Project PGC2018-101831-B-I00 financed by Spanish Ministry of Science Innovation and Universities (MCIU), Spanish Research Agency (AEI) and the European Regional Development Fund (ERDF), and by the Economic and Social Research Council (ESRC) (ES/S010947/1, UK). GGC was supported by a FPI research contract (PRE2019-088165). NSG was supported by an ICREA Academia 2019 award from the Catalan Institution for Research and Advanced Studies (ICREA). 
+    conflict-of-interest: |
+      The authors declare no conflicts of interest with regard to the funding source of this study.
+    gratitude: |
+      We are grateful to Irina Lepadatu and Nicola Gillen, and to the Speech Acquisition and Perception research group for their helpful feedback. We thank Xavier Mayoral, Silvia Blanch, Pamela Miller, and Cristina Cuadrado for their technical support. We also thank all participants who took part in the experiments.
+
+
 author:
   - name: Gonzalo Garcia-Castro
     corresponding: true
     orcid: 0000-0002-8553-4209
-    email: gonzalo.garciadecastro@upf.edu
+    email: gonzalo.garcia@sjd.es
     affiliations:
+      - id: sjd
+        name: NeuroDevelopment and Comparative Cognition
+        department: Institut de Recerca Sant Joan de Déu
+        city: Esplugues de Llobregat, 08950
       - id: cbc
         name: Universitat Pompeu Fabra
         department: Center for Brain and Cognition
@@ -39,32 +70,12 @@ author:
     email: nuria.sebastian@upf.edu
     affiliations: 
       - ref: cbc
-      
-keywords:
-  - cognateness
-  - spoken word recognition
-  - phonology
-  - speech processing
-  - non-native speech
-  - lexical access
 
-crossref:
-  custom:
-    - kind: float
-      reference-prefix: Appendix Fig.
-      key: apxfig
-      latex-env: apxfig
-
-csl: "_assets/apa7.csl"
-bibliography: "_assets/references.bib"
+bibliography: "references.bib"
 link-citations: true
 editor: source
 lang: en
-freeze: true
+freeze: false
 fig-dpi: 1000
 echo: false
 warning: false
-
-thanks: |
-  The authors declare no conflicts of interest with regard to the funding source of this study. This study was supported by the Spanish Ministry for Science and Innovation and State Research Agency (Project PGC2018-101831-B-I00 financed by Spanish Ministry of Science Innovation and Universities (MCIU), Spanish Research Agency (AEI) and the European Regional Development Fund (ERDF), and by the Economic and Social Research Council (ESRC) (ES/S010947/1, UK). GGC was supported by a FPI research contract (PRE2019-088165). NSG was supported by an ICREA Academia 2019 award from the Catalan Institution for Research and Advanced Studies (ICREA). We are grateful to Irina Lepadatu and Nicola Gillen, and to the Speech Acquisition and Perception research group for their helpful feedback. We thank Xavier Mayoral, Silvia Blanch, Pamela Miller, and Cristina Cuadrado for their technical support. We also thank all participants who took part in the experiments. This study was conducted according to guidelines laid down in the Declaration of Helsinki, and was approved by the Drug Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar, reference 2020/9080/I. The data and code necessary to reproduce the analyses presented here are publicly accessible, as are the materials necessary to attempt to replicate the findings. The analyses presented here were not preregistered. Data, code, and materials for this research are available at the following URLs: [https://osf.io/9fjxm/](https://osf.io/9fjxm/), [https://github.com/gongcastro/translation-elicitation](https://github.com/gongcastro/translation-elicitation).
-

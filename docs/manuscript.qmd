@@ -1,76 +1,75 @@
 ---
-abstract: |
-  When listening to speech in an unfamiliar language, words and phrases in the native language are frequently activated due to their acoustic similarity with some parts of the speech stream. This study explored this phenomenon, for the first time, from a language processing perspective. Across three studies, English- and Spanish-native adults completed a translation elicitation task, in which they listened to a series of words from an unfamiliar language (Catalan or Spanish for English speakers, Catalan for Spanish speakers). For each presented word, participants had to type their best-guess translation in their native language. Both English and Spanish natives were surprisingly good at translating unfamiliar words, efficiently exploiting the phonological similarity between the presented (unfamiliar) words and their correct translation. When the correct translation belonged to high-density phonological neighbourhood, participants' ability to benefit from phonological similarity decreased. Spanish participants, whose native language was typologically closer to the presented language, benefited more strongly from phonological similarity than English participants. Overall, we show that speech in an unfamiliar language triggers equivalent dynamics of lexical selection than native speech, providing a psycholinguistic account for homophonic translation.
+abstract:  "The present study characterises homophonic translation---a phenomenon by which non-native speech activates words or phrases in a listener's native language---from a language processing perspective. Across three studies, English and Spanish-native monolingual adults completed a translation elicitation task in which participants listened to words in an unfamiliar language (Catalan or Spanish), and were asked to type their best-guess translation in their native language. Our findings suggest that that listening to speech in an unfamiliar language triggers equivalent dynamics of lexical selection than native speech. In particular, phonological similarity between the presented words and their correct translations interacted with phonological neighbourhood density: participants correctly translated words with high phonological similarity with their correct translation only when few other words in the native language shared phonological similarity with the presented word."
 ---
-
 ```{r}
 #| label: setup
-library(targets)
+library(here)
+library(readr)
 library(dplyr)
 library(tidyr)
+library(purrr)
+library(readxl)
 library(ggplot2)
+library(ggExtra)
 library(patchwork)
-library(gt)
-library(gtExtras)
+library(tinytable)
 library(brms)
 library(tidybayes)
-library(ggExtra)
-library(tinytable)
 library(stringdist)
 
 set.seed(1234)
 
-# import objects
-tar_config_set(
-  store = here::here("_targets"),
-  script = here::here("_targets.R")
-)
+options(readr.show_col_types = FALSE, tinytable_html_mathjax = TRUE)
 
-tar_load_globals()
-tar_load(participants)
-tar_load(exp_participants)
-tar_load(exp_responses)
-tar_load(quest_responses)
-tar_load(quest_participants)
-tar_load(stimuli)
-tar_load(epreds)
-tar_load(dataset_1)
-tar_load(dataset_2)
-tar_load(dataset_3)
-tar_load(exp_1_m0)
-tar_load(exp_2_m0)
-tar_load(exp_3_m1)
-tar_load(exp_12_m0)
-  
-theme_set(theme_ggdist() +
-  theme(panel.grid.major.y = element_line(
-    colour = "grey",
-    linetype = "dotted"
-  )))
+set_here("../")
+
+participants <- read_csv(here("out", "participants.csv"))
+exp_participants <- read_csv(here("out", "exp_participants.csv"))
+que_participants <- read_csv(here("out", "que_participants.csv"))
+stimuli <- read_csv(here("out", "stimuli.csv"))
+exp_responses <- read_csv(here("out", "exp_responses.csv"))
+que_responses <- read_csv(here("out", "que_responses.csv"))
+dataset_1 <- read_csv(here("out", "dataset-1.csv"))
+dataset_2 <- read_csv(here("out", "dataset-2.csv"))
+dataset_3 <- read_csv(here("out", "dataset-3.csv"))
+exp_1_m0 <- readRDS(here("out", "exp_1_m0.rds"))
+exp_2_m0 <- readRDS(here("out", "exp_2_m0.rds"))
+exp_3_m0 <- readRDS(here("out", "exp_3_m0.rds"))
+exp_3_m1 <- readRDS(here("out", "exp_3_m1.rds"))
+exp_12_m0 <- readRDS(here("out", "exp_12_m0.rds"))
+
+theme_set(
+  theme_ggdist() +
+    theme(
+      panel.grid.major.y = element_line(
+        colour = "grey",
+        linetype = "dotted"
+      )
+    )
+)
 ```
 
 
 # Introduction
 
-When some German speakers listen to the song *The Power* by SNAP! (*Coyote Ugly*, 2000), many of them mishear the line "I've got the power" as *Agatha Bauer*. When Spanish speakers listen to the line "Circumvent your thick ego" from the song *Pictures* by System of a Down (*Steal this Album!*, 2002), they tend to hear *Sácame de aquí, King-Kong* [take me out of here, King-Kong]. Outrageous as these examples might sound, the reader may know a few cases in their own native language. This auditory illusion is common across languages and cultures and can feel quite real, often inevitable [@dembeck2015oberflachenubersetzung; @efimova2018homophonic]. In Japanese, this phenomenon takes the name *Soramimi* (lit. "empty ear"). From a linguistic point of view, Soramimi is a particular case of homophonic translation: words or phrases that appear in the speech stream in one language are translated into similar-sounding words and phrases in a different language, without necessarily preserving the meaning [@gasparov2006semen]. Homophonic translation has mostly received attention as a perceptual curiosity, and as a literary figure, intentionally employed by translators to preserve the meter and "sound structure" (e.g., rhymes) of an original text in the language of translation [e.g., @levick2016translating; @pilshchikov2016semiotics]^[The rationale behind this translation approach is to "sacrifice[s] fidelity to the image rather than the melodiousness of verse" [@briusov1911ot]. For instance, Edith Grossman's translation of *El Quijote* [@cervantes] present a similar case, in which formal aspects of the original text in Spanish are favoured to some degree over equivalence to English, even sometimes keeping Spanish words from the original text in the English translation (e.g., *Señor*, *ínsula*).]. Little attention has been paid to homophonic translation from a language processing perspective. 
+When some German speakers listen to the song *The Power* by SNAP! (*Coyote Ugly*, 2000) many of them mishear the line "I've got the power" as *Agatha Bauer*. This auditory illusion, which takes the name *Soramimi* (lit. "empty ear") in Japanese is common across languages and cultures [@dembeck2015oberflachenubersetzung; @efimova2018homophonic]. Soramimi is a particular case of homophonic translation: words or phrases that appear in the speech stream in one language are translated into similar-sounding words and phrases in a different language, without necessarily preserving the meaning [@gasparov2006semen]. Homophonic translation has mostly received attention as a perceptual curiosity or as a literary figure, intentionally employed by translators to preserve the meter and "sound structure" (e.g., rhymes) of an original text in the language of translation [e.g., @levick2016translating; @pilshchikov2016semiotics]. Little attention has been paid to homophonic translation from a language processing perspective. 
 
-One exception is the study by @otake2007interlingual, who analysed 194 instances of Soramimi, broadcasted between 1992 and 2007 by the Japanese TV show *Soramimi hour*, in which examples of Soramimi were presented to the audience for comedy purposes. These instances consisted of homophonic translations of English song lyrics to words and phrases in Japanese. The vast majority of the reported instances were phrases (96%) and a few, single words (4%). There was relatively high variability in the degree to which phonetic features of the presented English lyrics were preserved, with some resulting Japanese words or phrases sharing high overlap with the original English strings of sounds, and some sharing very little overlap. An analysis of the few instances of homophonic translations of single words revealed three main phonological processes that could explain how Japanese listeners reconstructed the English input to generate the Japanese words: insertion (e.g., *cry* /\textipa{kraI}/ to *kurai* /\textipa{kuRai}/ [dark]), deletion (e.g., *go* /\textipa{goU}/ to *go* /go/ [*Go*, a board game], and alternation (e.g., *low* /\textipa{loU}/ to *rou* /\textipa{Roo}/ [wax]). This suggests that the reported homophonic translations can be explained, to some extent, as the result of the Japanese listeners accommodating the strings of English sounds to the Japanese phoneme inventory and Japanese phonotactics [@peperkamp2008perceptual; @dupoux1999epenthetic].
+One exception is the study by @otake2007interlingual, who analysed 194 instances of Soramimi from the Japanese TV show *Soramimi hour*, broadcasted between 1992 and 2007, in which examples of Soramimi were presented to the audience for comedy purposes. These instances consisted of homophonic translations of English song lyrics to words and phrases in Japanese. While the degree to which phonetic features of the presented English lyrics were in the translation varied considerably, the author identified tree main phonological processes that could explain how Japanese listeners reconstructed the English input to generate the Japanese words: insertion (e.g., *cry* /kɹaɪ̯/ to *kurai* /kɯ̟ɾa̠i/ [dark]), deletion (e.g., *go* /ɡoʊ/ to *go* /go/ [*Go*, a board game], and alternation (e.g., *low* /loʊ/ to *rou* /ɾo̞ː/ [wax]). These findings suggests that homophonic translations can be explained, to some extent, as the result of the Japanese listeners accommodating the strings of English sounds to Japanese phonology and phonotactics [@peperkamp2008perceptual; @dupoux1999epenthetic].
 
-The phonological processes described by @otake2007interlingual do not take place in a vaccum, but rather in the context of a lexicon. As words or phrases in the native lexicon are activated by their acoustic similarity with the non-native speech stream, they trigger a series of mechanisms that result in the selection of one of the candidate word or phrase in the native language. In the present work, we investigated the interplay between phonological similarity and one of the main mechanisms involved in the dynamics of lexical selection: phonological neighbourhood density. The phonological neighbourhood density of a given word-form refers to the number of words-forms that differ in a single phoneme from the it. For instance, the English word *cat* belongs to a dense phonological neighbourhood, with 50 English phonological neighbours (e.g., hat, bat, cap), while the word *charger* belongs to a sparse phonological neighbourhood, with six neighbours (e.g., charged, larger, charter, charmer) [@marian2012clearpond]. Phonological neighbourhood density affects lexical processing. For instance, words from dense neighbourhoods are recognized more slowly and less accuractely in the auditory modality than words from sparse neighbourhoods [@luce1998recognizing; @vitevitch1998words; e.g.,  @dufour2010phonological; @vitevitch2006clustering]. In this study, we examined how listeners may activate lexical representations in their native language when listening to an unfamiliar language.
+Though rarely, homophonic translations sometimes preserve the meaning of the original word or phrase, even if the listener is completely unfamiliar with the language being spoken3. For example, an English native listening to Dutch for the first time might encounter the Dutch word /ˈpɪŋ.(ɡ)ʋɪn/ (*pinguin*) and be able to activate its correct English translation /ˈpɛŋɡwɪn/ (penguin), given how phonologically similar both word-forms are. This phonological similarity between translation equivalents---known as *cognateness*---is common across many languages, and is often due to typological closeness or socio-historical events involving the speakers of these languages (e.g., migration, social contact). For example, Romance languages such as Spanish and Catalan share many form-similar translation equivalents  [@schepens2012distributions], as in the case of *puerta* and *porta* (*door* in Spanish and Catalan, respectively). Given no prior knowledge of either language, a Spanish native speaker is likely to be much more successful at correctly translating Catalan than English words by capitalising solely on phonological similarity.
 
-Although homophonic translations rarely involve preservation of meaning, they sometimes lead to correct translations. For example, imagine an English native listening to Dutch for the first time. This listener may encounter the word /\textipa{"pINgUIn}/ (*pinguin*), which sounds similar to its English translation /\textipa{"pENgwIn}/ (penguin). Given enough phonological similarity between the non-native word and its translation in the native language, a naïve listener may succeed at word comprehension when listening to an unfamiliar language. Such phonological similarity between translation equivalents---known as *cognateness*---is common across many languages, and is often due to typological closeness and/or socio-historical events involving the speakers of these languages (e.g., migration, social contact). For example, Romance languages such as Spanish and Catalan share many form-similar translation equivalents  [@schepens2012distributions], as in the case of *puerta* and *porta* (*door* in Spanish and Catalan, respectively). Given no prior knowledge of either language, a Spanish native speaker is likely to be much more successful at correctly translating Catalan *porta* than English *door*, due to the phonological and (orthographic similarity) of the former to the equivalent in their native language.
+In the present work, we investigated the interplay between phonological similarity and one of the main mechanisms involved in the dynamics of lexical selection: phonological neighbourhood density. The phonological neighbourhood density of a given word-form refers to the number of words-forms that differ in a single phoneme from it. For instance, the English word *cat* belongs to a dense phonological neighbourhood, with 50 English phonological neighbours (e.g., hat, bat, cap), while the word *charger* belongs to a sparse phonological neighbourhood, with six neighbours (e.g., charged, larger, charter, charmer) [@marian2012clearpond]. Words from dense neighbourhoods are processed (e.g., recognised) more slowly and less accurately in the auditory modality than words from sparse neighbourhoods [e.g., @dufour2003lexical; @goldinger1989priming; @hamburger1996phonological; @luce1990similarity; @luce1998recognizing; @vitevitch1998words; @dufour2010phonological; @vitevitch2006clustering]. This is especially true if such neighbours share higher phonological similarity with the presented word, or are lexically more frequent than the target word [@luce1998recognizing]. Such interference effect of phonological neighbourhood density has also been reported across languages [@weber2004lexical]. In the case of non-native speech processing, the presence of cross-linguistic pairs which are phonologically similar but differ in meaning (e.g., false friends) may act as distractors during lexical access, obstructing the selection of the appropriate target translation in the listener’s lexicon [@otwinowska2019more].
 
-To explore the lexical mechanisms triggered by unfamiliar speech listening, we used a translation elicitation task in which participants listened to words from an unfamiliar language, and then tried to guess the words translations in their native language. We will henceforth refer to the auditory-presented words heard by participants on each trial as *presented words*, and the correct translation for the presented words as *target translations*. By manipulating the amount of phonological similarity between the presented words and their target translations, we explored listeners' reliance on phonological similarity to succeed in the task. Since participants were unfamiliar with the presented language, they could only use phonological similarity between the presented language and their native language to successfully translate the words. We therefore predicted that participants’ performance should increase when the translation pairs are phonologically more similar. We also predicted that there is a minimum threshold of phonological similarity to be sufficient for correct translation.
+We designed a translation elicitation task in which participants listened to words from an unfamiliar language (*presented words*), and then tried to guess the words translations in their native language (*target translations*). Since participants were unfamiliar with the presented language, they could only rely on phonological similarity between the presented language and their native language to successfully translate the words, instead of on previously learned word-meaning associations. We predicted that participants’ performance should increase when the translation pairs are phonologically more similar. A second prediction was that the size of the facilitatory role of phonological similarity would be inversely proportional to the amount of higher-frequency phonological neighbours of the presented word in the target language. Even if the presented word and its target translation share high phonological similarity, participants may still provide incorrect translations if the presented word also shares high phonological similarity with other words in the native language, paralelling the dynamics of lexical selection engaged during native speech processing. To test this second prediction, we developed a lexical frequency-dependent measure of cross-language phonological neighbourhood density, in which a neighbour is counted only if it is higher frequency and is one phoneme apart from the presented word. If the phonological neighbourhood density of the target translation affects participants’ performance negatively, this would suggest that competitors in the native language affect recognition of non-native words during recognition of foreign speech.
 
-We further investigated the effect of phonological competition. Even if the presented word and its target translation share high phonological similarity, participants may still provide incorrect translations if the presented word also shares high phonological similarity with other words in the native language. Words with denser phonological neighbourhoods are recognised more slowly and less accurately than words with sparser phonological neighbourhoods [@dufour2003lexical; @goldinger1989priming; @hamburger1996phonological; @luce1990similarity; @luce1998recognizing]. This is especially true if such neighbours share higher phonological similarity with the presented word, or are lexically more frequent than the target word [@luce1998recognizing]. Such interference effect of phonological neighbourhood density has also been reported across languages [@weber2004lexical]. We hypothesised that the size of the facilitatory role of phonological similarity would be inversely proportional to the amount of higher-frequency phonological neighbours of the presented word in the target language. In the case of non-native speech recognition, the presence of cross-linguistic pairs which are phonologically similar but differ in meaning (e.g., false friends) may act as distractors during lexical access, obstructing the selection of the appropriate target translation in the listener’s lexicon. For instance, @otwinowska2019more reported that false friends were disadvantaged relative to non-cognates by Polish second language learners, in contrast to cognates which were known better. It is therefore important to investigate the joint effect of both cognates and false friends when investigating the effect that cross-linguistic phonological similarity has on word recognition in a foreign language. This could shed light on available strategies and challenges associated with the early stages of second language acquisition. For instance, one might expect English participants to incorrectly translate the Spanish word *botón* as *bottom* instead of as its correct translation *button*, due to the combined effect of the close phonological similarity between *botón* and *bottom* along with the high lexical frequency of *bottom* relative to *button*. To test this prediction, we developed a lexical frequency-dependent measure of cross-language phonological neighbourhood density, in which a neighbour is counted only if it is higher frequency and is one phoneme apart from the presented word. If the phonological neighbourhood density of the target translation affects participants’ performance negatively, this would suggest that competitors in the native language affect recognition of non-native words during recognition of foreign speech. We conducted a series of three experiments to test these predictions. 
-
-In Experiment 1, we collected data from two groups of British English natives living in the United Kingdom. One group was presented with Catalan words, the other with Spanish words. We examined the extent to which participants were able to use the phonological similarity between the presented word (in Catalan or Spanish) and its target translation to provide accurate responses. In Experiment 2, we tested a group of (European) Spanish natives in the same task, who were presented with Catalan words. Catalan and Spanish are two Romance languages whose close typological distance is reflected in the fact that they share many cognates, where English is a Germanic language that shares considerably fewer cognates with Catalan and Spanish. By testing participants translating words from typologically close or distant languages, we expected to widen the range of the phonological similarity scores of the translation pairs involved in the experimental task, therefore allowing us to explore potential cross-language differences in participant’s performance. One unexpected finding was that participants in Experiments 1 and 2 were surprisingly good at translating a subset of words which had low phonological similarity with their correct translation. We were concerned that this may be caused by some prior knowledge of specific words by our participants, as some Spanish words are commonly seen in media or product labels, making them familiar even to monolingual speakers of English. In Experiment 3, we collected additional data from a new group of British English natives. The design was closely modelled after Experiment 1, except that after providing their response in each trial, participants reported whether they had previous knowledge of the presented word. In the final section of this article, we present analyses on the joint data sets of Experiments 1 to 3.
 
 # Experiment 1
 
+This study was aimed at exploring the interplay between cross-linguistic similarity and phonological neighbourhood and their impact in the performance of two groups of British English natives in the translation elicitation task. One group was presented with Catalan words, the other with Spanish words. We examined the extent to which participants were able to use the phonological similarity between the presented word (in Catalan or Spanish) and its target translation to provide accurate responses.
+
 ## Methods
 
-All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/](https://osf.io/9fjxm/?view_only=aab7636ce1af48cf832596a7ea9101c5/) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general](https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general)).
+All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/?view_only=751d6ab27ffd4dd4856e4c07c4372991](https://osf.io/9fjxm/?view_only=751d6ab27ffd4dd4856e4c07c4372991) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([LINK REDACTED FOR ANONIMITY]).
 
 ### Participants
 
@@ -91,17 +90,20 @@ participants_age <- participants_1 |>
   summarise(across(age, lst(mean, sd, min, max)))
 n_female <- table(participants_1$gender)
 ```
-We collected data from `r n_participants` British English-native adults living in the United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female[1]` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants were recruited via Prolific (£5 compensation) and SONA (compensation in academic credits). Participants gave informed consent before providing any data. The study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. 
 
-```{r tbl-participants}
+We collected data from `r n_participants` British English-native adults living in the United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female[1]` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants were recruited via Prolific (£5 compensation) and SONA (compensation in academic credits). Participants gave informed consent before providing any data. The study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. 
+
+```{r}
 #| label: tbl-participants
-#| tbl-cap: "Participant details."
+#| tbl-cap: "Participant details. *N* indicates the number of included participants, with excluded participants in parenthesis."
 tbl_data <- participants |>
-  mutate(exp = case_when(
-    source == "Experiment" & group != "cat-SPA" ~ "Experiment 1",
-    source == "Experiment" & group == "cat-SPA" ~ "Experiment 2",
-    source == "Questionnaire" ~ "Experiment 3",
-  )) |>
+  mutate(
+    exp = case_when(
+      source == "Experiment" & group != "cat-SPA" ~ "Experiment 1",
+      source == "Experiment" & group == "cat-SPA" ~ "Experiment 2",
+      source == "Questionnaire" ~ "Experiment 3",
+    )
+  ) |>
   summarise(
     n = n(),
     n_excluded = sum(!valid_status == "Valid"),
@@ -119,48 +121,34 @@ tbl_data <- participants |>
         return(y)
       }
     ),
-    n_excluded = paste0(n, " (", n_excluded, ")")
+    n_excluded = paste0(n, " (", n_excluded, ")"),
+    age_mean_sd = paste0(round(age_mean, 2), " (", round(age_sd, 2), ")"),
+    age_min_max = paste0(age_min, "--", age_max)
   ) |>
-  select(-n)
+  select(group, n_excluded, age_mean_sd, age_min_max, l2_lst)
+
+colnames(tbl_data) <- c(
+  "",
+  "N",
+  "Age: Mean (SD)",
+  "Age: Range",
+  "Second language"
+)
 
 tbl_data |>
-  gt(groupname_col = "exp", rowname_col = "group") |>
-  fmt_number(matches("age")) |>
-  fmt_integer(matches("min|max")) |>
-  cols_merge_uncert(age_mean, age_sd) |>
-  cols_merge_range(age_min, age_max) |>
-  tab_spanner("Age", matches("age")) |>
-  cols_label(
-    group = "Group",
-    exp = "Experiment",
-    n_excluded = "N",
-    age_mean = "Mean ± SD ",
-    age_min = "Range",
-    l2_lst = "Second language"
+  tt(width = c(0.175, 0.15, 0.2, 0.15, 0.325)) |>
+  format_tt(
+    j = 3:4,
+    digits = 2,
+    num_zero = TRUE,
+    num_fmt = "decimal"
   ) |>
-  tab_style(
-    cell_text(style = "italic"),
-    cells_column_labels()
-  ) |>
-  tab_style(
-    cell_text(weight = "bold"),
-    cells_column_spanners()
-  ) |>
-  tab_style(
-    cell_text(align = "left"),
-    list(cells_body(), cells_column_labels())
-  ) |>
-  tab_style(
-    cell_text(
-      weight = "bold",
-      align = "center",
-      style = "normal"
+  group_tt(
+    i = list(
+      "Experiment 1" = 1,
+      "Experiment 2" = 3,
+      "Experiment 3" = 4
     ),
-    cells_column_labels(c(l2_lst, n_excluded))
-  ) |>
-  tab_footnote(
-    "Number of included participants (number of excluded participants.)",
-    locations = cells_column_labels(n_excluded)
   )
 ```
 
@@ -183,16 +171,15 @@ lengths <- split(lengths, lengths$group)
 names(lengths) <- janitor::make_clean_names(names(lengths))
 
 durations <- stimuli |>
-  summarise(across(duration, lst(mean, sd, min, max)),
-    .by = group
-  )
+  summarise(across(duration, lst(mean, sd, min, max)), .by = group)
 durations <- split(durations, durations$group)
 names(durations) <- janitor::make_clean_names(names(durations))
 ```
 
-We created two lists of words to be presented to participants in the auditory modality: one in Catalan and one in Spanish. Words in the Catalan list were `r round(lengths$cat_eng$ipa_1_mean, 2)` phonemes long on average (*SD* = `r round(lengths$cat_eng$ipa_1_sd, 2)`, Range = `r round(lengths$cat_eng$ipa_1_min, 2)`-`r round(lengths$cat_eng$ipa_1_max, 2)`), and the orthographic forms of their English translations (which participants had to type) were `r round(lengths$cat_eng$word_2_mean, 2)` characters long on average (*SD* = `r round(lengths$cat_eng$word_2_sd, 2)`, Range = `r round(lengths$cat_eng$word_2_min, 2)`-`r round(lengths$cat_eng$word_2_max, 2)`). Words in the Spanish list were `r round(lengths$spa_eng$ipa_1_mean, 2)` phonemes long on average (*SD* = `r round(lengths$spa_eng$ipa_1_sd, 2)`, Range = `r round(lengths$spa_eng$ipa_1_min, 2)`-`r round(lengths$spa_eng$ipa_1_max, 2)`), and the orthographic form of their English translations were `r round(lengths$spa_eng$word_2_mean, 2)` characters long on average (*SD* = `r round(lengths$spa_eng$word_2_sd, 2)`, Range = `r round(lengths$spa_eng$word_2_min, 2)`-`r round(lengths$spa_eng$word_2_max, 2)`).
+We created two lists of words to be presented to participants in the auditory modality: one in Catalan and one in Spanish. Words in the Catalan list were `r round(lengths$cat_eng$ipa_1_mean, 2)` phonemes long on average (*SD* = `r round(lengths$cat_eng$ipa_1_sd, 2)`, range = `r round(lengths$cat_eng$ipa_1_min, 2)`-`r round(lengths$cat_eng$ipa_1_max, 2)`), and the orthographic forms of their English translations (which participants had to type) were `r round(lengths$cat_eng$word_2_mean, 2)` characters long on average (*SD* = `r round(lengths$cat_eng$word_2_sd, 2)`, range = `r round(lengths$cat_eng$word_2_min, 2)`-`r round(lengths$cat_eng$word_2_max, 2)`). Words in the Spanish list were `r round(lengths$spa_eng$ipa_1_mean, 2)` phonemes long on average (*SD* = `r round(lengths$spa_eng$ipa_1_sd, 2)`, range = `r round(lengths$spa_eng$ipa_1_min, 2)`-`r round(lengths$spa_eng$ipa_1_max, 2)`), and the orthographic form of their English translations were `r round(lengths$spa_eng$word_2_mean, 2)` characters long on average (*SD* = `r round(lengths$spa_eng$word_2_sd, 2)`, range = `r round(lengths$spa_eng$word_2_min, 2)`-`r round(lengths$spa_eng$word_2_max, 2)`).
 
-```{r exc-stimuli}
+```{r}
+#| label: exc-stimuli
 stim_exc_freq <- stimuli |>
   mutate(is_na = is.na(freq_zipf_2)) |>
   count(group, is_na) |>
@@ -203,64 +190,66 @@ names(stim_exc_freq) <- janitor::make_clean_names(names(stim_exc_freq))
 stim_exc_freq_n <- sum(map_int(stim_exc_freq, "n"))
 ```
 
-In each trial, participants listened to one audio file, which contained a single word. The audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infància of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in separate files in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@broersma2021praat]. The average duration of the Catalan audio files was `r round(durations$cat_eng$duration_mean, 2)` seconds (*SD* = `r round(durations$cat_eng$duration_sd, 2)`, Range = `r round(durations$cat_eng$duration_min, 2)`-`r round(durations$cat_eng$duration_max, 2)`). The average duration of the Spanish audio files was `r round(durations$spa_eng$duration_mean, 2)` seconds (*SD* = `r round(durations$spa_eng$duration_sd, 2)`, Range = `r round(durations$spa_eng$duration_min, 2)`-`r round(durations$spa_eng$duration_max, 2)`).
+In each trial, participants listened to one audio file, which contained a single word. Audio files were the same ones used in child experiments conducted in the Laboratori de Recerca en Infància of Universitat Pompeu Fabra (Barcelona, Spain). These audio files were recorded by a proficient Catalan-Spanish female bilingual from the Metropolitan Area of Barcelona in a child-directed manner. Catalan and Spanish words were recorded at 44,100 Hz in the same session, and then de-noised using Audacity and normalised at peak intensity using Praat [@broersma2021praat]. The average duration of the Catalan audio files was `r round(durations$cat_eng$duration_mean, 2)` seconds (*SD* = `r round(durations$cat_eng$duration_sd, 2)`, range = `r round(durations$cat_eng$duration_min, 2)`-`r round(durations$cat_eng$duration_max, 2)`). The average duration of the Spanish audio files was `r round(durations$spa_eng$duration_mean, 2)` seconds (*SD* = `r round(durations$spa_eng$duration_sd, 2)`, range = `r round(durations$spa_eng$duration_min, 2)`-`r round(durations$spa_eng$duration_max, 2)`).
 
-For each word pair in the Catalan and Spanish lists, we defined three predictors of interest: the lexical frequency of the correct English translation (*Frequency*), the phonological similarity between the presented word and its correct English translation (*Similarity*), and the presented word's number of cross-language phonological neighbours (*CLPN*) in English. *Frequency* was included as a nuisance predictor, under the hypothesis that---keeping other predictors constant---participants would provide correct responses more often when the correct translations are high frequency words in their native language. Lexical frequencies of correct translations were extracted from SUBTLEX-UK [@van2014subtlex], and transformed to Zipf scores. Translations without a lexical frequency value were excluded from data analysis (`r stim_exc_freq$cat_eng$n` in the Catalan list, `r stim_exc_freq$spa_eng$n` in the Spanish list).  *Similarity*, our main predictor of interest, was calculated as the Levenshtein similarity between the X-SAMPA transcriptions of each pair of translations using the `stringdist` R package [@van2014stringdist]. The Levenshtein distance computes the edit distance between two character strings---in this case, two phonological transcriptions---by counting the number of additions, deletions, and substitutions necessary to make both strings identical [@levenshtein1966binary]. We divided this edit distance by the number of characters in the longest X-SAMPA transcription of the translation pair. This transformation accounts for the fact that Levenshtein distance tends to increase with the length of the transcriptions. For interpretability, we subtracted this proportion from one, so that values closer to one correspond to higher similarity between phonological transcriptions, and values closer to zero correspond to lower similarity between phonological transcriptions. For example, the *table* (`teIb@l`)-*mesa* (`mesa`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("teɪbəl"), enc2utf8("mesa")))` similarity, while the *train* (`trEIn`)-*tren* (`tREn`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("trEIn"), enc2utf8("tɾEn")))` similarity. We calculated the number of *CLPN* for each Catalan and Spanish word by counting the number of English words with same or higher lexical frequency, and whose phonological transcription (in X-SAMPA format) differed by up to one phoneme from that of the presented Catalan or Spanish word. Lexical frequencies and phonological transcriptions were extracted from the multilingual database CLEARPOND [@marian2012clearpond]^[Phonological transcriptions in CLEARPOND were generated from eSPEAK, [http://espeak.sourceforge.net/](http://espeak.sourceforge.net/)]]. @tbl-stimuli summarises the lexical frequency, *CLPN* and phonological overlap of the words included in the Catalan and the Spanish lists.
-
+We defined three predictors of interest: the lexical frequency of the correct English translation (*Frequency*), the phonological similarity between the presented word and its correct English translation (*Similarity*), and the presented word's number of cross-language phonological neighbours (*CLPN*) in English. *Frequency* was included as a nuisance predictor, under the hypothesis that participants would provide correct responses more often when the correct translations are high frequency words in their native language, keeping other predictors constant. Lexical frequencies of correct English and Spanish translations were extracted from SUBTLEX-UK [@van2014subtlex] and SUBTLEX-ESP [@cuetos2011subtlexesp], respectively, and transformed to Zipf scores. Translations without a lexical frequency value were excluded from data analysis (`r stim_exc_freq$cat_eng$n` in the Catalan list, `r stim_exc_freq$spa_eng$n` in the Spanish list). *Similarity* was calculated as the Levenshtein similarity between the X-SAMPA transcriptions of each pair of translations using the `stringdist` R package [@van2014stringdist]. The Levenshtein distance computes the edit distance between two character strings---in this case, two phonological transcriptions---by counting the number of additions, deletions, and substitutions necessary to make both strings identical [@levenshtein1966binary]. We divided this edit distance by the number of characters in the longest X-SAMPA transcription of the translation pair. This transformation accounts for the fact that Levenshtein distance tends to increase with the length of the transcriptions. For interpretability, we subtracted this proportion from one, so that values closer to one correspond to higher similarity between phonological transcriptions, and values closer to zero correspond to lower similarity between phonological transcriptions. For example, the *table* (`teIb@l`)-*mesa* (`mesa`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("teɪbəl"), enc2utf8("mesa")))` similarity, while the *train* (`trEIn`)-*tren* (`tREn`) translation pair had `r scales::percent(stringdist::stringsim(enc2utf8("trEIn"), enc2utf8("tɾEn")))` similarity. We calculated the number of *CLPN* for each Catalan and Spanish word by counting the number of English words with same or higher lexical frequency, and whose phonological transcription (in X-SAMPA format) differed by up to one phoneme from that of the presented Catalan or Spanish word. Lexical frequencies and phonological transcriptions were extracted from the multilingual database CLEARPOND [@marian2012clearpond]^[Phonological transcriptions in CLEARPOND were generated from eSPEAK, [http://espeak.sourceforge.net/](http://espeak.sourceforge.net/)]. @tbl-stimuli summarises the lexical frequency, *CLPN* and phonological overlap of the words included in the Catalan and the Spanish lists.
 
 ```{r}
 #| label: tbl-stimuli
 #| tbl-cap: "Stimuli details."
-stimuli |>
+tbl_data <- stimuli |>
+  drop_na(freq_zipf_2, lv, neigh_n_h) |>
   summarise(
-    across(c(freq_zipf_2, lv, neigh_n_h),
-      lst(mean, sd, min, max),
-      na.rm = TRUE
-    ),
+    across(c(freq_zipf_2, lv, neigh_n_h), list(mean, sd, min, max)),
     .by = c(group)
+  )
+
+colnames(tbl_data) <- c(
+  "",
+  "M",
+  "SD",
+  "Min",
+  "Max",
+  "M",
+  "SD",
+  "Min",
+  "Max",
+  "M",
+  "SD",
+  "Min",
+  "Max"
+)
+
+tbl_data |>
+  tt(
+    width = c(
+      0.16,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07
+    )
   ) |>
-  gt(rowname_col = "group") |>
-  tab_spanner("Frequency", matches("freq")) |>
-  tab_spanner("Similarity", matches("lv")) |>
-  tab_spanner("CLPN", matches("neigh")) |>
-  fmt_number(is.numeric) |>
-  fmt_integer(c(
-    neigh_n_h_min,
-    neigh_n_h_max
-  )) |>
-  cols_merge_uncert(freq_zipf_2_mean, freq_zipf_2_sd) |>
-  cols_merge_uncert(lv_mean, lv_sd) |>
-  cols_merge_uncert(neigh_n_h_mean, neigh_n_h_sd) |>
-  cols_merge_range(freq_zipf_2_min, freq_zipf_2_max) |>
-  cols_merge_range(lv_min, lv_max) |>
-  cols_merge_range(neigh_n_h_min, neigh_n_h_max) |>
-  cols_label(
-    freq_zipf_2_mean = "Mean ± SD",
-    freq_zipf_2_sd = "SD",
-    freq_zipf_2_min = "Range",
-    lv_mean = "Mean ± SD",
-    lv_sd = "SD",
-    lv_min = "Range",
-    neigh_n_h_mean = "Mean ± SD",
-    neigh_n_h_sd = "SD",
-    neigh_n_h_min = "Range"
+  format_tt(
+    j = 2:ncol(tbl_data),
+    digits = 2,
+    num_zero = TRUE,
+    num_fmt = "decimal"
   ) |>
-  tab_style(
-    cell_text(weight = "bold"),
-    cells_column_spanners()
-  ) |>
-  tab_style(
-    cell_text(style = "italic"),
-    cells_column_labels()
-  ) |>
-  grand_summary_rows(
-    columns = matches("mean|sd"),
-    fns = list(
-      label = md("**Mean**"),
-      id = "totals",
-      fn = "mean"
+  group_tt(
+    j = list(
+      "Lexical frequency" = 2:5,
+      "Phonological simlarity" = 6:9,
+      "CLPN" = 10:13
     ),
-    fmt = ~ fmt_number(., n_sigfig = 3, suffixing = TRUE)
   )
 ```
 
@@ -269,32 +258,31 @@ stimuli |>
 
 The experiment was implemented online using Psychopy/Pavlovia [@peirce2019psychopy2]. Participants accessed the study from a link provided by Prolific or SONA and completed the experiment from an internet browser (Chrome or Mozilla). After giving their consent for participating, participants answered a series of questions about their demographic status, their language background, and the set up they were using for completing the study. Then, participants completed the experimental task. Participants were informed that they would listen to a series of pre-recorded words in either Catalan or Spanish. They were instructed to listen to each word, guess its meaning in English, and type their answer as soon as possible. Participants were randomly assigned to the Catalan or Spanish lists. Participants in the Catalan list were presented with `r nrow(stimuli[stimuli$group=="cat-ENG",])` trials, and participants in the Spanish list were presented with `r nrow(stimuli[stimuli$group=="spa-ENG",])` trials^[Stimuli lists were built from a pool of audio recordings made for a different study. The different number of trials in the Catalan and Spanish lists is due to more Spanish audios being available than Catalan audios.].
 
-Each trial started with a yellow fixation point presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a `>` symbol. Typed letters were displayed on the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the `RETURN/ENTER` key to confirm their answer and start a new trial. @fig-design illustrates the time course of a trial in the translation elicitation task.
+@fig-design illustrates the time course of a trial in the translation elicitation task.Each trial started with a yellow fixation point presented during one second on the centre of the screen over a black background. After one second, the audio started playing while the dot remained being displayed until the audio ended. Upon the offset of the fixation point and audio, participants were prompted to write their answer by a ">" symbol. Typed letters were displayed on the screen in real time to provide visual feed-back to participants. Participants were allowed to correct their answer. Then, participants pressed the `RETURN/ENTER` key to confirm their answer and start a new trial.
 
-![Schematic representation of a trial in the experimental task. The trial stars with the presentation of a fixation point in the centre of the screen (yellow dot). After 1,000 ms, the auditory word was presented while the fixation point remained on screen. After the offset of the audio, the fixation point disappeared and a visual prompt (`>`) was presented. Participants then wrote their answer and clicked `RETURN`, making the end of the trial.](_assets/img/design.png){#fig-design}
+![Schematic representation of a trial in the experimental task. The trial stars with the presentation of a fixation point in the centre of the screen (yellow dot). After 1,000 ms, the auditory word was presented while the fixation point remained on screen. After the offset of the audio, the fixation point disappeared and a visual prompt (`>`) was presented. Participants then wrote their answer and clicked `RETURN`, making the end of the trial.](../img/design.png){#fig-design}
 
 
 ### Data analysis
 
 #### Data processing
 
-After data collection, participants' answers were manually coded into the following categories: *Correct*, *Typo*, *Wrong*, *False friend*, *Other*. A response was coded as *Correct* if the provided string of characters was identical to the orthographic form of the correct translation. A response was coded as *Typo* if the participant provided a string of characters that was only one edit distance (addition, deletion, or substitution) apart from the orthographic form of the correct translation (e.g., "pengiun" instead of "penguin"), as long as the response did not correspond to a distinct English word. A response was coded as *False friend* if the participant's response was incorrect, but phonologically similar to the presented word. Responses not meeting the criteria for previous categories were labelled as *Wrong* or *Other* (see Data analysis section for more details). Both *Correct* and *Typo* responses were considered as correct, while *Wrong* and *False friend* responses were considered as incorrect. *Other* responses were excluded from data analysis. Trials in which participants took longer than 10 seconds to respond were also excluded. Participants contributed a total of `r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("cat-ENG", "spa-ENG"))), big.mark = ",")` valid trials (`r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("cat-ENG"))), big.mark = ",")` in Catalan, `r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("spa-ENG"))), big.mark = ",")` in Spanish). The task took approximately 15 minutes to complete.
+After data collection, participants' answers were manually coded into the following categories: *Correct*, *Typo*, *Wrong*, *Other*. A response was coded as *Correct* if the provided string of characters was identical to the orthographic form of the correct translation. A response was coded as *Typo* if the participant provided a string of characters that was only one edit distance (addition, deletion, or substitution) apart from the orthographic form of the correct translation (e.g., "pengiun" instead of "penguin"), as long as the response did not correspond to an extant English word. Responses not meeting the criteria for previous categories were labelled as *Wrong* or *Other* (see Data analysis section for more details). Both *Correct* and *Typo* responses were considered as correct, while *Wrong* responses were considered as incorrect. *Other* responses were excluded from data analysis. Trials in which participants took longer than 10 seconds to respond were also excluded. Participants contributed a total of `r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("cat-ENG", "spa-ENG"))), big.mark = ",")` valid trials (`r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("cat-ENG"))), big.mark = ",")` in Catalan, `r format(nrow(dplyr::filter(exp_responses, valid_status=="Valid", valid_response, group %in% c("spa-ENG"))), big.mark = ",")` in Spanish). The task took approximately 15 minutes to complete.
 
 #### Modelling approach and statistical inference
 
-We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Similarity*, *CLPN*, and *Group* [sum-coded as `cat-ENG = -0`, `spa-ENG = +0.5`, @schad2020capitalize] and the three-way interaction between *Similarity*, *CLPN*, and *Group*. The predictor *Group* was included to account for any differences in task performance between English participants translating Catalan and Spanish words. We also included participant-level random intercepts and slopes for the main effects and the interaction. Eq. 1 shows a formal description of the model.
-
+We modelled the probability of participants guessing the correct translation of each presented word using a generalised multilevel Bayesian regression model with a Bernoulli logit link distribution. We included as fixed effects the intercept, the main effects of *Frequency*, *Similarity*, *CLPN*, and *Group* [sum-coded as `cat-ENG = -0`, `spa-ENG = +0.5`, @schad2020capitalize] and the three-way interaction between *Similarity*, *CLPN*, and *Group*. The predictor *Group* was included to account for any differences in task performance between English participants translating Catalan and Spanish words. We also included participant-level random intercepts and slopes for the main effects and the interaction. @eq-1 shows a formal description of the model.  Numeric predictors were standardised before entering the model by subtracting the mean and dividing by the standard deviation.
 
 $$
 \begin{aligned}
 &\textbf{Likelihood}  \\
-y_{i} \sim & \text{Bernoulli}(p_{i}) \\ \\
+y_{i} \sim & \text{Bernoulli}(p_{i}) \\
 &\textbf{Parameters}  \\
 \text{Logit}(p_{i}) = &  \beta_{0[p,w]} + \beta_{1[p]} \text{Frequency}_{i} + \beta_{2[p]} \text{Similarity}_i +  \beta_{3[p]} \text{CLPN}_i + \beta_{4[p]} \text{Group}_i + \\
 &\beta_{5[p]} (\text{Similarity}_i \times \text{CLPN}_i) + \beta_{6[p]} (\text{Similarity}_i \times \text{Group}_i) + \\
-& \beta_{7[p]} (\text{CLPN}_i \times \text{Group}_i) + \beta_{8[p]} (\text{Similarity}_i \times \text{CLPN}_i \times \text{Group}_i) \\ \\
+& \beta_{7[p]} (\text{CLPN}_i \times \text{Group}_i) + \beta_{8[p]} (\text{Similarity}_i \times \text{CLPN}_i \times \text{Group}_i) \\
 \beta_{0-8[p,w]} \sim & \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \text{ and  word } w \text{ in 1, ..., } W \\
-\beta_{1-8[p]} \sim &  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \\ \\
+\beta_{1-8[p]} \sim &  \mathcal{N}(\mu_{\beta_{j}}, \sigma_{\beta_{j}}) \text{, for participant } p \text{ in 1, ..., } P \\
 &\textbf{Prior}  \\
 \mu_{\beta_{p,w}}  \sim &  \mathcal{N}(0, 0.1) \\
 \sigma_{\beta_{p}},  \sigma_{\beta_{w}} \sim & \text{HalfCauchy}(0, 0.1) \\
@@ -302,15 +290,13 @@ y_{i} \sim & \text{Bernoulli}(p_{i}) \\ \\
 \end{aligned}
 $$ {#eq-1}
 
-
 We followed @kruschke2018bayesian's guidelines for statistical inference. We first specified a region of practical equivalence (ROPE) around zero ([-0.1, +0.1], in the logit scale). This area indicates the values of the regression coefficients that we considered equivalent to zero. We then computed the 95% posterior credible intervals (CrI) of the regression coefficients of interest, which indicates the most likely range of values that contains the true value of the coefficient with 95% probability. Finally, for each regression coefficient we calculated the proportion of the 95% CrI that fell inside the ROPE, noted as *p*(ROPE). This proportion indicates the probability that the true value of the coefficient is equivalent to zero. For instance, if the *p*(ROPE) of a regression coefficient $\beta$ is 0.5, this indicates that there is a 50% probability that the true value of $\beta$ is zero or equivalent to zero, given the data. If *p*(ROPE)=0.01, this indicates that there is a 1% probability that the true value of the regression coefficient is zero or equivalent. If *p*(ROPE)=0.99, this indicates that there is a 99% probability that the true value of the regression coefficient is zero or equivalent.
 
-All analyses were performed in the R environment [@rcoreteam2013language]. We used the tidyverse family of R packages [@wickham2019welcome] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models (see #apx-diagnostics for model diagnostics). Numeric predictors were standardised before entering the model by subtracting the mean and dividing by the standard deviation.
-
+All analyses were performed in the R environment [@rcoreteam2013language]. We used the tidyverse family of R packages [@wickham2019welcome] to process data and to generate figures. We used the `brms` R package [@burkner2017brms] using the `cmdstanr` back-end to the Stan probabilistic language [@carpenter2017stan] to estimate and compare the models.
 
 ## Results
 
-```{r dataset-1}
+```{r}
 #| label: dataset-1
 dataset <- exp_responses |>
   filter(group != "cat-SPA") |>
@@ -327,12 +313,14 @@ r_validity <- map(
 n_participants <- map(dataset, \(x) dplyr::n_distinct(x$participant_id))
 
 excluded_lang <- participants_1 |>
-  filter(l2_writ_prod > 3 |
-    l2_oral_comp > 3 |
-    cat_oral_comp > 3 |
-    cat_writ_prod > 3 |
-    spa_oral_comp > 3 |
-    spa_writ_prod > 3) |>
+  filter(
+    l2_writ_prod > 3 |
+      l2_oral_comp > 3 |
+      cat_oral_comp > 3 |
+      cat_writ_prod > 3 |
+      spa_oral_comp > 3 |
+      spa_writ_prod > 3
+  ) |>
   nrow()
 
 excluded_impairment <- participants_1 |>
@@ -366,20 +354,20 @@ names(lengths) <- janitor::make_clean_names(names(lengths))
 
 We collected data for a total of `r format(nrow(dataset$cat_eng) + nrow(dataset$spa_eng), big.mark = ",")` trials completed by `r n_participants$cat_eng + n_participants$spa_eng` participants. We excluded trials in which participants did not enter any text (*n* = `r r_validity$cat_eng["blank"]`), in which a response in a language other than English was provided (e.g., "`agua`", *n* = `r r_validity$cat_eng["language"]`), in which participants did not provide a whole word (e.g., "`f`", *n* = `r r_validity$cat_eng["incomplete"]`), and in which participants added comments to the experimenter (e.g., "`unsure`", *n* = `r r_validity$cat_eng["other"]`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan and Spanish, or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a language disorder (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`).
 
-After applying trial-level and participant-level exclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_eng) + nrow(dataset_clean$cat_eng), big.mark = ",")` trials provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id) + dplyr::n_distinct(dataset_clean$cat_eng$participant_id)` participants. Of those trials, `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` were provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id)` participants who listened to Catalan words, and `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` trials were provided by `r dplyr::n_distinct(dataset_clean$spa_eng$participant_id)` participants who listened to Spanish words. Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, Range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, Range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
+After applying trial-level and participant-level exclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_eng) + nrow(dataset_clean$cat_eng), big.mark = ",")` trials provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id) + dplyr::n_distinct(dataset_clean$cat_eng$participant_id)` participants. Of those trials, `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` were provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id)` participants who listened to Catalan words, and `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` trials were provided by `r dplyr::n_distinct(dataset_clean$spa_eng$participant_id)` participants who listened to Spanish words. Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
 
-
-
-```{r coefs-1}
+```{r}
 #| label: coefs-1
 c1 <- gather_draws(exp_1_m0, `b_.*`, `sd_.*`, regex = TRUE) |>
-  summarise(across(.value, lst(
-    .median = median,
-    .lower = \(x) hdi(x)[1],
-    .upper = \(x) hdi(x)[2],
-    .rope = \(x) mean(between(x, -0.1, 0.1))
-  ),
-  .names = "{fn}"
+  summarise(across(
+    .value,
+    lst(
+      .median = median,
+      .lower = \(x) hdi(x)[1],
+      .upper = \(x) hdi(x)[2],
+      .rope = \(x) mean(between(x, -0.1, 0.1))
+    ),
+    .names = "{fn}"
   ))
 c1 <- split(c1, c1$.variable)
 names(c1) <- janitor::make_clean_names(names(c1))
@@ -431,101 +419,127 @@ tbl_data <- list(
     .by = c(group, exp, participant_id)
   ) |>
   mutate(correct = prop_adj(correct, n_trials)) |>
-  summarise(across(correct, lst(mean, sd, sem, min, max)),
+  summarise(
+    across(correct, lst(mean, sd, sem, min, max)),
     across(n_trials, lst(mean, sum, sd, min, max)),
     n_participants = dplyr::n_distinct(participant_id),
     .by = c(group, exp)
   ) |>
-  relocate(n_participants, matches("correct"))
+  relocate(exp, group, n_participants, matches("correct")) |>
+  select(-exp)
+
+colnames(tbl_data) <- c(
+  "",
+  "N",
+  "M",
+  "SD",
+  "SE",
+  "Min",
+  "Max",
+  "M",
+  "N trials",
+  "SD",
+  "Min",
+  "Max"
+)
 
 tbl_data |>
-  gt(
-    rowname_col = "group",
-    groupname_col = "exp"
+  tt(
+    width = c(
+      0.19,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.07,
+      0.11,
+      0.07,
+      0.07,
+      0.07
+    )
   ) |>
-  fmt_number(is.numeric, decimals = 2) |>
-  fmt_integer(c(matches("sum|min|max"), n_participants)) |>
-  fmt_number(matches("correct"), scale_by = 100) |>
-  tab_spanner("Accuracy (%)", matches("correct")) |>
-  tab_spanner("Valid trials", matches("n_trials")) |>
-  cols_merge_range(n_trials_min, n_trials_max) |>
-  cols_merge_range(correct_min, correct_max) |>
-  cols_label(
-    n_trials_sum = "N trials",
-    n_participants = "N",
-    n_trials_mean = "Mean",
-    n_trials_sd = "SD",
-    n_trials_min = "Range",
-    correct_mean = "Mean",
-    correct_sd = "SD",
-    correct_sem = "SE",
-    correct_min = "Range"
+  group_tt(
+    i = list("Experiment 1" = 1, "Experiment 2" = 3, "Experiment 3" = 5),
+    j = list("Accuracy (%)" = 3:7, "Valid trials" = 8:12)
   ) |>
-  tab_style(
-    cell_text(align = "center"),
-    cells_column_labels()
-  ) |>
-  tab_style(
-    cell_text(style = "italic"),
-    cells_column_labels()
-  ) |>
-  tab_style(
-    cell_text(weight = "bold"),
-    cells_column_spanners()
-  ) |>
-  tab_style(
-    cell_text(align = "left"),
-    list(cells_body(), cells_column_labels())
+  format_tt(
+    j = 3:10,
+    digits = 2,
+    num_zero = TRUE,
+    num_mark_big = ",",
+    num_fmt = "decimal"
   )
 ```
 
-
-```{r fig-epreds-1}
+```{r}
 #| label: fig-epreds-1
 #| cache: false
 #| fig-height: 5
 #| fig-width: 11
 #| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Predictions are plotted separately for English participants translating Catalan words, and for English participants translating Spanish words. Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
-get_epreds <- function(model, data, n = 100,
-                       lv = seq(0, 1, length.out = 100),
-                       neigh_n_h = c(0, 2, 4, 8, 12),
-                       ...) {
+get_epreds <- function(
+  model,
+  data,
+  n = 100,
+  lv = seq(0, 1, length.out = 100),
+  neigh_n_h = c(0, 2, 4, 8, 12),
+  ...
+) {
   lv_std <- (lv - mean(data$lv, na.rm = TRUE)) / sd(data$lv, na.rm = TRUE)
-  neigh_n_h_std <- (neigh_n_h - mean(data$neigh_n_h, na.rm = TRUE)) / sd(data$neigh_n_h, na.rm = TRUE) 
+  neigh_n_h_std <- (neigh_n_h - mean(data$neigh_n_h, na.rm = TRUE)) /
+    sd(data$neigh_n_h, na.rm = TRUE)
   knowledge <- unique(model$data$knowledge)
   confidence <- unique(model$data$confidence)
   freq_zipf_2_std <- 0
   group <- unique(model$data$group)
   experiment <- unique(model$data$experiment)
-  nd <- expand_grid(freq_zipf_2_std, neigh_n_h_std, lv_std, knowledge, confidence, group, experiment)
+  nd <- expand_grid(
+    freq_zipf_2_std,
+    neigh_n_h_std,
+    lv_std,
+    knowledge,
+    confidence,
+    group,
+    experiment
+  )
   epreds <- tidybayes::add_epred_draws(nd, model, re_formula = NA, ...)
   return(epreds)
 }
 
 lv <- seq(0, 1, length.out = 100)
-lv_std <- (lv - mean(dataset_1$lv_std, na.rm = TRUE)) / sd(dataset_1$lv_std, na.rm = TRUE)
+lv_std <- (lv - mean(dataset_1$lv_std, na.rm = TRUE)) /
+  sd(dataset_1$lv_std, na.rm = TRUE)
 neigh_n_h <- c(0, 2, 4, 8, 12)
-epreds_1 <- get_epreds(exp_1_m0, dataset_1, neigh_n_h = neigh_n_h, lv = lv) 
-epreds_1$neigh_n_h_std <- factor(epreds_1$neigh_n_h_std, levels = unique(epreds_1$neigh_n_h_std), labels = paste0(neigh_n_h, " neighbours"), ordered = TRUE)
+epreds_1 <- get_epreds(exp_1_m0, dataset_1, neigh_n_h = neigh_n_h, lv = lv)
+epreds_1$neigh_n_h_std <- factor(
+  epreds_1$neigh_n_h_std,
+  levels = unique(epreds_1$neigh_n_h_std),
+  labels = paste0(neigh_n_h, " neighbours"),
+  ordered = TRUE
+)
 
-epreds_1 |> 
+epreds_1 |>
   ggplot(aes(lv_std, .epred)) +
   facet_grid(group ~ neigh_n_h_std) +
-  stat_lineribbon(aes(fill_ramp = after_stat(level)),
+  stat_lineribbon(
     linewidth = 1 / 2,
     .width = c(0.95, 0.89, 0.78, 0.67, 0.50)
   ) +
   labs(
     x = "Similarity\n(Levenshtein similarity with correct translation)",
     y = "p(Correct)",
-    colour = "Cross-language Phonological Neighbours",
-    fill = "Cross-language Phonological Neighbours",
-    linetype = "Cross-language Phonological Neighbours",
-    fill_ramp = "CrI (%)"
   ) +
   scale_x_continuous(
-    labels = \(x) scales::percent((x * sd(dataset_1$lv, na.rm = TRUE)) + mean(dataset_1$lv, na.rm = TRUE)), 
-    breaks = (seq(0, 1, 0.2) - mean(dataset_1$lv, na.rm = TRUE)) / sd(dataset_1$lv, na.rm = TRUE)) +
+    labels = \(x) {
+      scales::percent(
+        (x * sd(dataset_1$lv, na.rm = TRUE)) + mean(dataset_1$lv, na.rm = TRUE)
+      )
+    },
+    breaks = (seq(0, 1, 0.25) - mean(dataset_1$lv, na.rm = TRUE)) /
+      sd(dataset_1$lv, na.rm = TRUE)
+  ) +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_brewer(palette = "Reds") +
   theme(
@@ -534,21 +548,13 @@ epreds_1 |>
   )
 ```
 
-
-## Discussion
-
-In Experiment 1, we investigated the extent to which the phonological similarity between translation equivalents is sufficient for successful word translation, in the absence of conceptual knowledge about the presented word. We tested two groups of monolingual British English-native adults in a translation task that involved words in Catalan or Spanish, two languages participants reported having no prior familiarity with. Participants benefited strongly from phonological similarity when the correct translation of the presented words in Catalan or Spanish had few English phonological neighbours with higher lexical frequency. As the number of higher-frequency English phonological neighbours increased, both participants' accuracy and the impact of phonological similarity approached zero. This suggests that word-forms in an unfamiliar language have a strong potential to activate their translation equivalents in the native language, provided some phonological similarity between both words, and the absence of more frequent phonological neighbors.
-
-Participants in Experiment 1 were surprisingly good at translating words from Catalan and Spanish (two unfamiliar languages) to their native language. If English participants were likely to activate the correct English translations of the presented words in Catalan and Spanish, it is possible that speakers of typologically closer languages to Catalan and Spanish may benefit even more strongly from phonological similarity in the same task. English is a Germanic language (like Dutch or German), while Catalan and Spanish are Romance languages (like Italian, French, Portuguese). English shares fewer phonologically similar translations with Romance languages than Romance languages share with each other. It is possible that the probability of homophonic translations is higher when listening to an unfamiliar language from the same typological family as the native language. We tested this hypothesis in Experiment 2.
-
-
 # Experiment 2
 
 Results in Experiment 1 suggest that English natives were able to exploit the phonological similarity between unfamiliar words in Catalan and Spanish to provide accurate translations to English. English, a Germanic language, is relatively distant from Catalan and Spanish, two Romance languages. In comparison, Catalan and Spanish are typologically close languages that share many more cognates. In Experiment 2, we investigated whether listeners of an unfamiliar but typologically closer language benefit more strongly from phonological similarity when performing the same task as in Experiment 1. To this aim, we presented Spanish participants, who reported little-to-no prior familiarity with Catalan, with Catalan words.
 
 ## Methods
 
-```{r participants-numbers-2}
+```{r}
 #| label: participants-numbers-2
 participants_2 <- exp_participants |>
   filter(group == "cat-SPA")
@@ -566,13 +572,13 @@ participants_age <- participants_2 |>
 n_female <- table(participants_2$gender)
 ```
 
-We collected data from `r n_participants` Spanish native adults living in Spain (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants in Spain were contacted via announcements at the University campus(es), and were compensated €5 or an Amazon voucher for the same value. Participants gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was approved by the Drug Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar (2020/9080/I).
+We collected data from `r n_participants` Spanish native adults living in Spain (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants in Spain were contacted via announcements at the University campus(es), and were compensated €5 or an Amazon voucher for the same value. Participants gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was approved by the Drug Research Ethical Committee (CEIm) of the IMIM Parc de Salut Mar (2020/9080/I).
 
 Stimuli were the same list of Catalan stimuli as in Experiment 1. Procedure and data analysis were identical as in Experiment 1, with the only exception that the statistical model did not include the *Group* predictor, given that only one group (`cat-SPA`) participated in this experiment.
 
 ## Results
 
-```{r dataset-2}
+```{r}
 #| label: dataset-2
 dataset <- exp_responses |>
   filter(group == "cat-SPA") |>
@@ -589,12 +595,14 @@ r_validity <- map(
 n_participants <- map(dataset, \(x) dplyr::n_distinct(x$participant_id))
 
 excluded_lang <- participants_2 |>
-  filter(l2_writ_prod > 3 |
-    l2_oral_comp > 3 |
-    cat_oral_comp > 3 |
-    cat_writ_prod > 3 |
-    spa_oral_comp > 3 |
-    spa_writ_prod > 3) |>
+  filter(
+    l2_writ_prod > 3 |
+      l2_oral_comp > 3 |
+      cat_oral_comp > 3 |
+      cat_writ_prod > 3 |
+      spa_oral_comp > 3 |
+      spa_writ_prod > 3
+  ) |>
   nrow()
 
 excluded_impairment <- participants_1 |>
@@ -623,18 +631,21 @@ lengths <- dataset_2 |>
   )
 ```
 
-We collected data for a total of `r format(nrow(dataset$cat_spa) + nrow(dataset$cat_spa), big.mark = ",")` trials completed by `r n_participants$cat_spa` participants. We excluded trials in which participants did not enter any text (*n* = `r r_validity$cat_spa["blank"]`), in which a response in a language other than Spanish was provided (*n* = `r r_validity$cat_spa["language"]`), in which participants did not provide a whole word (*n* = `r r_validity$cat_spa["incomplete"]`), and in which participants added comments to the experimenter (*n* = `r r_validity$cat_spa["other"]`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a developmental language disorder (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`). After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_spa), big.mark = ",")` trials provided by `r dplyr::n_distinct(dataset_clean$cat_spa$participant_id) + dplyr::n_distinct(dataset_clean$cat_spa$participant_id)` participants. Responses given by participants were `r round(lengths$len_mean, 2)` characters long on average (*Median* = `r round(lengths$len_median, 2)`, *SD* = `r round(lengths$len_sd, 2)`, Range = `r round(lengths$len_min, 2)`-`r round(lengths$len_max, 2)`).
+We collected data for a total of `r format(nrow(dataset$cat_spa) + nrow(dataset$cat_spa), big.mark = ",")` trials completed by `r n_participants$cat_spa` participants. We excluded trials in which participants did not enter any text (*n* = `r r_validity$cat_spa["blank"]`), in which a response in a language other than Spanish was provided (*n* = `r r_validity$cat_spa["language"]`), in which participants did not provide a whole word (*n* = `r r_validity$cat_spa["incomplete"]`), and in which participants added comments to the experimenter (*n* = `r r_validity$cat_spa["other"]`). In addition, we excluded data from participants that self-rated their oral and/or written skills in Catalan or any other second language as four or higher in a five-point scale (*n* = `r excluded_lang`), were diagnosed with a developmental language disorder (*n* = `r excluded_impairment`), or did not contribute more than 80% of valid trials (*n* = `r excluded_ntrials`). After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_spa), big.mark = ",")` trials provided by `r dplyr::n_distinct(dataset_clean$cat_spa$participant_id) + dplyr::n_distinct(dataset_clean$cat_spa$participant_id)` participants. Responses given by participants were `r round(lengths$len_mean, 2)` characters long on average (*Median* = `r round(lengths$len_median, 2)`, *SD* = `r round(lengths$len_sd, 2)`, range = `r round(lengths$len_min, 2)`-`r round(lengths$len_max, 2)`).
 
 
-```{r posterior-2}
+```{r}
+#| label: posterior-2
 c2 <- gather_draws(exp_2_m0, `b_.*`, `sd_.*`, regex = TRUE) |>
-  summarise(across(.value, lst(
-    .median = median,
-    .lower = \(x) hdi(x)[1],
-    .upper = \(x) hdi(x)[2],
-    .rope = \(x) mean(between(x, -0.1, 0.1))
-  ),
-  .names = "{fn}"
+  summarise(across(
+    .value,
+    lst(
+      .median = median,
+      .lower = \(x) hdi(x)[1],
+      .upper = \(x) hdi(x)[2],
+      .rope = \(x) mean(between(x, -0.1, 0.1))
+    ),
+    .names = "{fn}"
   ))
 c2 <- split(c2, c2$.variable)
 names(c2) <- janitor::make_clean_names(names(c2))
@@ -642,36 +653,43 @@ names(c2) <- janitor::make_clean_names(names(c2))
 
 Overall, participants responded less accurately to words with more CLPNs than to words with fewer CLPNs, regardless of the amount of phonological similarity between the presented word and its translation. This is indicated by the size of the regression coefficient of the two-way interaction between *Similarity* and *CLPN* ($\beta$ = `r round(c2$b_neigh_n_h_std_lv_std$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_std_lv_std$.lower, 3)`, `r round(c2$b_neigh_n_h_std_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_std_lv_std$.rope, 3)`). As anticipated, participants' performance benefited from an increase in *Similarity* ($\beta$ = `r round(c2$b_lv_std$.median, 3)`, 95% CrI = [`r round(c2$b_lv_std$.lower, 3)`, `r round(c2$b_lv_std$.upper, 3)`], *p*(ROPE) = `r round(c2$b_lv_std$.rope, 3)`), while the number of *CLPN* had the opposite effect ($\beta$ = `r round(c2$b_neigh_n_h_std$.median, 3)`, 95% CrI = [`r round(c2$b_neigh_n_h_std$.lower, 3)`, `r round(c2$b_neigh_n_h_std$.upper, 3)`], *p*(ROPE) = `r round(c2$b_neigh_n_h_std$.rope, 3)`). @fig-epreds-2 illustrates the posterior of the average predictions of the model for words with different values of *Similarity* and *CLPN*.
 
-```{r fig-epreds-2}
+```{r}
 #| label: fig-epreds-2
 #| cache: false
 #| fig-cap: "Posterior model-predicted mean accuracy in Experiment 1. Predictions were generated from 4,000 posterior samples, extracted for different values of *CLPN* (0, 2, 4, 8, 12) and *Similarity* (1-100). Lines indicate mean predictions, and intervals indicate 95%, 89%, 78%, 67%, and 50% credible intervals (CrI)."
 #| fig-height: 3.5
 #| fig-width: 10
-lv <- seq(0, 1, length.out = 100)
-lv_std <- (lv - mean(dataset_2$lv_std, na.rm = TRUE)) / sd(dataset_2$lv_std, na.rm = TRUE)
+lv_std <- (lv - mean(dataset_2$lv_std, na.rm = TRUE)) /
+  sd(dataset_2$lv_std, na.rm = TRUE)
 neigh_n_h <- c(0, 2, 4, 8, 12)
-epreds_2 <- get_epreds(exp_2_m0, dataset_2, neigh_n_h = neigh_n_h, lv = lv) 
-epreds_2$neigh_n_h_std <- factor(epreds_2$neigh_n_h_std, levels = unique(epreds_2$neigh_n_h_std), labels = paste0(neigh_n_h, " neighbours"), ordered = TRUE)
+epreds_2 <- get_epreds(exp_2_m0, dataset_2, neigh_n_h = neigh_n_h, lv = lv)
+epreds_2$neigh_n_h_std <- factor(
+  epreds_2$neigh_n_h_std,
+  levels = unique(epreds_2$neigh_n_h_std),
+  labels = paste0(neigh_n_h, " neighbours"),
+  ordered = TRUE
+)
 
-epreds_2 |> 
+epreds_2 |>
   ggplot(aes(lv_std, .epred)) +
-  facet_grid(~ neigh_n_h_std) +
-  stat_lineribbon(aes(fill_ramp = after_stat(level)),
+  facet_grid(~neigh_n_h_std) +
+  stat_lineribbon(
     linewidth = 1 / 2,
     .width = c(0.95, 0.89, 0.78, 0.67, 0.50)
   ) +
   labs(
     x = "Similarity\n(Levenshtein similarity with correct translation)",
     y = "p(Correct)",
-    colour = "Cross-language Phonological Neighbours",
-    fill = "Cross-language Phonological Neighbours",
-    linetype = "Cross-language Phonological Neighbours",
-    fill_ramp = "CrI (%)"
   ) +
   scale_x_continuous(
-    labels = \(x) scales::percent((x * sd(dataset_2$lv, na.rm = TRUE)) + mean(dataset_2$lv, na.rm = TRUE)), 
-    breaks = (seq(0, 1, 0.2) - mean(dataset_2$lv, na.rm = TRUE)) / sd(dataset_2$lv, na.rm = TRUE)) +
+    labels = \(x) {
+      scales::percent(
+        (x * sd(dataset_2$lv, na.rm = TRUE)) + mean(dataset_2$lv, na.rm = TRUE)
+      )
+    },
+    breaks = (seq(0, 1, 0.25) - mean(dataset_2$lv, na.rm = TRUE)) /
+      sd(dataset_2$lv, na.rm = TRUE)
+  ) +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_brewer(palette = "Reds") +
   theme(
@@ -680,15 +698,18 @@ epreds_2 |>
   )
 ```
 
-```{r posterior-12}
+```{r}
+#| label: posterior-12
 c12 <- gather_draws(exp_12_m0, `b_.*`, `sd_.*`, regex = TRUE) |>
-  summarise(across(.value, lst(
-    .median = median,
-    .lower = \(x) hdi(x)[1],
-    .upper = \(x) hdi(x)[2],
-    .rope = \(x) mean(between(x, -0.1, 0.1))
-  ),
-  .names = "{fn}"
+  summarise(across(
+    .value,
+    lst(
+      .median = median,
+      .lower = \(x) hdi(x)[1],
+      .upper = \(x) hdi(x)[2],
+      .rope = \(x) mean(between(x, -0.1, 0.1))
+    ),
+    .names = "{fn}"
   ))
 c12 <- split(c12, c12$.variable)
 names(c12) <- janitor::make_clean_names(names(c12))
@@ -697,64 +718,18 @@ names(c12) <- janitor::make_clean_names(names(c12))
 In order to compare the results from Experiments 1 and 2 directly, we fit a model on the joint datasets from both experiments. This model included all predictors from the models presented in Experiments 1 and 2, and the predictor *Experiment* with levels `"Experiment 1"` and `"Experiment 2"`, and a three-way interaction between *Experiment*, *Similarity*, and *CLPN*. The *Experiment* variable was sum-coded as `-0.5 = Experiment 1` and `+0.5 = Experiment 2`. All two-way interactions between the three predictors were also included. The effect of *CLPN* on *Similarity* was equivalent in both groups, as indicated by the coefficient of the three-way way interaction ($\beta$ = `r round(c12$b_neigh_n_h_std_lv_std_experiment1$.median, 3)`, 95% CrI = [`r round(c12$b_neigh_n_h_std_lv_std_experiment1$.lower, 3)`, `r round(c12$b_neigh_n_h_std_lv_std$.upper, 3)`]). The posterior probability of this coefficient being equivalent to zero---*p*(ROPE)---was `r round(c12$b_neigh_n_h_std_lv_std_experiment1$.rope, 3)`), that is, inconclusive. The coefficient of the interaction term between *Experiment* and *CLPN* was also equivalent to zero ($\beta$ = `r round(c12$b_neigh_n_h_std_experiment1$.median, 3)`, 95% CrI = [`r round(c12$b_neigh_n_h_std_experiment1$.lower, 3)`, `r round(c12$b_neigh_n_h_std_experiment1$.upper, 3)`], *p*(ROPE) = `r round(c12$b_neigh_n_h_std_experiment1$.rope, 3)`), suggesting that participants from Experiments 1 and 2 were affected by CLPN on a similar basis. Finally, the coefficient of the interaction between *Experiment* and *Similarity* was different from zero ($\beta$ = `r round(c12$b_neigh_n_h_std_experiment1$.median, 3)`, 95% CrI = [`r round(c12$b_lv_std_experiment1$.lower, 3)`, `r round(c12$b_lv_std_experiment1$.upper, 3)`], *p*(ROPE) = `r round(c12$b_lv_std_experiment1$.rope, 3)`), with a positive sign indicating that the increments in *Similarity* were associated with a larger increment in probability of correct translation in Experiment 2, compared to in Experiment 1: for an average value of *CLPN*, participants in Experiment 2 benefited more strongly from *Similarity* than participants in Experiment 1.
 
 
-## Discussion
-
-Experiment 2 was an extension of Experiment 1 to a population of monolinguals whose native language is typologically close to the presented language. We presented Catalan words to Spanish native adults who were reportedly unfamiliar with Catalan. Our results indicate a similar pattern of results as those in Experiment 1: participants were able to provide correct translations of presented Catalan words, provided that the Catalan words shared some degree of phonological similarity with their Spanish translation, and that the number of phonological neighbours with higher lexical frequency was reduced. In contrast with the results in Experiment 1, the positive impact of phonological similarity on participants' performance in Experiment 2 larger. Spanish natives in Experiment 2 exploited phonological similarity more strongly than English natives in Experiment 1. Overall, this suggests that participants in Experiment 2, who were natives of a typologically similar language (Spanish) to the presented language (Catalan), benefited more strongly from phonological similarity than participants in Experiment 1, who were natives of a typologically less similar language (English) to the presented language (Catalan, Spanish). Participants from both Experiment 1 and 2 benefited strongly from phonological similarity to correctly translate words from a non-native, reportedly unfamiliar language. This pattern of results holds for most of the presented stimuli, but some low-similarity Catalan and Spanish words were responded to surprisingly accurately by English listeners. Given that participants were reportedly unfamiliar with both languages, it was expected that participants would be very unlikely to provide correct translations for words sharing little to no phonological similarity to their correct translation. @tbl-surprises shows a list of Catalan and Spanish words to which participants provided responses with $\geq$ 10 average accuracy.
-
-
 ```{r}
 #| label: tbl-surprises
 #| tbl-cap: "List of items with unexpectedly high accuracy: the Levenshtein similarity score between the presented word (in Catalan or Spanish) and their correct English translation is zero, but participants, who are reportedly unfamiliar with the presented language, were on average >10% likely to guess the correct translation."
-ipa_to_tipa <- function(ipa) {
-  dict <- c(
-    "ɑ" = "A", 
-    "ɒ" = "6",
-    "æ" = "\\ae", 
-    "ʌ" = "2", 
-    "β" = "B",
-    "ʤ" = "}\\\\textdyoghlig\\\\textipa{",
-    "d͡ʒ" = "}\\\\textdyoghlig\\\\textipa{",
-    "dʒ" = "}\\\\textdyoghlig\\\\textipa{", 
-    "ð" = "D",
-    "ə" = "@",
-    "ɛ" = "E",
-    "ɣ" = "G",
-    "ɡ" = "g",
-    "ɫ" = "\\|~l", 
-    "ʎ" = "}\\\\textlambda\\\\textipa{",
-    "ŋ" = "N",
-    "ɲ" = "}\\\\textltailn\\\\textipa{", 
-    "ɔ" = "O",
-    "ɾ" = "R",
-    "ʧ" = "}\\\\textteshlig\\\\textipa{", 
-    "tʃ" = "}\\\\textteshlig\\\\textipa{", 
-    "t͡ʃ" = "}\\\\textteshlig\\\\textipa{", 
-    "θ" = "T", 
-    "t͡s" = "}\\\\texttslig\\\\textipa{", 
-    "ts" = "}\\\\texttslig\\\\textipa{", 
-    "ʃ" = "S", 
-    "ʒ" = "Z", 
-    "ɪ" = "I", 
-    "ʊ" = "U", 
-    "ɜ" = "3", 
-    "ɹ" = "\\*r", 
-    "ː" = ":", 
-    "ˈ" = '"'
-  )
-  tipa <- stringr::str_replace_all(ipa, dict)
-  tipa <- paste0("\\textipa{", tipa, "}")
-  return(tipa)
-}
-
 tbl_data <- list(
   "Experiment 1" = dataset_1,
   "Experiment 2" = dataset_2
 ) |>
   bind_rows(.id = "exp") |>
   mutate(
-    translation = paste0(word_1, " - ",  word_2),
-    ipa = ipa_to_tipa(paste0("/", ipa_1, "/ - /", ipa_2, "/"))
-  ) |> 
+    translation = paste0(word_1, " - ", word_2),
+    ipa = paste0("/", ipa_1, "/ - /", ipa_2, "/")
+  ) |>
   summarise(
     n = n(),
     correct = sum(correct),
@@ -766,42 +741,42 @@ tbl_data <- list(
   ) |>
   dplyr::filter(lv == 0, accuracy >= 0.1) |>
   select(exp, translation, ipa, group, accuracy, accuracy_se) |>
-  arrange(exp, group, desc(accuracy)) |> 
-  select(translation, ipa, accuracy, accuracy_se) |> 
-  mutate(accuracy = round(accuracy * 100, 2),
-         accuracy_se = round(accuracy_se * 100, 2))
+  arrange(exp, group, desc(accuracy)) |>
+  select(translation, ipa, accuracy, accuracy_se) |>
+  mutate(
+    accuracy = round(accuracy * 100, 2),
+    accuracy_se = round(accuracy_se * 100, 2)
+  )
 
 names(tbl_data) <- c("Translation", "IPA", "Accuracy (\\%)", "SE")
 
-tt(tbl_data) |> 
-  style_tt(i = 0, bold = TRUE, line = "tb") |> 
-  group_tt(i = list(
-    "Experiment 1 (cat-ENG)" = 1,
-    "Experiment 2 (spa-ENG)" = 6,
-    "Experiment 3 (cat-SPA)" = 22)) |> 
-  style_tt(i = 1, bold = TRUE, line = "b") |> 
-  style_tt(i = 7, bold = TRUE, line = "tb") |> 
-  style_tt(i = 24, bold = TRUE, line = "tb")
+tt(tbl_data) |>
+  group_tt(
+    i = list(
+      "Experiment 1 (cat-ENG)" = 1,
+      "Experiment 2 (spa-ENG)" = 6,
+      "Experiment 3 (cat-SPA)" = 22
+    )
+  )
 ```
 
 
-It is likely that participants had prior knowledge of these words despite having reported little to no familiarity with the presented language (Catalan or Spanish). One possibility is that participants had previously encountered these words embedded in English linguistic input. Spanish words percolate English speech with relative frequency, via different sources such as popular culture, songs, TV programs, etc. In addition, words from languages other than Spanish or Catalan, but with high similarity to the Spanish or Catalan words (e.g., cognates from Italian or French) might appear in English speech as well. Such prior knowledge might not be specific to the low-similarity words highlighted before. Participants may also have had prior knowledge about higher-similarity words, which could have contributed to participants responding to such words more accurately than without such prior knowledge. In the case of higher-similarity words, it is more difficult to disentangle the extent to which participants' accuracy is a function of pure phonological similarity, or prior knowledge they had about the meaning of Spanish words. Experiment 3 was addressed at investigating the issue of prior knowledge.
 
 # Experiment 3
 
-Experiment 3 is a replication of Experiment 1, in which we collected additional data about participants' prior familiarity with the presented Catalan and Spanish words, in addition to the same translation task presented to participants in Experiment 1.
+Participants from both Experiment 1 and 2 benefited strongly from phonological similarity to correctly translate words from a non-native, reportedly unfamiliar language. This pattern of results holds for most of the presented stimuli, but some low-similarity Catalan and Spanish words were responded to surprisingly accurately by English listeners. Given that participants were reportedly unfamiliar with both languages, it was expected that participants would be very unlikely to provide correct translations for words sharing little to no phonological similarity to their correct translation. @tbl-surprises shows a list of Catalan and Spanish words to which participants provided responses with $\geq$ 10 average accuracy. It is possible that participants had prior knowledge of these words despite having reported little to no familiarity with the presented language (Catalan or Spanish). One possibility is that participants had previously encountered these words embedded in English linguistic input. Spanish words percolate English speech with relative frequency, via different sources such as popular culture, songs, TV programs, etc. In addition, words from languages other than Spanish or Catalan, but with high similarity to the Spanish or Catalan words (e.g., cognates from Italian or French) might appear in English speech as well. Such prior knowledge might not be specific to the low-similarity words highlighted before. Participants may also have had prior knowledge about higher-similarity words, which could have contributed to participants responding to such words more accurately than without such prior knowledge. In the case of higher-similarity words, it is more difficult to disentangle the extent to which participants' accuracy is a function of pure phonological similarity, or prior knowledge they had about the meaning of Spanish words. Experiment 3 is a replication of Experiment 1 in which we collected additional data about participants' prior familiarity with the presented Catalan and Spanish words. We used this information to remove from analyses any responses in which participants reported prior knowledge with the meaning of the presented word.
 
 ## Methods
 
-```{r participants-numbers-3}
+```{r}
 #| label: participants-numbers-3
-participants_3 <- quest_participants |>
+participants_3 <- que_participants |>
   filter(group != "cat-SPA")
 
 collection_dates <- participants_3 |>
   pull(date) |>
   range() |>
-  format("%B %dth, %Y") 
+  format("%B %dth, %Y")
 collection_dates <- gsub(" 0", " ", collection_dates)
 
 n_participants <- dplyr::n_distinct(participants_3)
@@ -811,18 +786,20 @@ participants_age <- participants_3 |>
 n_female <- table(participants_3$gender)
 ```
 
-We collected data from `r n_participants` British English native adults living in United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, Range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits), and gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was approved by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. Stimuli were the same lists of Catalan and Spanish stimuli as in Experiment 1. 
+We collected data from `r n_participants` British English native adults living in United Kingdom (*Mean* = `r round(participants_age$age_mean, 2)` years, *SD* = `r round(participants_age$age_sd, 2)`, range = `r round(participants_age$age_min, 2)`-`r round(participants_age$age_max, 2)`, `r n_female` female). Data collection took place from `r collection_dates[1]` to `r collection_dates[2]`. Participants were recruited via Prolific (5£ compensation) and SONA (compensation in academic credits), and gave informed consent before providing any data and the study was conducted in accordance with ethical standards of the Declaration of Helsinki and the protocol was approved by the University of Oxford Medical Sciences Inter-Divisional Research Ethics Committee (IDREC) (R60939/RE007). Participants were asked to complete the experiment using a laptop in a quiet place with good internet connection. Stimuli were the same lists of Catalan and Spanish stimuli as in Experiment 1. 
 
 
-```{r participants-excluded-3}
+```{r}
 #| label: participants-excluded-3
 excluded_lang <- participants_3 |>
-  filter(l2_writ_prod > 3 |
-    l2_oral_comp > 3 |
-    cat_oral_comp > 3 |
-    cat_writ_prod > 3 |
-    spa_oral_comp > 3 |
-    spa_writ_prod > 3) |>
+  filter(
+    l2_writ_prod > 3 |
+      l2_oral_comp > 3 |
+      cat_oral_comp > 3 |
+      cat_writ_prod > 3 |
+      spa_oral_comp > 3 |
+      spa_writ_prod > 3
+  ) |>
   nrow()
 
 excluded_impairment <- participants_3 |>
@@ -837,16 +814,14 @@ excluded_ntrials <- participants_3 |>
 
 The experiment was implemented online using Qualtrics (Qualtrics, Provo, UT). This platform was chosen to allow easier presentation of survey questions aimed to probe prior understanding of the presented words and participants’ confidence ratings of their answers. With the exception of these additional questions, we attempted to replicate the procedure of Experiment 1 as closely as possible. The Spanish and Catalan audio stimuli used were identical the materials in Experiment 1. Participants were randomly assigned to the Catalan or Spanish lists. The Catalan list had 83 trials and the Spanish list had 99 trials. Participants first completed the consent form followed by the questionnaire about demographic status, language background and set up. They then proceeded to the experimental task.
 
-In each trial, participants listened to the audio stimulus by clicking on the `PLAY` button. For comparability to the PsychoPy version, participants were only allowed to play the audio one time. Participants were explicitly told that they would be only allowed to listen once. The `PLAY` button vanished after one playthrough. Participants then had to answer three questions based on the audio they had heard on that trial. These questions were presented on the same page, directly below the audio player. They were first asked whether they knew the presented word (multiple choice---*yes*/*no*). Regardless of their answer on the first question, participants were asked what they thought the translation of the word was in English (or their best guess), and instructed to type their answer in the provided text box. Finally, they were asked to rate how confident they were in their answer on a scale of 0 to 7, where 7 was "very confident" and 0 was "not confident". There was no time limit on the response phase. All questions had to be answered to proceed to the next trial.
-
-Participants first completed 5 practice trials with English words as the audio stimulus (ambulance, cucumber, elephant, pear, turtle). The words were recorded by a female native speaker of British English. These trials acted as attention checks, as participants should always answer "yes" to the first question on prior word knowledge and be able to accurately transcribe the word they heard. Following the practice phase, participants completed the test phase where they heard either Spanish words or Catalan words. 
+In each trial, participants listened to the audio stimulus by clicking on the `PLAY` button. For comparability to the PsychoPy version, participants were only allowed to play the audio one time. Participants were explicitly told that they would be only allowed to listen once. The `PLAY` button vanished after one playthrough. Participants then had to answer three questions based on the audio they had heard on that trial. These questions were presented on the same page, directly below the audio player. They were first asked whether they knew the presented word (multiple choice---*yes*/*no*).  Participants first completed 5 practice trials with English words as the audio stimulus (ambulance, cucumber, elephant, pear, turtle). The words were recorded by a female native speaker of British English. These trials acted as attention checks, as participants should always answer "yes" to the first question on prior word knowledge and be able to accurately transcribe the word they heard. Following the practice phase, participants completed the test phase where they heard either Spanish words or Catalan words. 
 
 
 ## Results
 
-```{r dataset-3}
+```{r}
 #| label: dataset-3
-dataset <- split(quest_responses, quest_responses$group)
+dataset <- split(que_responses, que_responses$group)
 names(dataset) <- janitor::make_clean_names(names(dataset))
 r_validity <- map(
   dataset,
@@ -854,19 +829,21 @@ r_validity <- map(
 )
 n_participants <- map(dataset, \(x) dplyr::n_distinct(x$participant_id))
 
-dataset <- quest_responses |>
+dataset <- que_responses |>
   filter(group != "cat-SPA") |>
   group_split(group) |>
   set_names(c("spa-ENG", "cat-ENG")) |>
   janitor::clean_names()
 
 excluded_lang <- participants_3 |>
-  filter(l2_writ_prod > 3 |
-    l2_oral_comp > 3 |
-    cat_oral_comp > 3 |
-    cat_writ_prod > 3 |
-    spa_oral_comp > 3 |
-    spa_writ_prod > 3) |>
+  filter(
+    l2_writ_prod > 3 |
+      l2_oral_comp > 3 |
+      cat_oral_comp > 3 |
+      cat_writ_prod > 3 |
+      spa_oral_comp > 3 |
+      spa_writ_prod > 3
+  ) |>
   nrow()
 
 excluded_impairment <- participants_3 |>
@@ -877,7 +854,7 @@ excluded_ntrials <- participants_3 |>
   filter(valid_status == "Insufficient trials") |>
   nrow()
 
-dataset_clean <- quest_responses |>
+dataset_clean <- que_responses |>
   filter(group != "cat-SPA") |>
   dplyr::filter(valid_participant, valid_response) |>
   group_split(group) |>
@@ -889,36 +866,34 @@ We collected data for a total of `r format(nrow(dataset$cat_eng) + nrow(dataset$
 
 After applying trial-level and participant-level inclusion criteria, the resulting dataset included `r format(nrow(dataset_clean$cat_eng) + nrow(dataset_clean$spa_eng), big.mark = ",")` trials provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id) + dplyr::n_distinct(dataset_clean$spa_eng$participant_id)` participants. Of those trials, `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` were provided by `r dplyr::n_distinct(dataset_clean$cat_eng$participant_id)` participants who listened to Catalan words, and `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` trials were provided by `r dplyr::n_distinct(dataset_clean$spa_eng$participant_id)` participants who listened to Spanish words.
 
-```{r knowledge}
+```{r}
+#| label: knowledge
 knowledge_cateng <- dataset_clean$cat_eng |> count(knowledge)
-fam_cateng <- dataset_clean$cat_eng |> 
-  filter(knowledge) |> 
-  summarise(confidence_mean = mean(confidence),
-  confidence_sd = sd(confidence))
+fam_cateng <- dataset_clean$cat_eng |>
+  filter(knowledge) |>
+  summarise(confidence_mean = mean(confidence), confidence_sd = sd(confidence))
 
-nofam_cateng <- dataset_clean$cat_eng |> 
-  filter(!knowledge) |> 
-  summarise(confidence_mean = mean(confidence),
-  confidence_sd = sd(confidence))
+nofam_cateng <- dataset_clean$cat_eng |>
+  filter(!knowledge) |>
+  summarise(confidence_mean = mean(confidence), confidence_sd = sd(confidence))
 
 knowledge_spaeng <- dataset_clean$spa_eng |> count(knowledge)
-fam_spaeng <- dataset_clean$spa_eng |> 
-  filter(knowledge) |> 
-  summarise(confidence_mean = mean(confidence),
-  confidence_sd = sd(confidence))
+fam_spaeng <- dataset_clean$spa_eng |>
+  filter(knowledge) |>
+  summarise(confidence_mean = mean(confidence), confidence_sd = sd(confidence))
 
-nofam_spaeng <- dataset_clean$spa_eng |> 
-  filter(!knowledge) |> 
-  summarise(confidence_mean = mean(confidence),
-  confidence_sd = sd(confidence))
+nofam_spaeng <- dataset_clean$spa_eng |>
+  filter(!knowledge) |>
+  summarise(confidence_mean = mean(confidence), confidence_sd = sd(confidence))
 ```
 
 From the `r format(nrow(dataset_clean$cat_eng), big.mark = ",")` total responses provided by English participants who listened to Catalan words, participants reported having prior knowledge of the presented Catalan words in `r knowledge_cateng$n[2]` (`r round(100*knowledge_cateng$n[2] / sum(knowledge_cateng$n), 2)`%) of them. In those responses, participants reported an average of `r round(fam_cateng$confidence_mean, 2)` confidence in the 0-8 scale (*SD* = `r round(fam_cateng$confidence_sd, 2)`). For responses where no prior knowledge of the presented word was reported, average confidence was `r round(nofam_cateng $confidence_mean, 2)` (*SD* = `r round(nofam_cateng$confidence_sd, 2)`). From the `r format(nrow(dataset_clean$spa_eng), big.mark = ",")` total responses provided by English participants who listened to Spanish words, participants reported having prior knowledge of the presented Spanish words in `r knowledge_spaeng$n[2]` (`r round(100*knowledge_spaeng$n[2] / sum(knowledge_spaeng$n), 2)`%) of them. In those responses, participants reported an average of `r round(fam_spaeng$confidence_mean, 2)` confidence in the 0-8 scale (*SD* = `r round(fam_spaeng$confidence_sd, 2)`). For responses where no prior knowledge of the presented word was reported, average confidence was `r round(nofam_spaeng$confidence_mean, 2)` (*SD* = `r round(nofam_spaeng $confidence_sd, 2)`). Before data analysis, responses where participants reported prior knowledge about the meaning of the presented Catalan or Spanish word were excluded from the dataset.
 
 
-```{r lengths-2}
+```{r}
+#| label: lengths-2
 lengths <- dataset_3 |>
-  filter(!knowledge) |> 
+  filter(!knowledge) |>
   mutate(len = map_int(strsplit(response, ""), length)) |>
   summarise(
     across(
@@ -932,9 +907,9 @@ lengths <- split(lengths, lengths$group)
 names(lengths) <- janitor::make_clean_names(names(lengths))
 ```
 
-Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, Range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, Range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
+Responses given by English participants to Catalan presented words were `r round(lengths$cat_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$cat_eng$len_median, 2)`, *SD* = `r round(lengths$cat_eng$len_sd, 2)`, range = `r round(lengths$cat_eng$len_min, 2)`-`r round(lengths$cat_eng$len_max, 2)`), while their translations to Spanish responses were `r round(lengths$spa_eng$len_mean, 2)` characters long on average (*Median* = `r round(lengths$spa_eng$len_median, 2)`, *SD* = `r round(lengths$spa_eng$len_sd, 2)`, range = `r round(lengths$spa_eng$len_min, 2)`-`r round(lengths$spa_eng$len_max, 2)`).
 
-Overall, participants reported prior knowledge more often for the Spanish words that showed unexpectedly high accuracy in Experiment 1 (see Discussion in Experiment 2) than for words with expected accuracy (see @fig-knowledge). Participants reported prior knowledge of Catalan words with unexpected accuracy in Experiment 1 as often as those with expected accuracy. This suggests that participants in Experiment 1 may have relied, to some extent, on their prior knowledge about form-meaning mappings to correctly translate some Spanish words. To isolate such an effect of prior Spanish knowledge, we ran the same analysis as in Experiment 1 on the newly collected translations from Experiment 3, now excluding responses to words for which participants reported prior knowledge.
+Overall, participants reported prior knowledge more often for the Spanish words that showed unexpectedly high accuracy in Experiment 1 than for words with expected accuracy (see @fig-knowledge). Participants reported prior knowledge of Catalan words with unexpected accuracy in Experiment 1 as often as those with expected accuracy. This suggests that participants in Experiment 1 may have relied, to some extent, on their prior knowledge about form-meaning mappings to correctly translate some Spanish words. To isolate such an effect of prior Spanish knowledge, we ran the same analysis as in Experiment 1 on the newly collected translations from Experiment 3, now excluding responses to words for which participants reported prior knowledge.
 
 
 ```{r}
@@ -942,6 +917,7 @@ Overall, participants reported prior knowledge more often for the Spanish words 
 #| fig-width: 9
 #| fig-height: 4
 #| fig-cap: "Catalan and Spanish prior word knowledge reported by English native participants in Experiment 3. The X-axis indicates the proportion of participants that reported prior knowledge with the word. The Y-axis indicates participants' accuracy (the proportion of participants that translated the word correctly). For visualisation purposes, data points have been aggregated so that numbers and color coding show the number of data points with identical accuracy and proportion of reported knowledge."
+
 bin_interval <- seq(0, 1, 0.05)
 dataset_3 |>
   mutate(surprise = translation %in% tbl_data$Translation) |>
@@ -953,17 +929,37 @@ dataset_3 |>
   ) |>
   mutate(
     accuracy = prop_adj(correct, n),
-  accuracy_binned = cut(accuracy, bin_interval, labels = bin_interval[-length(bin_interval)], include.lowest = TRUE, right = TRUE),
-    knowledge_binned = cut(knowledge, bin_interval, labels = as.numeric(bin_interval[-length(bin_interval)]), include.lowest = TRUE, right = TRUE)
-  ) |> 
-    summarise(
-      n = n(),
-      .by = c(accuracy_binned, knowledge_binned, group)
-    ) |> 
-      mutate(is_gt_20 = n > 20,
-      knowledge_binned = as.double(as.character(knowledge_binned)),
-      accuracy_binned = as.double(as.character(accuracy_binned))) |> 
-  ggplot(aes(knowledge_binned, accuracy_binned, fill = n, label = n, color = is_gt_20)) +
+    accuracy_binned = cut(
+      accuracy,
+      bin_interval,
+      labels = bin_interval[-length(bin_interval)],
+      include.lowest = TRUE,
+      right = TRUE
+    ),
+    knowledge_binned = cut(
+      knowledge,
+      bin_interval,
+      labels = as.numeric(bin_interval[-length(bin_interval)]),
+      include.lowest = TRUE,
+      right = TRUE
+    )
+  ) |>
+  summarise(
+    n = n(),
+    .by = c(accuracy_binned, knowledge_binned, group)
+  ) |>
+  mutate(
+    is_gt_20 = n > 20,
+    knowledge_binned = as.double(as.character(knowledge_binned)),
+    accuracy_binned = as.double(as.character(accuracy_binned))
+  ) |>
+  ggplot(aes(
+    knowledge_binned,
+    accuracy_binned,
+    fill = n,
+    label = n,
+    color = is_gt_20
+  )) +
   facet_wrap(~group) +
   geom_tile(color = NA) +
   geom_text(size = 3) +
@@ -971,24 +967,35 @@ dataset_3 |>
     x = "Reported knowledge",
     y = "Accuracy"
   ) +
-  scale_fill_distiller(palette = "Reds", direction=1, limits = c(0, 37)) +
+  scale_fill_distiller(palette = "Reds", direction = 1, limits = c(0, 37)) +
   scale_color_manual(values = c("black", "white")) +
-  scale_x_continuous(labels = scales::percent, limits = c(-0.05, 1)) +
-  scale_y_continuous(labels = scales::percent, limits = c(-0.05, 1), breaks = seq(0, 1, 0.1)) +
+  scale_x_continuous(
+    labels = scales::percent,
+    limits = c(-0.05, 1),
+    breaks = seq(0, 1, 0.25)
+  ) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(-0.05, 1),
+    breaks = seq(0, 1, 0.1)
+  ) +
   theme(
     legend.position = "none",
   )
 ```
 
-```{r draws-3}
+```{r}
+#| label:  draws-3
 c3 <- gather_draws(exp_3_m1, `b_.*`, `sd_.*`, regex = TRUE) |>
-  summarise(across(.value, lst(
-    .median = median,
-    .lower = \(x) hdi(x)[1],
-    .upper = \(x) hdi(x)[2],
-    .rope = \(x) mean(between(x, -0.1, 0.1))
-  ),
-  .names = "{fn}"
+  summarise(across(
+    .value,
+    lst(
+      .median = median,
+      .lower = \(x) hdi(x)[1],
+      .upper = \(x) hdi(x)[2],
+      .rope = \(x) mean(between(x, -0.1, 0.1))
+    ),
+    .names = "{fn}"
   ))
 c3 <- split(c3, c3$.variable)
 names(c3) <- janitor::make_clean_names(names(c3))
@@ -1004,29 +1011,37 @@ Participants translating Catalan words and participants translating Spanish word
 #| fig-height: 5
 #| fig-width: 10
 lv <- seq(0, 1, length.out = 100)
-lv_std <- (lv - mean(dataset_3$lv_std, na.rm = TRUE)) / sd(dataset_3$lv_std, na.rm = TRUE)
+lv_std <- (lv - mean(dataset_3$lv_std, na.rm = TRUE)) /
+  sd(dataset_3$lv_std, na.rm = TRUE)
 neigh_n_h <- c(0, 2, 4, 8, 12)
-epreds_3 <- get_epreds(exp_3_m1, dataset_3, neigh_n_h = neigh_n_h, lv = lv) 
-epreds_3$neigh_n_h_std <- factor(epreds_3$neigh_n_h_std, levels = unique(epreds_3$neigh_n_h_std), labels = paste0(neigh_n_h, " neighbours"), ordered = TRUE)
+epreds_3 <- get_epreds(exp_3_m1, dataset_3, neigh_n_h = neigh_n_h, lv = lv)
+epreds_3$neigh_n_h_std <- factor(
+  epreds_3$neigh_n_h_std,
+  levels = unique(epreds_3$neigh_n_h_std),
+  labels = paste0(neigh_n_h, " neighbours"),
+  ordered = TRUE
+)
 
-epreds_3 |> 
+epreds_3 |>
   ggplot(aes(lv_std, .epred)) +
   facet_grid(group ~ neigh_n_h_std) +
-  stat_lineribbon(aes(fill_ramp = after_stat(level)),
+  stat_lineribbon(
     linewidth = 1 / 2,
     .width = c(0.95, 0.89, 0.78, 0.67, 0.50)
   ) +
   labs(
     x = "Similarity\n(Levenshtein similarity with correct translation)",
     y = "p(Correct)",
-    colour = "Cross-language Phonological Neighbours",
-    fill = "Cross-language Phonological Neighbours",
-    linetype = "Cross-language Phonological Neighbours",
-    fill_ramp = "CrI (%)"
   ) +
   scale_x_continuous(
-    labels = \(x) scales::percent((x * sd(dataset_3$lv, na.rm = TRUE)) + mean(dataset_3$lv, na.rm = TRUE)), 
-    breaks = (seq(0, 1, 0.2) - mean(dataset_3$lv, na.rm = TRUE)) / sd(dataset_3$lv, na.rm = TRUE)) +
+    labels = \(x) {
+      scales::percent(
+        (x * sd(dataset_3$lv, na.rm = TRUE)) + mean(dataset_3$lv, na.rm = TRUE)
+      )
+    },
+    breaks = (seq(0, 1, 0.25) - mean(dataset_3$lv, na.rm = TRUE)) /
+      sd(dataset_3$lv, na.rm = TRUE)
+  ) +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_brewer(palette = "Reds") +
   theme(
@@ -1036,163 +1051,12 @@ epreds_3 |>
 
 ```
 
-## Discussion
-
-Experiment 3 was a conceptual replication of Experiment 1 in which we gathered additional information about English native participants' prior familiarity with the meaning of the Catalan and Spanish words presented. After each trial, participants reported whether they had prior knowledge about the word meaning, and how confident they were about such information in a numeric scale from 0 to 7. To control for the effect of participants' prior knowledge about form-meaning mappings, we excluded from the analyses those words in which participants reported such prior knowledge. We found equivalent results to those in Experiment 1, indicating that participants' surprisingly good performance in the translation elicitation task was not due to being familiar with the meaning of words they were presented with.
-
 # General discussion
 
-The present work explored the lexical processing bases of homophonic translation, a phenomenon in which listening to speech in a non-native---perhaps unfamiliar---language leads to the activation of lexical representations in the native language, without necessarily preserving the meaning. We investigated how phonological similarity and its interaction with phonological neighbourhood density impact the dynamics of lexical activation and selection during non-native word processing. We designed a translation elicitation task in which participants listened to individual words in a non-native, unfamiliar language. After listening to each word, participants were asked to provide their best-guess translation for each word in their native language. In Experiment 1, British English-native adults listened to a list of words in Catalan or Spanish. Participants reported no prior familiarity with Catalan, Spanish, or any other Romance language, yet provided accurate translations for words that shared some degree of phonological similarity with their correct English translation. We calculated phonological similarity between word pairs as the Levenshtein similarity between the X-SAMPA transcription of their phonological forms [see @floccia2018introduction for a similar approach]. Using this measure, we found that participants were able to exploit the phonological similarity between the presented words and their correct translation, even when both words-forms shared few phonemes. This points to listeners accommodating non-native phonological forms to their native phoneme inventory, resulting in the activation of native lexical representations. 
+Using a translation elicitation task, we investigated how phonological similarity and its interaction with phonological neighbourhood density impact the dynamics of lexical activation and selection during non-native word processing. Our findings support an account of homophonic translation in which thhihs phenomenon results from listeners accommodating non-native phonological forms to their native phoneme inventory, resulting in the activation of native lexical representations. In Experiment 1, we found that English natives activate English word-forms that share some phonological similarity with auditorily presented Catalan and Spanish words (both unfamiliar languages to participants), and later engage dynamics of lexical competition and selection similar to those engaged in native speech processing. In Experiment 2 we extended these findings to a population of participants whose native language was typologically closer to the unfamiliar language presented. Spanish native adults who were unfamiliar with Catalan listened to a list of Catalan words. Spanish natives in Experiment 2 exploited phonological similarity even more strongly than English natives in Experiment 1, suggesting that the typological distance between the presented and target language is associated with a more robust facilitation effect of phonological similarity. In Experiment 3, we replicated the results from Experiment 1 after removing responses in which participants reported some prior knowlegment about the meaning of the presented word, showing that participants' surprisingly good performance in the translation elicitation task was not driven by unreported prior experience with the Catalan and Spanish words.
 
-Experiment 2 was aimed at extending our findings to a population of participants whose native language was typologically closer to the unfamiliar language presented. We tested a group of Spanish native adults who listened to a list of Catalan words. Again, participants reported no prior familiarity with Catalan, or any other Romance language other than Spanish. In line with the results with English natives, we found an interaction between phonological similarity and phonological neighbourhood size. Spanish natives in Experiment 2 exploited phonological similarity more strongly than English natives in Experiment 1: the association between phonological similarity and the probability of correct translation was stronger in Experiment 2, compared to in Experiment 1. 
-
-Experiment 3 was a replication of Experiment 1, in which we collected additional information about participants' prior familiarity with the presented Catalan and Spanish words. This follow-up experiment was designed to address concerns that participants in Experiments 1 and 2 might have managed to provide correct translations for some words thanks to having prior experience with those words. The design of Experiment 3 was closely modelled after Experiment 1, except that after providing their response in each trial, participants reported whether they had previous knowledge of the presented word. After removing responses where participants reported prior knowledge about the meaning of the presented Catalan or Spanish word, we ran the same analyses as in Experiment 1, and found parallel results. Overall, our results suggest that participants were able to rely on the phonological similarity between the presented Catalan and Spanish words and their correct translation to guide word recognition in an unfamiliar language.
-
-Future studies may consider comparing the suitability of other measures of phonological similarity that take into account finer-grained phonetic or prosodic cues present in the acoustic signal presented to participants. Phonological transcriptions like X-SAMPA are abstract representations that ignore non-phonological contrasts (e.g., phones), and consider different symbols as completely different phonemes, disregarding the fact that some phonemes share more phonetic features than others. Additionally, prosodic cues such as lexical stress, which our measure of phonological similarity does not include, might also provide participants further information about the correct translation of the presented word-forms. Altogether, it is likely that participants in the present study were able to exploit additional cues in the acoustic signal to provide correct translations. Future studies may explore the relative contribution of such cues in the occurrence of homophonic translation. Overall, the present study provides some insights into the role of phonological similarity in the auditory presentation of words in an unfamiliar language.
-
-Our findings also suggest that the facilitation effect of phonological similarity was moderated by phonological neighbourhood density. This is in line with previous studies suggesting that the presence of (high-frequency) phonological neighbours interferes with the lexical selection in word comprehension tasks [e.g., @dufour2010phonological; @luce1998recognizing; @vitevitch1999probabilistic; @vitevitch1998words; @grainger1990word]. Our translation elicitation task can be understood as a particular instance of an auditory word recognition task, in which the presented unfamiliar words have the potential to activate phonological neighbours in participants' lexicon. We calculated a measure of cross-linguistic neighbourhood size by counting, for each presented word the number of phonologically related words (with a Levenshtein distance of one) in the target language (English in Experiments 1 and 3, Spanish in Experiment 2). To account for the fact that competition between phonological neighbours is sensitive to lexical frequency---high-frequency neighbours produce stronger interference effects [@luce1998recognizing; @dufour2010phonological]---we only counted neighbours with a lexical frequency higher than the correct translation. Using this measure, we found that participants' ability to exploit phonological similarity to produce correct translations declined as the number of phonological neighbours increased. This suggests that listening to words in an unfamiliar language triggered similar mechanisms of lexical activation and selection that listening to words in a native language does. The generalisability of these findings can be tested by increasing the repertoire of words involved in the translation elicitation task. In Experiments 1 to 3, participants answered to a maximum of 105 words. All words had high frequency and low age-of-acquisition. To better characterise the factors that guide listeners’ ability to match words from an unfamiliar language with words in their native language lexicon, words with varying levels of difficulty should be included in future studies.
-
-A comparison between the results in Experiments 1 and 2 suggested that the performance of Spanish participants translating Catalan was more resilient to the interfering effects of phonological neighbourhood density than the performance of English participants translating Catalan or Spanish. As highlighted before, Catalan and Spanish (both Romance languages) are typologically closer to each other than to English (a Germanic language). Catalan and Spanish share a higher proportion of cognates than Catalan and English, or Spanish and English. Overall, our findings suggest that the typological distance between the presented and target language is associated with a more robust facilitation effect of phonological similarity.
-
-The specific mechanisms behind this effect are unclear. One possibility is that there were subphonemic features of similarity between Catalan and Spanish words that were not adequately captured by our relatively coarse measure of similarity. Phonological transcriptions like X-SAMPA are abstract representations that ignore non-phonological contrasts (e.g., phones), and consider different symbols as completely different phonemes, disregarding the fact that some phonemes share more phonetic features than others. Additionally, prosodic cues such as lexical stress, which our measure of phonological similarity does not include, might also provide participants with further information about the correct translation of the presented word-forms. There may be more of these subphonemic cues available between the typologically close Spanish and Catalan than between the more distant English and Spanish, or English and Catalan. In addition, it remains to be tested whether the effect of typological distance is linear (i.e., robustness of facilitation increases linearly with typological distance), proportional, and whether other close or distant language pairs show the same pattern of results. Future studies may consider comparing the suitability of other measures of phonological similarity that take into account finer-grained phonetic or prosodic cues present in the acoustic signal, and explore the relative contribution of such cues in the occurrence of homophonic translation.
+Future studies may consider comparing the suitability of other measures of phonological similarity that take into account finer-grained phonetic or prosodic cues present in the acoustic signal presented to participants. Phonological transcriptions like X-SAMPA are abstract representations that ignore non-phonological contrasts (e.g., phones), and consider different symbols as completely different phonemes, disregarding the fact that some phonemes share more phonetic features than others. Additionally, prosodic cues such as lexical stress, which our measure of phonological similarity does not include, might also provide participants further information about the correct translation of the presented word-forms. Altogether, it is likely that participants in the present study were able to exploit additional cues in the acoustic signal to provide correct translations. Future studies may explore the relative contribution of such cues in the occurrence of homophonic translation. Another possible limitation of the present study is the limited size and diversity of the all of which had high lexical frequency and low age-of-acquisition. To better characterise the factors that guide listeners’ ability to match words from an unfamiliar language with words in their native language lexicon, words with more varying levels of difficulty should be included in future studies.
 
 In summary, the present paper provides insights into the processing mechanisms underlying homophonic translation. English and Spanish native adults were tested in a translation elicitation task in which they had to guess the English or Spanish translation of a series of words in an unfamiliar language. Participants successfully exploited phonological similarity between the presented words and their correct translations to provide correct answers. Participants' performance in the task only benefited from phonological similarity when the presented word had few higher-frequency phonological neighbours in the target language. Finally, the facilitation effect of phonological similarity was stronger in the Spanish native participants, who translated words from a typologically closer language than English participants. Overall, the findings presented in the present paper suggest that the processing of words in a non-native, unfamiliar language recruits mechanisms of lexical activation, selection, and interference parallel to those recruited by listening to words in a native language.
 
-# References {.unnumbered}
-
-::: {#refs}
-:::
-
-## Appendix 1: Model diagnostics {#apx-diagnostics}
-
-One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript.  Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
-
-
-```{r}
-#| label: apxfig-appendix-diagnostics
-#| fig-cap: "Traceplots of fixed regression coefficients of models in Experiments 1, 2, and 3."
-#| fig-width: 9
-#| fig-height: 9
-var_labels <- c(
-  "b_Intercept" = "Intercept",
-  "b_freq_zipf_2_std" = "Frequency",
-  "b_lv_std" = "Cognateness",
-  "b_neigh_n_h_std" = "CLPN",
-  "b_neigh_n_h_std:lv_std" = "Cognateness × CLPN",
-  "b_group1" = "cat-ENG vs. spa-ENG"
-)
-
-list(exp_1_m0, exp_2_m0, exp_3_m1) |>
-  set_names(paste0("Experiment ", 1:3)) |>
-  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
-  dplyr::filter(.variable != "b_Intercept") |>
-  mutate(
-    .value = .value / 4,
-    .variable = factor(.variable,
-      levels = names(var_labels),
-      labels = var_labels
-    )
-  ) |>
-  ggplot(aes(.iteration, .value, colour = factor(.chain))) +
-  facet_grid(.variable ~ exp, scales = "free") +
-  geom_line() +
-  labs(
-    x = "Iteration",
-    y = "Value",
-    colour = "Chain",
-    fill = "Chain",
-    linetype = "Chain"
-  ) +
-  scale_colour_brewer(palette = "Reds") +
-  theme(
-    legend.position = "top",
-    legend.box = "horizontal",
-    panel.border = element_rect(
-      fill = NA,
-      colour = "grey"
-    ),
-    legend.justification = c(1, 0),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank()
-  )
-```
-
-
-
-## Appendix 2: Pooled analyses of Experiments 1 and 3 {#apx-pooled}
-
-Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
-
-```{r}
-#| label: apxfig-coefs
-#| fig-cap: "Regression coefficients across Experiments 1, 2, and 3."
-#| fig-width: 9
-#| fig-height: 5
-var_labels <- c(
-  "b_Intercept" = "Intercept",
-  "b_freq_zipf_2_std" = "Frequency",
-  "b_lv_std" = "Similarity",
-  "b_neigh_n_h_std" = "CLPN",
-  "b_neigh_n_h_std:lv_std" = "Similarity × CLPN",
-  "b_group1" = "cat-ENG vs. spa-ENG"
-)
-
-list(exp_1_m0, exp_2_m0, exp_3_m1) |>
-  set_names(paste0("Experiment ", 1:3)) |>
-  map_dfr(gather_draws, `b_.*`, regex = TRUE, .id = "exp") |>
-  dplyr::filter(.variable != "b_Intercept") |>
-  mutate(
-    .value = .value / 4,
-    .variable = factor(.variable,
-      levels = names(var_labels),
-      labels = var_labels
-    )
-  ) |>
-  ggplot(aes(.value, reorder(exp, desc(exp)))) +
-  facet_wrap(~.variable, scales = "free_x") +
-  annotate(
-    geom = "rect",
-    xmin = -0.1 / 4,
-    xmax = 0.1 / 4,
-    ymin = -Inf,
-    ymax = Inf,
-    fill = "grey",
-    alpha = 3 / 4,
-    colour = NA
-  ) +
-  geom_vline(
-    xintercept = 0,
-    colour = "grey",
-    linewidth = 3 / 4
-  ) +
-  stat_slab(aes(fill = after_stat(level)),
-    point_interval = mode_hdi,
-    .width = c(0.95, 0.89, 0.67, 1),
-    outline_bars = TRUE,
-    colour = "white",
-    linewidth = 0.1,
-    breaks = 20,
-    normalize = "panels"
-  ) +
-  stat_spike(
-    at = "median",
-    size = 1,
-    aes(linetype = "Median"),
-    normalize = "panels"
-  ) +
-  labs(
-    x = "Estimate", y = "Experiment",
-    colour = "CrI",
-    fill = "CrI",
-    linetype = ""
-  ) +
-  scale_fill_brewer(palette = "Reds") +
-  theme(
-    legend.position = c(1, 0),
-    legend.box = "horizontal",
-    legend.justification = c(1, 0),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank()
-  )
-```
-
+# References

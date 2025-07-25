@@ -8,7 +8,7 @@ library(cli)
 #'
 import_clearpond <- function(
   cp_c_path_eng = here("data", "raw", "clearpond", "englishCPdatabase2.txt"),
-  cp_c_path_spa = here("data", "raw", "clearpond", "englishCPdatabase2.txt"),
+  cp_c_path_spa = here("data", "raw", "clearpond", "spanishCPdatabase2.txt"),
   cp_h_path_eng = here("data", "raw", "clearpond", "clearpondHeaders_EN.txt"),
   cp_h_path_spa = here("data", "raw", "clearpond", "clearpondHeaders_SP.txt")
 ) {
