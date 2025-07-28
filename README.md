@@ -1,7 +1,7 @@
 
 # Translation Elicitation
 
-More info in the Open Science Framework repository.
+Translation Elicitation task targeted at monolingual participants. This repository hosts the code for the behavioural task, and survey templates used to collect data on linguistic profiles. The behavioural task was written using PsychoPy, and implemented online via Pavlovia. We collected reaction times and accuracy measures from participants.
 
 ## How to make this repository work on your local machine
 

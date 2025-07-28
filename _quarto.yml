@@ -5,8 +5,8 @@ project:
 
 format:
   apaquarto-typst:
-    mask: true
-  apaquarto-docx: default
+    mask: false
+  # apaquarto-docx: default
 
 title: "The role of cognateness in native spoken word recognition"
 shorttitle: "Cognateness and recognition of foreign words"
