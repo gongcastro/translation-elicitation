@@ -51,11 +51,12 @@ theme_set(
 
 ## Appendix 1: Model diagnostics
 
-One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript.  Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
+One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript. Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
 
 
-```{r fig-appendix-diagnostics}
+```{r}
 #| label: fig-appendix-diagnostics
+#| fig-cap: "Traceplot of MCMC posterior samples of the fixed regression coefficients of the models in Experiments 1, 2, and 3."
 #| fig-width: 9
 #| fig-height: 9
 var_labels <- c(
@@ -109,8 +110,9 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
 
 Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
 
-```{r fig-coefs}
+```{r}
 #| label: fig-coefs
+#| fig-cap: "Posterior distribution of fixed regression coefficients of the models in Experiments 1, 2, and 3."
 #| fig-width: 9
 #| fig-height: 5
 var_labels <- c(

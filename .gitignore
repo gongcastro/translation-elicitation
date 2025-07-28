@@ -6,6 +6,7 @@ data/experiment/raw
 data/experiment/processed
 data/questionnaire/
 data/stimuli/
+data/*.xlsx
 out/
 data/
 data/raw/

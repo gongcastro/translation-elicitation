@@ -1,5 +1,5 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-.Random.seed|object|66f9ef517890d6f1|||||||||||||||
+.Random.seed|object|015e4151f11105cb|||||||||||||||
 audios_path|stem|b4e7c4706af3ea22|b86949415458a166|ef46db3751d8e999|-787466669||t20294.2831306039s|e3871644244b3637|115|rds|local|vector|||0||
 clean_input_text|function|054cc002c27f9c9d|||||||||||||||
 clean_stimuli|function|5f4b971f2e902023|||||||||||||||
@@ -63,7 +63,7 @@ que_raw|stem|8586ed134394f3de|a7558e213ae86bc6|0e9208773c488390|1365710108||t202
 que_raw_files|pattern|7cab4f7ac94b5275|ee67634d598734f1||1133473386||||183239|file|local|vector||que_raw_files_86a5b5ec*que_raw_files_922c40dc|0||
 que_raw_files_86a5b5ec|branch|8bc8eb8e1785a7fd|ee67634d598734f1|ef46db3751d8e999|-29226231|C:/Users/Gonzalo/Documents/projects/translation-elicitation/data/raw/questionnaire/questionnaire_catalan.csv|t20186.5216582743s|11790e38673b0dab|83959|file|local|vector|que_raw_files||0||
 que_raw_files_922c40dc|branch|33000ab1488514ee|ee67634d598734f1|ef46db3751d8e999|1677115037|C:/Users/Gonzalo/Documents/projects/translation-elicitation/data/raw/questionnaire/questionnaire_spanish.csv|t20186.5218825754s|30bbff6b0ba6202e|99280|file|local|vector|que_raw_files||0||
-que_raw_files_files|stem|a3d8925f623b335f|0c33022b222f242f|ef46db3751d8e999|-1020557972||t20294.3730660074s|5377f570336eb2d2|149|rds|local|vector||que_raw_files_files_d49d5b5e*que_raw_files_files_c45d9661|0||
+que_raw_files_files|stem|a3d8925f623b335f|0c33022b222f242f|ef46db3751d8e999|-1020557972||t20297.3263386814s|5377f570336eb2d2|149|rds|local|vector||que_raw_files_files_d49d5b5e*que_raw_files_files_c45d9661|0||
 que_responses|stem|55f6bcfcbe046b34|0c23db71086e27b7|5814f0cc3dab8de3|-1666183193||t20294.3740644409s|4dd791d8afe53ef5|35551|rds|local|vector|||0.04||
 que_responses_file|stem|55f6bcfcbe046b34|b7aaa7ccadd94ca4|554f48eed7ef07a1|805410467||t20294.2843450362s|4dd791d8afe53ef5|35551|rds|local|vector|||0.19||
 replace_non_ascii|function|998b010877d91b17|||||||||||||||

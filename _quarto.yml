@@ -1,6 +1,7 @@
 project:
   render:
     - docs/manuscript.qmd
+    - docs/appendix.qmd
 
 format:
   apaquarto-typst:
@@ -76,6 +77,6 @@ link-citations: true
 editor: source
 lang: en
 freeze: false
-fig-dpi: 1000
+fig-dpi: 800
 echo: false
 warning: false
