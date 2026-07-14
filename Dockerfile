@@ -24,7 +24,8 @@ RUN apt-get update && \
     libmagick++-dev \
     libharfbuzz-dev \
     libfribidi-dev \
-    libcurl4-openssl-dev
+    libcurl4-openssl-dev \
+    libuv1-dev
 
 # copy the whole directory to /rstudio (working directory in Posit Cloud)
 COPY . /home/rstudio/
