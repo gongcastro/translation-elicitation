@@ -2,23 +2,31 @@
 .quarto
 
 _targets/
+_freeze/
 data/experiment/raw
 data/experiment/processed
 data/questionnaire/
 data/stimuli/
 data/*.xlsx
-out/
+out/*.csv
+out/*.rds
 data/
 data/raw/
 data/raw/clearpond/
-sounds/
+sounds/*.wav
 assets/
 docs/_freeze/
 docs/_targets.yaml
+docs/*.docx
+docs/*.pdf
 docs/arxiv.sty
 docs/orcidlink.sty
 docs/nul
 nul
+img/*.png
+img/*.svg
+img/*.pdf
+sounds/*.wav
 
 # History files
 .Rhistory
@@ -69,3 +77,5 @@ rsconnect/
 
 
 /.quarto/
+
+**/*.quarto_ipynb

@@ -1,0 +1,19 @@
+Equation 1newline
+ alignl Likelihood: newline
+ alignl y_i ∼ Bernoulli(p_i) newline newline
+
+ alignl Linear model: newline
+ alignl Logit(p_i) = β_{0[p,w]} + β_{1[p]} Frequency_i + β_{2[p]} Similarity_i + β_{3[p]} CLPN_i + β_{4[p]} Group_i newline
+ alignl + β_{5[p]} (Similarity_i × CLPN_i) + β_{6[p]} (Similarity_i × Group_i) newline 
+ alignl + β_{7[p]} (CLPN_i × Group_i) + β_{8[p]} (Similarity_i × CLPN_i × Group_i) newline
+
+newline
+ alignl Prior:
+newline 
+
+ alignl β_{0-8[p,w]} ∼ Normal(μ_{β_{j}}, σ_{β_j}) , for participant p in 1, ..., P, word w in 1, ..., W newline
+ alignl β_{1-8[p]} ∼ Normal(μ_{β_{j}}, σ_{β_j}) , for participant p in 1, ..., P newline
+
+ alignl μ_{β_{p,w}} ∼ Normal(0, 0.1) newline
+ alignl σ_{β_{p, w}} ∼ Exponential(3) newline
+ alignl ρ_{p, w} ∼ LKJCorr(5)

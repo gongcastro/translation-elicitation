@@ -21,21 +21,10 @@ tar_config_set(
   script = here::here("_targets.R")
 )
 tar_load_globals()
-tar_load(participants)
-tar_load(exp_participants)
-tar_load(exp_responses)
-tar_load(quest_responses)
-tar_load(quest_participants)
-tar_load(stimuli)
-tar_load(epreds)
-tar_load(dataset_1)
-tar_load(dataset_2)
-tar_load(dataset_3)
+
 tar_load(exp_1_m0)
 tar_load(exp_2_m0)
 tar_load(exp_3_m1)
-tar_load(exp_12_m0)
-
 
 theme_set(
   theme_ggdist() +
@@ -49,7 +38,7 @@ theme_set(
 
 ```
 
-## Appendix 1: Model diagnostics
+## Appendix A: Model diagnostics
 
 One way to diagnose the behaviour of Hamiltonian Monte Carlot (HMC, the algorithm used by Stan to explore the posterior distribution of a model) is to check whether the MCMC chains have converged. @fig-appendix-diagnostics shows the values sampled by the MCMC chains of each of the fixed coefficients of each model reported in the manuscript. Evidence of chain convergence is provided by the same region of values being sampled across the final interations of the chain, as it is the case for the three models depicted.
 
@@ -106,7 +95,7 @@ list(exp_1_m0, exp_2_m0, exp_3_m1) |>
 
 
 
-## Appendix 2: Pooled analyses of Experiments 1 and 3
+## Appendix B: Pooled analyses of Experiments 1 and 3
 
 Across Experiments 1 and 3, we found strong evidence that participants efficiently exploited phonological similarity to provide accurate translations for words in an unfamiliar language, provided that few phonological neighbours of higher lexical frequency were present. @fig-coefs summarizes the posterior distribution of the regression coefficients of the models in Experiments 1 to 3.
 

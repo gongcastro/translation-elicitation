@@ -4,12 +4,12 @@ project:
     - docs/appendix.qmd
 
 format:
-  apaquarto-typst:
-    mask: false
-  # apaquarto-docx: default
+  apaquarto-typst: default
+  # apaquarto-pdf: default
+  apaquarto-docx: default
 
-title: "The role of cognateness in native spoken word recognition"
-shorttitle: "Cognateness and recognition of foreign words"
+title: The role of cognateness in native spoken word recognition
+shorttitle: Cognateness and recognition of foreign words
 keywords:
   - spoken word recognition
   - phonology
@@ -17,6 +17,7 @@ keywords:
   - language processing
   - nonnative speech
   - lexical processing
+
 floatsintext: true
 numbered-lines: true
 mask: false
@@ -29,9 +30,9 @@ knitr:
 author-note:
   disclosures:
     data-sharing: |
-      All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm/?view_only=751d6ab27ffd4dd4856e4c07c4372991) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general](https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general)).
+      All materials, data, and code used in this study are hosted in the Open Science Framework [https://osf.io/9fjxm](https://osf.io/9fjxm) and a GitHub repository [https://github.com/gongcastro/translation-elicitation.git](https://github.com/gongcastro/translation-elicitation.git), along with additional notes. For reproducibility, a Docker image of the RStudio session is available on DockerHub ([https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general](https://hub.docker.com/repository/docker/gongcastro/translation-elicitation/general)).
     financial-support: |
-      This study was supported by the Spanish Ministry for Science and Innovation and State Research Agency (Project PGC2018-101831-B-I00 financed by Spanish Ministry of Science Innovation and Universities (MCIU), Spanish Research Agency (AEI) and the European Regional Development Fund (ERDF), and by the Economic and Social Research Council (ESRC) (ES/S010947/1, UK). GGC was supported by a FPI research contract (PRE2019-088165). NSG was supported by an ICREA Academia 2019 award from the Catalan Institution for Research and Advanced Studies (ICREA). 
+      This study was supported by the Spanish Ministry for Science and Innovation and State Research Agency (Project PGC2018-101831-B-I00 financed by Spanish Ministry of Science Innovation and Universities (MCIU), Spanish Research Agency (AEI) and the European Regional Development Fund (ERDF), and by the Economic and Social Research Council (ESRC) (ES/S010947/1, UK). GGC was supported by a FPI research contract (PRE2019-088165). NSG was supported by grants from Spanish Ministry (Project PID2024-155658NB-I00 LADIBIS (Effects of language distance in bilinguals speech perception) financed by MICIU/AEI/10.13039/501100011033/FEDER, UE, the Catalan Government (SGR 2021–00911) and from Institució Catalana de Recerca i Estudis Avançats (ICREA Acadèmia 2023).
     conflict-of-interest: |
       The authors declare no conflicts of interest with regard to the funding source of this study.
     gratitude: |
@@ -44,14 +45,22 @@ author:
     orcid: 0000-0002-8553-4209
     email: gonzalo.garcia@sjd.es
     affiliations:
+      - id: cbc
+        name: Universitat Pompeu Fabra
+        department: Center for Brain and Cognition^[Edifici Mercè Rodereda, Jaume I Building, Carrer de Ramon Trias Fargas, 25, Sant Martí, 08018 Barcelona]
+        city: Barcelona, 08005
       - id: sjd
         name: NeuroDevelopment and Comparative Cognition
         department: Institut de Recerca Sant Joan de Déu
         city: Esplugues de Llobregat, 08950
-      - id: cbc
-        name: Universitat Pompeu Fabra
-        department: Center for Brain and Cognition
-        city: Barcelona, 08005
+    role:
+      - conceptualization
+      - investigation
+      - formal analysis
+      - methodology
+      - software
+      - visualization
+      - writing
   - name: Serene Siow
     orcid: 0000-0001-6482-2191
     email: s.siow@nus.edu.sg
@@ -61,22 +70,43 @@ author:
         name: University of Oxford
         department: Department of Experimental Psychology
         city: Oxford, OX2 6GG
+    role:
+      - conceptualization
+      - investigation
+      - methodology
+      - writing
+      - editing
   - name: Kim Plunkett
     orcid: 0000-0003-0216-7480
     email: kim.plunkett@psy.ox.ac.uk
     affiliations: 
       - ref: uo 
+    role:
+      - conceptualization
+      - investigation
+      - methodology
+      - supervision
+      - editing
+      - funding acquisition
   - name: Nuria Sebastian-Galles
     orcid: 0000-0001-6938-2498
     email: nuria.sebastian@upf.edu
     affiliations: 
       - ref: cbc
+    role:
+      - conceptualization
+      - investigation
+      - methodology
+      - supervision
+      - editing
+      - funding acquisition
 
-bibliography: "references.bib"
+bibliography: docs/references.bib
+csl: docs/apa.csl
 link-citations: true
 editor: source
 lang: en
-freeze: false
+freeze: true
 fig-dpi: 800
 echo: false
 warning: false

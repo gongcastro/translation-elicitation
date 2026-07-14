@@ -68,7 +68,7 @@ list(
   tar_target(stimuli_file, write_csv(stimuli, here("out", "stimuli.csv"))),
 
   # experiment responses -----------------------------------------------------
-  tar_file(
+  tar_target(
     exp_raw_files,
     list.files(here("data", "raw", "experiment"), full.names = TRUE),
   ),
@@ -86,7 +86,7 @@ list(
   ),
 
   # questionnaire responses --------------------------------------------------
-  tar_files(
+  tar_target(
     que_raw_files,
     list.files(
       here("data", "raw", "questionnaire"),
@@ -162,9 +162,9 @@ list(
       "exp_1_m0",
       correct ~
         freq_zipf_2_std +
-          neigh_n_h_std * lv_std +
-          group +
-          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+        neigh_n_h_std * lv_std +
+        group +
+        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_1
     )
@@ -177,8 +177,8 @@ list(
       "exp_2_m0",
       correct ~
         freq_zipf_2_std +
-          neigh_n_h_std * lv_std +
-          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+        neigh_n_h_std * lv_std +
+        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_2
     )
@@ -191,9 +191,9 @@ list(
       "exp_3_m0",
       correct ~
         freq_zipf_2_std +
-          neigh_n_h_std * lv_std +
-          group +
-          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+        neigh_n_h_std * lv_std +
+        group +
+        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_3
     )
@@ -204,9 +204,9 @@ list(
       "exp_3_m1",
       correct ~
         freq_zipf_2_std +
-          neigh_n_h_std * lv_std +
-          group +
-          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+        neigh_n_h_std * lv_std +
+        group +
+        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = filter(dataset_3, !knowledge)
     )
@@ -217,8 +217,8 @@ list(
       "exp_12_m0",
       correct ~
         freq_zipf_2_std +
-          neigh_n_h_std * lv_std * experiment +
-          (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
+        neigh_n_h_std * lv_std * experiment +
+        (1 + freq_zipf_2_std + neigh_n_h_std * lv_std | participant_id),
       prior = model_prior,
       data = dataset_12
     )
