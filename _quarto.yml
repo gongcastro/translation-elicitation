@@ -1,15 +1,23 @@
 project:
   render:
-    - docs/manuscript.qmd
-    - docs/appendix.qmd
+    - docs/index.qmd
 
 format:
-  apaquarto-typst: default
-  # apaquarto-pdf: default
+  apaquarto-typst:
+    mainfont: Times New Roman
+    codefont: Fira Code
   apaquarto-docx: default
 
 title: The role of cognateness in native spoken word recognition
 shorttitle: Cognateness and recognition of foreign words
+
+abstract: |
+  Homophonic translation is a popular perceptual phenomenon by which non-native speech activates words or phrases in a listener's native language. In this study, we characterise homophonic translation from a language processing perspective for the first time. Across three studies, English and Spanish-native monolingual adults completed a translation el
+  icitation task in which participants listened to words in an unfamiliar language (Catalan or Spanish), and were asked to type their best-guess translation in their native language. Our findings suggest that that listening to speech in an unfamiliar language triggers equivalent dynamics of lexical selection than native speech. In particular, phonological similarity between the presented words and their correct translations interacted with phonological neighbourhood density: participants correctly translated words with high phonological similarity with their correct translation only when few other words in the native language shared phonological similarity with the presented word.
+
+impact-statement: |
+  We provide the first language processing account of homophonic translation. Auditory speech in an unfamiliar language engages similar dynamics of lexical activation and selection as native speech comprehension. Listeners of speech in an unfamiliar language show a remarkable ability to exploit phonological simlarity to provide correct word translations in their native language.
+
 keywords:
   - spoken word recognition
   - phonology
@@ -17,15 +25,6 @@ keywords:
   - language processing
   - nonnative speech
   - lexical processing
-
-floatsintext: true
-numbered-lines: true
-mask: false
-suppress-title-page: true
-word-count: true
-knitr:
-  opts_chunk:
-    fig.path: img/
 
 author-note:
   disclosures:
@@ -38,21 +37,14 @@ author-note:
     gratitude: |
       We are grateful to Irina Lepadatu and Nicola Gillen, and to the Speech Acquisition and Perception research group for their helpful feedback. We thank Xavier Mayoral, Silvia Blanch, Pamela Miller, and Cristina Cuadrado for their technical support. We also thank all participants who took part in the experiments.
 
-
-author:
+authors:
   - name: Gonzalo Garcia-Castro
     corresponding: true
     orcid: 0000-0002-8553-4209
     email: gonzalo.garcia@sjd.es
     affiliations:
-      - id: cbc
-        name: Universitat Pompeu Fabra
-        department: Center for Brain and Cognition^[Edifici Mercè Rodereda, Jaume I Building, Carrer de Ramon Trias Fargas, 25, Sant Martí, 08018 Barcelona]
-        city: Barcelona, 08005
-      - id: sjd
-        name: NeuroDevelopment and Comparative Cognition
-        department: Institut de Recerca Sant Joan de Déu
-        city: Esplugues de Llobregat, 08950
+      - ref: cbc
+      - ref: sjd
     role:
       - conceptualization
       - investigation
@@ -63,13 +55,10 @@ author:
       - writing
   - name: Serene Siow
     orcid: 0000-0001-6482-2191
-    email: s.siow@nus.edu.sg
+    email: siow.serene@gmail.com
     affiliations: 
       - ref: uo
-        id: uo
-        name: University of Oxford
-        department: Department of Experimental Psychology
-        city: Oxford, OX2 6GG
+      - ref: su
     role:
       - conceptualization
       - investigation
@@ -101,12 +90,42 @@ author:
       - editing
       - funding acquisition
 
-bibliography: docs/references.bib
+affiliations:
+  - id: cbc
+    name: Universitat Pompeu Fabra
+    department: Center for Brain and Cognition, Edifici Mercè Rodereda, Jaume I Building, Carrer de Ramon Trias Fargas, 25, Sant Martí, 08018 Barcelona
+    city: Barcelona, 08005
+    country: Spain
+  - id: sjd
+    name: NeuroDevelopment and Comparative Cognition
+    department: Institut de Recerca Sant Joan de Déu
+    city: Esplugues de Llobregat, 08950
+    country: Spain
+  - id: uo
+    name: University of Oxford
+    department: Department of Experimental Psychology
+    city: Oxford, OX2 6GG
+    country: United Kingdom
+  - id: su
+    name: Sunway University
+    department: School of Psychology
+    city: 47500 Selangor Darul Ehsan
+    country: Malaysia
+
+bibliography: docs/bibliography.bib
 csl: docs/apa.csl
 link-citations: true
 editor: source
 lang: en
-freeze: true
+freeze: auto
 fig-dpi: 800
 echo: false
 warning: false
+
+floatsintext: true
+numbered-lines: true
+mask: false
+word-count: true
+knitr:
+  opts_chunk:
+    fig.path: img/

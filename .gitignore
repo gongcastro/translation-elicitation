@@ -22,10 +22,15 @@ docs/*.pdf
 docs/arxiv.sty
 docs/orcidlink.sty
 docs/nul
+docs/*.docx
+docs/*.pdf
+docs/*.typst
+
 nul
 img/*.png
 img/*.svg
 img/*.pdf
+img/*.png
 sounds/*.wav
 
 # History files
